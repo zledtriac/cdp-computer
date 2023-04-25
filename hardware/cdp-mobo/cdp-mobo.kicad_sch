@@ -1,0 +1,89 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid 5e8f1c57-6ce0-4aa7-bada-f0190b6e7e82)
+
+  (paper "A4")
+
+  (title_block
+    (title "CDP1802 MOBO")
+    (date "2023-04-25")
+    (rev "1")
+    (company "ZLED")
+  )
+
+  (lib_symbols
+  )
+
+
+  (sheet (at 137.795 19.05) (size 37.465 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 1294e385-324f-4edc-bdc4-6489bda9850d)
+    (property "Sheetname" "DMA interface" (at 137.795 18.3384 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-dmaif.kicad_sch" (at 137.795 37.4146 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-mobo"
+        (path "/5e8f1c57-6ce0-4aa7-bada-f0190b6e7e82" (page "5"))
+      )
+    )
+  )
+
+  (sheet (at 17.78 19.05) (size 37.465 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 35788137-8835-4a7a-ae9e-3754631fc33d)
+    (property "Sheetname" "CPU and memories" (at 17.78 18.3384 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-cpu.kicad_sch" (at 17.78 37.4146 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-mobo"
+        (path "/5e8f1c57-6ce0-4aa7-bada-f0190b6e7e82" (page "2"))
+      )
+    )
+  )
+
+  (sheet (at 57.785 19.05) (size 37.465 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 62ffb8b7-b86e-44cd-ac7b-06226bdbda9f)
+    (property "Sheetname" "Connectors" (at 57.785 18.3384 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-connectors.kicad_sch" (at 57.785 37.4146 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-mobo"
+        (path "/5e8f1c57-6ce0-4aa7-bada-f0190b6e7e82" (page "3"))
+      )
+    )
+  )
+
+  (sheet (at 97.79 19.05) (size 37.465 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid f5e45a71-d3db-4150-93a3-ada6e4699520)
+    (property "Sheetname" "Oscillator" (at 97.79 18.3384 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-oscillator.kicad_sch" (at 97.79 37.4146 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-mobo"
+        (path "/5e8f1c57-6ce0-4aa7-bada-f0190b6e7e82" (page "4"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)

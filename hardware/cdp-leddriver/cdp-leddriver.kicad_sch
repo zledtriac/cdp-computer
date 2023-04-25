@@ -1,0 +1,89 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid 79ddae9e-e34b-45d2-839a-57367545b266)
+
+  (paper "A4")
+
+  (title_block
+    (title "LED driver and stepper board")
+    (date "2023-04-25")
+    (rev "1")
+    (company "ZLED")
+  )
+
+  (lib_symbols
+  )
+
+
+  (sheet (at 21.59 22.86) (size 35.56 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 2203823f-3cf9-45e4-bd76-1eeb6b184e52)
+    (property "Sheetname" "FlipFlops" (at 21.59 22.1484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-flipflops.kicad_sch" (at 21.59 41.2246 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-leddriver"
+        (path "/79ddae9e-e34b-45d2-839a-57367545b266" (page "2"))
+      )
+    )
+  )
+
+  (sheet (at 135.89 22.86) (size 35.56 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 7833159b-d5f0-4640-9291-1bf827f87e96)
+    (property "Sheetname" "Low speed oscillator" (at 135.89 22.1484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-lsoscillator.kicad_sch" (at 135.89 41.2246 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-leddriver"
+        (path "/79ddae9e-e34b-45d2-839a-57367545b266" (page "5"))
+      )
+    )
+  )
+
+  (sheet (at 59.69 22.86) (size 35.56 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid d9829c0d-aab0-4a5f-9619-a75e3b85a7cb)
+    (property "Sheetname" "Connectors" (at 59.69 22.1484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-connectors.kicad_sch" (at 59.69 41.2246 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-leddriver"
+        (path "/79ddae9e-e34b-45d2-839a-57367545b266" (page "3"))
+      )
+    )
+  )
+
+  (sheet (at 97.79 22.86) (size 35.56 17.78) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid e4fb5f57-91b6-4601-83b7-25fdb1b2a277)
+    (property "Sheetname" "Stepper" (at 97.79 22.1484 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-stepper.kicad_sch" (at 97.79 41.2246 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-leddriver"
+        (path "/79ddae9e-e34b-45d2-839a-57367545b266" (page "4"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)
