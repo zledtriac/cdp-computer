@@ -2177,7 +2177,7 @@
     (property "Reference" "D11" (at 94.615 158.75 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "BT149D" (at 94.615 161.29 0)
+    (property "Value" "BT169D" (at 94.615 161.29 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Package_TO_SOT_THT:TO-92L_Inline_Wide" (at 91.44 159.385 90)

@@ -1,0 +1,82 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid 479e9a3e-8705-41df-8009-7e8503809f49)
+
+  (paper "A4")
+
+  (lib_symbols
+  )
+
+
+  (sheet (at 115.57 33.02) (size 40.005 21.59) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 03dab4a8-d44b-4cf8-b119-6efcff8953b4)
+    (property "Sheetname" "PortC" (at 115.57 32.3084 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-portc.kicad_sch" (at 115.57 55.1946 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-io"
+        (path "/479e9a3e-8705-41df-8009-7e8503809f49" (page "4"))
+      )
+    )
+  )
+
+  (sheet (at 30.48 33.02) (size 40.005 21.59) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 05095c2f-eeee-4b53-a55c-38329025afd6)
+    (property "Sheetname" "PortA" (at 30.48 32.3084 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-porta.kicad_sch" (at 30.48 55.1946 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-io"
+        (path "/479e9a3e-8705-41df-8009-7e8503809f49" (page "2"))
+      )
+    )
+  )
+
+  (sheet (at 158.115 33.02) (size 40.005 21.59) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid 2897f7b5-ac5b-4028-af58-49b2a25964b0)
+    (property "Sheetname" "Connectors" (at 158.115 32.3084 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-connectors.kicad_sch" (at 158.115 55.1946 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-io"
+        (path "/479e9a3e-8705-41df-8009-7e8503809f49" (page "5"))
+      )
+    )
+  )
+
+  (sheet (at 73.025 33.02) (size 40.005 21.59) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid f2f2e87f-81b0-49e1-b285-4bb1f98f04a0)
+    (property "Sheetname" "PortB" (at 73.025 32.3084 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-portb.kicad_sch" (at 73.025 55.1946 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-io"
+        (path "/479e9a3e-8705-41df-8009-7e8503809f49" (page "3"))
+      )
+    )
+  )
+
+  (sheet_instances
+    (path "/" (page "1"))
+  )
+)
