@@ -76,6 +76,23 @@
     )
   )
 
+  (sheet (at 200.66 33.02) (size 40.005 21.59) (fields_autoplaced)
+    (stroke (width 0.1524) (type solid))
+    (fill (color 0 0 0 0.0000))
+    (uuid fc5dd19a-450f-4ce7-af21-025e7154e993)
+    (property "Sheetname" "Controller" (at 200.66 32.3084 0)
+      (effects (font (size 1.27 1.27)) (justify left bottom))
+    )
+    (property "Sheetfile" "cdp-controller.kicad_sch" (at 200.66 55.1946 0)
+      (effects (font (size 1.27 1.27)) (justify left top))
+    )
+    (instances
+      (project "cdp-io"
+        (path "/479e9a3e-8705-41df-8009-7e8503809f49" (page "6"))
+      )
+    )
+  )
+
   (sheet_instances
     (path "/" (page "1"))
   )
