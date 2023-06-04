@@ -1795,7 +1795,7 @@
     (property "Value" "74LS14" (at 121.285 60.325 0)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "" (at 121.285 65.405 0)
+    (property "Footprint" "Package_DIP:DIP-14_W7.62mm_Socket" (at 121.285 65.405 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "http://www.ti.com/lit/gpn/sn74LS14" (at 121.285 65.405 0)
