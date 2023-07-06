@@ -4,6 +4,13 @@
 
   (paper "A4")
 
+  (title_block
+    (title "Root")
+    (date "2023-07-06")
+    (rev "1")
+    (company "ZLED")
+  )
+
   (lib_symbols
   )
 

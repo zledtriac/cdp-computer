@@ -4,6 +4,13 @@
 
   (paper "A4")
 
+  (title_block
+    (title "Port A")
+    (date "2023-07-06")
+    (rev "1")
+    (company "ZLED")
+  )
+
   (lib_symbols
     (symbol "74xx:74LS14" (pin_names (offset 1.016)) (in_bom yes) (on_board yes)
       (property "Reference" "U" (at 0 1.27 0)
