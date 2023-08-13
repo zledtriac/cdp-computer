@@ -173,10 +173,17 @@ PRINT
     sep FCALL_REG   ;call SERIAL_SEND
     br PRINT
 ;----------------------------------------------
-    
+
+BACKSPACE_ACTION
+    db 8, 32, 8, 0
 ;-READ LINE------------------------------------
 ;-WHERE TO READ-R7-----------------------------
+;-R8.1-Character counter-------------------------
 READLINE
+    ldi 0
+    plo R8
+    
+READLINE_LOOP
     ldi SERIAL_READ_START.0     ;prepare calling SERIAL_READ
     plo CALL_REG
     ldi SERIAL_READ_START.1
@@ -187,8 +194,8 @@ READLINE
     sep FCALL_REG       ;call SERIAL_READ
     
     ghi R5              ;get the result of SERIAL_READ
-    xri 13              ;check if it is 13, (ENTER KEY)
-    bnz STORE_CHAR      ;if not jump to STORE_CHAR
+    xri 13              ;check if it is 13 (ENTER KEY)
+    bnz READLINE_BACKSPACE      ;if not jump to READLINE_BACKSPACE
     
 END_LINE
     ldi 00h             ;put 0 to the endof the string
@@ -210,10 +217,42 @@ END_LINE
     
     sep RETURN          ;RETURN from READLINE
     
+READLINE_BACKSPACE
+    ghi R5              ;get the result of SERIAL_READ
+    xri 127             ;check if it is 127 (DEL)
+    bnz STORE_CHAR      ;if not jump to STORE_CHAR
+    
+    glo R8
+    bz READLINE_LOOP
+    
+    ldi BACKSPACE_ACTION.0      ;load the address of the backspace action
+    plo R6
+    ldi BACKSPACE_ACTION.1
+    phi R6
+    
+    ldi PRINT.0                 ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT
+    
+    dec R7
+    dec R8
+    
+    br READLINE_LOOP
+    
 STORE_CHAR
+    glo R8
+    xri 0FFh
+    bz READLINE_LOOP
+    
     ghi R5              ;get the result of the SERIAL_READ again
     str R7              ;store it where R7 pointing
     inc R7              ;increment R7
+    inc R8
     
     phi R4              ;load the result to R4 to Echo it back
     
@@ -225,7 +264,7 @@ STORE_CHAR
     ldi FCALL.0
     plo FCALL_REG
     sep FCALL_REG       ;call SERIAL_SEND
-    br READLINE
+    br READLINE_LOOP
 ;----------------------------------------------
 
 ;-STR COMPARATOR-------------------------------
@@ -529,7 +568,7 @@ TRY_SUBTRACTING         ;try subtracting
     glo R9
     bnz TRY_SUBTRACTING
     
-    bnf NEXT_BIT        ;if subtracting unsuccesful, jump to NEXT_BIT
+    lbnf NEXT_BIT        ;if subtracting unsuccesful, jump to NEXT_BIT
     
     glo STACK_REG
     adi 5
@@ -583,7 +622,7 @@ SUBTRACT_FOR_REAL
     
     dec R9
     glo R9
-    bnz SUBTRACT_FOR_REAL
+    lbnz SUBTRACT_FOR_REAL
     
 NEXT_BIT
     glo STACK_REG    ;restore subtractor pointer to R5 and set it to MSB
@@ -782,7 +821,7 @@ INTEGER_MUL_LOOP
     dec R5
     dec R5
     
-    bz INTEGER_MUL_END      ;if 0 then jump to the end
+    lbz INTEGER_MUL_END      ;if 0 then jump to the end
     
     ldn R5                  ;load the multiplier's LSB
     ani 1                   ;filter for the LSb
@@ -869,9 +908,9 @@ INTEGER_MUL_SHMULTIPLICAND
 
     dec R7
     glo R7
-    bnz INTEGER_MUL_SHMULTIPLICAND
+    lbnz INTEGER_MUL_SHMULTIPLICAND
     
-    br INTEGER_MUL_LOOP
+    lbr INTEGER_MUL_LOOP
     
 INTEGER_MUL_END
     glo STACK_REG
@@ -1170,7 +1209,7 @@ PRINT_DEC_MAIN_LOOP
     or
     
     bz PRINT_DEC_END
-    br PRINT_DEC_MAIN_LOOP
+    lbr PRINT_DEC_MAIN_LOOP
 
 PRINT_DEC_END
     glo R10
@@ -1537,7 +1576,7 @@ TERM_MAIN
     lbz TERM_NEXT_CYCLE
     ldn R4
     xri 42
-    bz TERM_MULTIPLY
+    lbz TERM_MULTIPLY
     ldn R4
     xri 47
     bz TERM_DIVIDE
@@ -1643,7 +1682,7 @@ TERM_DIVIDE
     adci 0
     phi STACK_REG
 
-    br TERM_MAIN
+    lbr TERM_MAIN
     
 TERM_MULTIPLY
     inc R4
