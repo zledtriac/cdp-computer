@@ -925,14 +925,24 @@ INTEGER_MUL_END
 
 ;-PRINT HEX------------------------------------
 ;-R4-int pointer-------------------------------
-;-R5.0-number of digits, R5.1-flag-------------
+;-R5.0-number of digits------------------------
+;-Local registers------------------------------
+;-R5.1-flag, R6--------------------------------
 HEX_CHARS
     db "0123456789ABCDEF"
 ;----------------------------------------------
 PRINT_HEX
     sex STACK_REG
     
-    inc R4
+    ghi R5  ;saving the state of the local registers
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    inc R4  ;making a copy of the Integer
     inc R4
     inc R4
     
@@ -951,24 +961,24 @@ PRINT_HEX
     ldi 0   ;+1 
     stxd
     
-    glo STACK_REG
+    glo STACK_REG   ;set R4 to point to the Integer
     plo R4
     ghi STACK_REG
     phi R4
     inc R4
     inc R4
     
-    ldi 0
+    ldi 0           ;set R5 flags to 0
     phi R5
-    glo R5
+    glo R5              
     bnz PRINT_UNTIL_R
-    ldi 1
+    ldi 1           ;if R5 low, the number of digits, is zero, then set R5 flag
     phi R5
 
 PRINT_UNTIL_R
-    ghi R5
-    bz PRINT_CHECK_DIGIT
-    sex R4
+    ghi R5                  ;check the flag if set or not
+    bz PRINT_CHECK_DIGIT    
+    sex R4              ;checking the integer if it's zero
     ldi 0
     or
     irx
@@ -984,6 +994,7 @@ PRINT_UNTIL_R
     
     sex STACK_REG    
     bnz PRINT_DIGIT_LOOP
+    br PRINT_HEX_END
     
 PRINT_CHECK_DIGIT
     glo R5
@@ -1034,7 +1045,10 @@ PRINT_HEX_SHIFT_LOOP1
     glo R6
     bnz PRINT_HEX_SHIFT_LOOP1
     
+    ghi R5      ;check if R5 flag is set, if set then skip decrementing.
+    lsnz
     dec R5
+    nop
     br PRINT_UNTIL_R
 
 PRINT_HEX_END
@@ -1054,11 +1068,19 @@ PRINT_HEX_END
     sep FCALL_REG
     
     glo R6
-    adi 3
+    adi 4
     plo STACK_REG
     ghi R6
     adci 0
     phi STACK_REG
+    
+    sex STACK_REG   ;restore local registers
+    ldxa
+    plo R6
+    ldxa
+    phi R6
+    ldx
+    phi R5
     
     sep RETURN
 ;----------------------------------------------
@@ -2029,6 +2051,667 @@ EXPRESSION_END
     sep RETURN
 ;----------------------------------------------
 
+;-HEXVIEWER------------------------------------
+;-R4-Start address-----------------------------
+;-R5-Count-------------------------------------
+HEX_BASE_SRT
+    db "\r\nBase address: 0x",0
+HEX_HEADER_STR
+    db "\r\n\r\nOffset  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  String\r\n"
+    db         "-------------------------------------------------------------------------\r\n",0
+;              "0000:   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................"
+HEX_LINECNT_SEPARATOR
+    db ":   ",0
+    
+HEXVIEWER
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    ghi R4
+    stxd
+    glo R4
+    stxd    ;+17 current address
+    
+    ldi 0
+    stxd
+    stxd
+    ghi R4
+    stxd
+    glo R4
+    stxd    ;+13 start address
+    
+    ldi 0
+    stxd
+    stxd
+    ghi R5
+    stxd
+    glo R5
+    stxd    ;+9 last address
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd    ;+5 line counter
+    
+    stxd
+    stxd
+    stxd
+    stxd    ;+1 temp for hex digits
+    
+    glo STACK_REG
+    adi 13
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG
+    adi 9
+    plo R6
+    ghi STACK_REG
+    adci 0
+    phi R6
+    
+    sex R4
+    
+    glo R5      ;adding R5 value to start address and store it to last address
+    add
+    str R6
+    irx
+    inc R6
+    ghi R5
+    adc
+    str R6
+    irx
+    inc R6
+    ldi 0
+    adc
+    str R6
+    
+    ldi HEX_BASE_SRT.0     ;prepare to print base address
+    plo R6
+    ldi HEX_BASE_SRT.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG       ;prepare to print the address in hex
+    adi 13
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi 4               ;with 4 digits
+    plo R5
+    
+    ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi HEX_HEADER_STR.0     ;prepare to print the header
+    plo R6
+    ldi HEX_HEADER_STR.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+HEXVIEWER_MAINLOOP
+    glo STACK_REG       ;prepare to print the first address in hex
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi 4               ;with 4 digits
+    plo R5
+    
+    ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi HEX_LINECNT_SEPARATOR.0     ;prepare to print address separator
+    plo R6
+    ldi HEX_LINECNT_SEPARATOR.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi 16      ;set R8 low to 16 for counting the bytes
+    plo R8
+   
+HEXVIEWER_PRINT_HEX_LOOP
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG       ;set R5 pointer to last address
+    adi 9
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+
+    sex R4          ;check if current address is >= last address
+    
+    lda R5
+    sd
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    ldn R5
+    sdb
+    
+    bpz HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
+
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    lda R4              ;get current address and load it in R5
+    plo R5
+    lda R4
+    phi R5
+    
+    ldn R5              ;get data from R5 address
+    plo R5              ;store data in R5 low
+    
+    glo STACK_REG       ;set R4 pointer to temp
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+    
+    glo R5              ;get data from R5 low
+    str R4              ;store data to temp
+   
+    ldi 2
+    plo R5              ;set R5 low to 2 digits
+    
+    ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    br HEXVIEWER_NEXT_HEX
+    
+HEXVIEWER_PRINT_HEX_SPACES
+    ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
+    plo R6
+    ldi HEX_LINECNT_SEPARATOR+2.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+HEXVIEWER_NEXT_HEX
+    ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+    plo R6
+    ldi HEX_LINECNT_SEPARATOR+3.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    sex R4
+    ldi 1
+    add
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    
+    dec R8
+    glo R8
+    lbnz HEXVIEWER_PRINT_HEX_LOOP
+    
+    ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+    plo R6
+    ldi HEX_LINECNT_SEPARATOR+3.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG       ;set R5 pointer to start address
+    adi 13
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    sex R5
+    
+    ldxa
+    str R4
+    inc R4
+    
+    ldxa
+    str R4
+    inc R4
+    
+    ldxa
+    str R4
+    inc R4
+    
+    ldxa
+    str R4
+    
+    ldi 16      ;set R8 low to 16 for counting the bytes
+    plo R8
+
+HEXVIEWER_PRINT_STR_LOOP
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG       ;set R5 pointer to last address
+    adi 9
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+
+    sex R4          ;check if current address is <= last address
+    
+    lda R5
+    sd
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    ldn R5
+    sdb
+    
+    bpz HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
+    
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    lda R4              ;get current address and load it in R5
+    plo R5
+    lda R4
+    phi R5
+    
+    ldn R5              ;get data from R5 address
+    plo R5              ;store data in R5 low
+    
+    smi 32
+    bm HEXVIEWER_PRINT_STR_DOT
+    smi 95
+    bpz HEXVIEWER_PRINT_STR_DOT
+    
+    glo R5
+    phi R4
+    
+    ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+    plo CALL_REG
+    ldi SERIAL_SEND_START.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    br HEXVIEWER_NEXT_STR
+    
+HEXVIEWER_PRINT_STR_DOT
+    ldi 46
+    phi R4
+    
+    ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+    plo CALL_REG
+    ldi SERIAL_SEND_START.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    br HEXVIEWER_NEXT_STR
+
+HEXVIEWER_PRINT_STR_SPACE
+    ldi 32
+    phi R4
+    
+    ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+    plo CALL_REG
+    ldi SERIAL_SEND_START.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+HEXVIEWER_NEXT_STR
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    sex R4
+    ldi 1
+    add
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    
+    dec R8
+    glo R8
+    bnz HEXVIEWER_PRINT_STR_LOOP
+    
+    ldi NEW_LINE.0     ;prepare to print a space
+    plo R6
+    ldi NEW_LINE.1
+    phi R6
+	
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG       ;set R5 pointer to last address
+    adi 9
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+
+    sex R4          ;check if current address is >= last address
+    
+    lda R5
+    sd
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    lda R5
+    sdb
+    irx
+    
+    ldn R5
+    sdb
+    
+    bpz HEXVIEWER_END
+    
+    glo STACK_REG       ;set R4 pointer to line counter
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    sex R4
+    
+    ldi 16
+    add
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    irx
+    
+    ldi 0
+    adc
+    str R4
+    
+    glo STACK_REG       ;set R4 pointer to current address
+    adi 17
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG       ;set R5 pointer to start address
+    adi 13
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    sex R4
+    
+    ldxa
+    str R5
+    inc R5
+    
+    ldxa
+    str R5
+    inc R5
+    
+    ldxa
+    str R5
+    inc R5
+    
+    ldxa
+    str R5
+    
+    lbr HEXVIEWER_MAINLOOP
+
+HEXVIEWER_END
+    glo STACK_REG
+    adi 20
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-HEXVIEW_CALLER-------------------------------
+HEXVIEW_CALLER
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd    ;+1 result
+    
+    ldi INPUT_BUFF.0
+    plo R4
+    ldi INPUT_BUFF.1
+    phi R4
+    
+HEXVIEW_CALLER_GOTOZERO
+    lda R4
+    bnz HEXVIEW_CALLER_GOTOZERO
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R5
+    plo R4
+    lda R5
+    phi R4
+    
+    ldi 0
+    plo R5
+    ldi 1
+    phi R5
+    
+    ldi HEXVIEWER.0
+    plo CALL_REG
+    ldi HEXVIEWER.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG
+    adi 4
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-TEST FUNCTION--------------------------------
 TEST_STR1
     db "Result: ",0
@@ -2047,6 +2730,10 @@ FUNC_TEST
     ldi INPUT_BUFF.1
     phi R4
     
+FUNC_TEST_GOTOZERO
+    lda R4
+    bnz FUNC_TEST_GOTOZERO
+    
     glo STACK_REG
     plo R5
     ghi STACK_REG
@@ -2062,20 +2749,6 @@ FUNC_TEST
     plo FCALL_REG
     sep FCALL_REG
     
-    ldi TEST_STR1.0
-    plo R6
-    ldi TEST_STR1.1
-    phi R6
-	
-    ldi PRINT.0     ;prepare to call PRINT
-    plo CALL_REG
-    ldi PRINT.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG   ;call PR
-    
     glo STACK_REG
     plo R4
     ghi STACK_REG
@@ -2085,14 +2758,28 @@ FUNC_TEST
     ldi 8
     plo R5
     
-    ldi PRINT_DEC.0     ;prepare to call PRINT
+    ldi PRINT_HEX.0     ;prepare to print the Decimal result.
     plo CALL_REG
-    ldi PRINT_DEC.1
+    ldi PRINT_HEX.1
     phi CALL_REG
     
     ldi FCALL.0
     plo FCALL_REG
-    sep FCALL_REG 
+    sep FCALL_REG
+    
+    ldi NEW_LINE.0  ;print newline
+    plo R6
+    ldi NEW_LINE.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
     
     glo STACK_REG
     adi 4
@@ -2100,6 +2787,96 @@ FUNC_TEST
     ghi STACK_REG
     adci 0
     phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-COMMAND-CHECK--------------------------------
+;-R4-input string------------------------------
+COMMAND_CHECK
+    ldi COMMAND_FUNC_LIST.0
+    plo R5
+    ldi COMMAND_FUNC_LIST.1
+    phi R5
+    
+    ldi COMMAND_LIST.0
+    plo R9
+    ldi COMMAND_LIST.1
+    phi R9
+    
+    glo R4
+    plo R8
+    ghi R4
+    phi R8
+    
+COMMAND_CHECK_GOTOSPACE
+    lda R8
+    bz COMMAND_CHECK_INSERTZERO
+    xri 32
+    bz COMMAND_CHECK_REPLACESPACE
+    br COMMAND_CHECK_GOTOSPACE
+    
+COMMAND_CHECK_REPLACESPACE
+    dec R8
+COMMAND_CHECK_INSERTZERO
+    str R8
+    
+COMMAND_CHECK_LOOP
+    glo R4
+    plo R8
+    ghi R4
+    phi R8
+    
+    ldn R9
+    lbz COMMAND_CHECK_END
+
+    ldi STR_COMPARATOR.0
+    plo CALL_REG
+    ldi STR_COMPARATOR.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10
+    lbnz COMMAND_CHECK_EXEC
+    
+COMMAND_CHECK_STR_END
+    ldn R9
+    inc R9
+    bnz COMMAND_CHECK_STR_END
+    
+    inc R5
+    inc R5
+    lbr COMMAND_CHECK_LOOP
+    
+COMMAND_CHECK_EXEC
+    lda R5
+    plo CALL_REG
+    ldn R5
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    sep RETURN
+    
+COMMAND_CHECK_END
+    ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
+    plo R6
+    ldi UNKNOWN_COMMAND.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG   ;call PRINT
     
     sep RETURN
 ;----------------------------------------------
@@ -2136,9 +2913,14 @@ ASK_INPUT
     sep FCALL_REG       ;call READLINE
     
     ;Program goes here
-    ldi FUNC_TEST.0      ;prepare to call READLINE
+    ldi INPUT_BUFF.0
+    plo R4
+    ldi INPUT_BUFF.1
+    phi R4
+    
+    ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
     plo CALL_REG
-    ldi FUNC_TEST.1
+    ldi COMMAND_CHECK.1
     phi CALL_REG
     
     ldi FCALL.0
@@ -2170,8 +2952,13 @@ ASK_IN
     db "\r\n>",0
 NEW_LINE
     db "\r\n",0
-TEST_CMD
-    db "test",0
+COMMAND_LIST
+    db "print",0,"mem_view",0,0
+COMMAND_FUNC_LIST
+    db FUNC_TEST.0,FUNC_TEST.1
+    db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+UNKNOWN_COMMAND
+    db "Unknown command.\r\n",0
 TEST_RESP
     db "Everything is ok!",0
 
