@@ -1411,24 +1411,22 @@ READ_DEC_MAIN_LOOP
    
 READ_DEC_END
     glo STACK_REG
-    adi 7
-    plo R6
-    ghi STACK_REG
-    adci 0
-    phi R6
-    
-    ldn R6
-    plo R4
-    inc R6
-    ldn R6
-    phi R4
-
-    glo STACK_REG
-    adi 8
+    adi 5
     plo STACK_REG
     ghi STACK_REG
     adci 0
     phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R5
+    ldxa
+    phi R5
+    ldxa
+    plo R4
+    ldx
+    phi R4
     
     sep RETURN      ;RETURN    
 ;----------------------------------------------
@@ -1436,6 +1434,7 @@ READ_DEC_END
 ;-FACTOR---------------------------------------
 ;-R4-string pointer----------------------------
 ;-R5-result pointer----------------------------
+;-R10-result code------------------------------
 FACTOR
     sex STACK_REG
     
@@ -1450,25 +1449,22 @@ FACTOR
     stxd    ;+2 result pt
     
     ldi 0
-    stxd    ;+1 flag
+    stxd    ;+1 flag, indicates if the factor needs to be negated
     
     
 FACTOR_MAIN
     ldn R4
     xri 32
-    lbz FACTOR_NEXT_CYCLE
+    lbz FACTOR_NEXT_CYCLE       ;if ' '
     ldn R4
     xri 43
-    lbz FACTOR_NEXT_CYCLE
+    lbz FACTOR_NEXT_CYCLE       ;if '+'
     ldn R4
     xri 45
-    lbz FACTOR_NEGATE
+    lbz FACTOR_NEGATE           ;if '-'
     ldn R4
     xri 40
-    lbz FACTOR_PARENTHESIS
-    ldn R4
-    xri 41
-    lbz FACTOR_NEXT_CYCLE
+    lbz FACTOR_PARENTHESIS      ;if '('
     ldn R4
     smi 48
     lbnf FACTOR_END
@@ -1497,6 +1493,16 @@ FACTOR_PARENTHESIS
     ldi FCALL.0
     plo FCALL_REG
     sep FCALL_REG
+
+FACTOR_PARENTHESIS_SKIPSPACES
+    lda R4
+    xri 32
+    bz FACTOR_PARENTHESIS_SKIPSPACES
+    dec R4
+    
+    lda R4
+    xri 41
+    bz FACTOR_END
     
     lbr FACTOR_MAIN
     
@@ -1598,10 +1604,10 @@ TERM_MAIN
     lbz TERM_NEXT_CYCLE
     ldn R4
     xri 42
-    lbz TERM_MULTIPLY
+    lbz TERM_MULTIPLY       ;if '*'
     ldn R4
     xri 47
-    bz TERM_DIVIDE
+    bz TERM_DIVIDE          ;if '/'
     
     lbr TERM_END
     
@@ -1799,6 +1805,17 @@ TERM_NEXT_CYCLE
     
 TERM_END
     glo STACK_REG
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6
+    plo R5
+    lda R6
+    phi R5
+    
+    glo STACK_REG
     adi 4
     plo STACK_REG
     ghi STACK_REG
@@ -1814,17 +1831,23 @@ TERM_END
 EXPRESSION
     sex STACK_REG
     
-    ghi R4
+    ghi R4      ;R4 pointer to input string 
     stxd
     glo R4
-    stxd
+    stxd        ;+3 input string pointer
     
-    ghi R5
+    ghi R5      ;R5 pointer to result
     stxd
     glo R5
-    stxd
+    stxd        ;+1 result pointer
     
-    ldi TERM.0
+EXPRESSION_SKIPSPACES           ;skip spaces
+    lda R4
+    xri 32
+    bz EXPRESSION_SKIPSPACES
+    dec R4
+    
+    ldi TERM.0                  ;read TERM
     plo CALL_REG
     ldi TERM.1
     phi CALL_REG
@@ -1835,33 +1858,33 @@ EXPRESSION
     
 EXPRESSION_MAIN
     ldn R4
-    xri 32
+    xri 32                      ;if ' '
     lbz EXPRESSION_NEXT_CYCLE
     ldn R4
-    xri 43
+    xri 43                      ;if '+'
     bz EXPRESSION_ADD
     ldn R4
-    xri 45
-    bz EXPRESSION_SUB
+    xri 45                      ;if '-'
+    lbz EXPRESSION_SUB
     
     lbr EXPRESSION_END
     
 EXPRESSION_ADD
     inc R4
     
-    ldi 0
+    ldi 0               ;new result
     stxd
     stxd
     stxd
     stxd
     
-    glo STACK_REG
+    glo STACK_REG       ;set R5 pointer to new result
     plo R5
     ghi STACK_REG
     phi R5
     inc R5
     
-    ldi TERM.0
+    ldi TERM.0          ;read TERM
     plo CALL_REG
     ldi TERM.1
     phi CALL_REG
@@ -1870,33 +1893,33 @@ EXPRESSION_ADD
     plo FCALL_REG
     sep FCALL_REG
     
-    glo STACK_REG
+    glo STACK_REG       ; set R6 register to point to the input string pointer
     adi 7
     plo R6
     ghi STACK_REG
     adci 0
     phi R6
     
-    glo R4
+    glo R4              ;input string pointer = R4
     str R6
     inc R6
     ghi R4
     str R6
     
-    glo STACK_REG
+    glo STACK_REG       ;set R5 register to point to result
     plo R5
     ghi STACK_REG
     phi R5
     inc R5
     
-    glo STACK_REG
+    glo STACK_REG       ;set R6 register to point to the result pointer
     adi 5
     plo R6
     ghi STACK_REG
     adci 0
     phi R6
     
-    ldn R6
+    ldn R6              ;R4 = result pointer
     plo R4
     inc R6
     ldn R6
@@ -1908,7 +1931,7 @@ EXPRESSION_ADD
     shl
     plo R7
     
-EXPRESSION_ADD_LOOP
+EXPRESSION_ADD_LOOP     ;*result pointer += result;
     ldn R5
     adc
     str R4
@@ -2041,6 +2064,17 @@ EXPRESSION_NEXT_CYCLE
     lbr EXPRESSION_MAIN
     
 EXPRESSION_END
+    glo STACK_REG
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6
+    plo R5
+    lda R6
+    phi R5
+    
     glo STACK_REG
     adi 4
     plo STACK_REG
@@ -2247,7 +2281,7 @@ HEXVIEWER_PRINT_HEX_LOOP
     ldn R5
     sdb
     
-    bpz HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
+    lbdf HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
 
     glo STACK_REG       ;set R4 pointer to current address
     adi 17
@@ -2285,7 +2319,7 @@ HEXVIEWER_PRINT_HEX_LOOP
     plo FCALL_REG
     sep FCALL_REG
     
-    br HEXVIEWER_NEXT_HEX
+    lbr HEXVIEWER_NEXT_HEX
     
 HEXVIEWER_PRINT_HEX_SPACES
     ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
@@ -2653,15 +2687,6 @@ HEXVIEW_CALLER
     stxd
     stxd    ;+1 result
     
-    ldi INPUT_BUFF.0
-    plo R4
-    ldi INPUT_BUFF.1
-    phi R4
-    
-HEXVIEW_CALLER_GOTOZERO
-    lda R4
-    bnz HEXVIEW_CALLER_GOTOZERO
-    
     glo STACK_REG
     plo R5
     ghi STACK_REG
@@ -2724,15 +2749,6 @@ FUNC_TEST
     stxd
     stxd
     stxd    ;+1 result
-
-    ldi INPUT_BUFF.0
-    plo R4
-    ldi INPUT_BUFF.1
-    phi R4
-    
-FUNC_TEST_GOTOZERO
-    lda R4
-    bnz FUNC_TEST_GOTOZERO
     
     glo STACK_REG
     plo R5
@@ -2755,12 +2771,12 @@ FUNC_TEST_GOTOZERO
     phi R4
     inc R4
 
-    ldi 8
+    ldi 0
     plo R5
     
-    ldi PRINT_HEX.0     ;prepare to print the Decimal result.
+    ldi PRINT_DEC.0     ;prepare to print the Decimal result.
     plo CALL_REG
-    ldi PRINT_HEX.1
+    ldi PRINT_DEC.1
     phi CALL_REG
     
     ldi FCALL.0
@@ -2805,21 +2821,23 @@ COMMAND_CHECK
     phi R9
     
     glo R4
-    plo R8
+    plo R6
     ghi R4
-    phi R8
+    phi R6
     
 COMMAND_CHECK_GOTOSPACE
-    lda R8
-    bz COMMAND_CHECK_INSERTZERO
+    lda R6
+    lbz COMMAND_CHECK_INSERTZERO
     xri 32
-    bz COMMAND_CHECK_REPLACESPACE
-    br COMMAND_CHECK_GOTOSPACE
+    lbz COMMAND_CHECK_REPLACESPACE
+    lbr COMMAND_CHECK_GOTOSPACE
     
-COMMAND_CHECK_REPLACESPACE
-    dec R8
 COMMAND_CHECK_INSERTZERO
-    str R8
+    str R6
+COMMAND_CHECK_REPLACESPACE
+    dec R6
+    str R6
+    inc R6
     
 COMMAND_CHECK_LOOP
     glo R4
@@ -2852,6 +2870,11 @@ COMMAND_CHECK_STR_END
     lbr COMMAND_CHECK_LOOP
     
 COMMAND_CHECK_EXEC
+    glo R6
+    plo R4
+    ghi R6
+    phi R4
+    
     lda R5
     plo CALL_REG
     ldn R5
