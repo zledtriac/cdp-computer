@@ -1087,7 +1087,8 @@ PRINT_HEX_END
 
 ;-PRINT DEC------------------------------------
 ;-R4-int pointer-------------------------------
-;-R10-flags-------------------------------------
+
+;-R10-flags------------------------------------
 PRINT_DEC
     sex STACK_REG
     
@@ -1291,6 +1292,15 @@ READ_DEC
     ldi 0Ah
     stxd        ;+1 multiplier
     
+    ldi 0       ;set result to 0
+    str R5
+    inc R5
+    str R5
+    inc R5
+    str R5
+    inc R5
+    str R5
+    
 READ_DEC_MAIN_LOOP
     glo STACK_REG
     adi 7
@@ -1419,7 +1429,7 @@ READ_DEC_END
     
     sex STACK_REG
     
-    ldxa
+    ldxa            ;restore R4 and R5
     plo R5
     ldxa
     phi R5
@@ -1526,7 +1536,7 @@ FACTOR_END
     glo STACK_REG
     plo R6
     ghi STACK_REG
-    glo R6
+    phi R6
     inc R6
     
     ldn R6
@@ -1828,8 +1838,20 @@ TERM_END
 ;-EXPRESSION-----------------------------------
 ;-R4-string pointer----------------------------
 ;-R5-result pointer----------------------------
+;-Local registers------------------------------
+;-R6-R7----------------------------------------
 EXPRESSION
     sex STACK_REG
+    
+    ghi R7      ;saving local registers
+    stxd
+    glo R7
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
     
     ghi R4      ;R4 pointer to input string 
     stxd
@@ -1866,6 +1888,7 @@ EXPRESSION_MAIN
     ldn R4
     xri 45                      ;if '-'
     lbz EXPRESSION_SUB
+    
     
     lbr EXPRESSION_END
     
@@ -1940,18 +1963,18 @@ EXPRESSION_ADD_LOOP     ;*result pointer += result;
     
     dec R7
     glo R7
-    bnz EXPRESSION_ADD_LOOP
+    lbnz EXPRESSION_ADD_LOOP
     
     sex STACK_REG
     
-    glo STACK_REG
+    glo STACK_REG       
     adi 7
     plo R6
     ghi STACK_REG
     adci 0
     phi R6
     
-    ldn R6
+    ldn R6              ;R4 = input string pointer
     plo R4
     inc R6
     ldn R6
@@ -2064,23 +2087,23 @@ EXPRESSION_NEXT_CYCLE
     lbr EXPRESSION_MAIN
     
 EXPRESSION_END
-    glo STACK_REG
-    plo R6
-    ghi STACK_REG
-    phi R6
-    inc R6
+    sex STACK_REG
+    irx
     
-    lda R6
+    ldxa            ;restoring registers
     plo R5
-    lda R6
+    ldxa
     phi R5
-    
-    glo STACK_REG
-    adi 4
-    plo STACK_REG
-    ghi STACK_REG
-    adci 0
-    phi STACK_REG
+    irx
+    irx
+    ldxa
+    plo R6
+    ldxa
+    phi R6
+    ldxa
+    plo R7
+    ldx
+    phi R7
     
     sep RETURN
 ;----------------------------------------------
@@ -2685,8 +2708,54 @@ HEXVIEW_CALLER
     stxd
     stxd
     stxd
-    stxd    ;+1 result
+    stxd    ;+5 first arg
     
+    stxd
+    stxd
+    ldi 1
+    stxd
+    ldi 0
+    stxd    ;+1 second arg
+    
+    glo STACK_REG
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R4
+    xri 44
+    bz HEXVIEW_CALLER_NEXTARG
+    dec R4
+    lda R4
+    bz HEXVIEW_CALLER_EXEC
+    dec R4
+    
+    ldn R4
+    phi R4
+    
+    ldi SERIAL_SEND_START.0
+    plo CALL_REG
+    ldi SERIAL_SEND_START.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    br HEXVIEW_CALLER_END
+    
+HEXVIEW_CALLER_NEXTARG
     glo STACK_REG
     plo R5
     ghi STACK_REG
@@ -2702,20 +2771,28 @@ HEXVIEW_CALLER
     plo FCALL_REG
     sep FCALL_REG
     
+HEXVIEW_CALLER_EXEC
     glo STACK_REG
+    adi 5
     plo R5
     ghi STACK_REG
+    adci 0
     phi R5
-    inc R5
     
     lda R5
     plo R4
     lda R5
     phi R4
     
-    ldi 0
+    glo STACK_REG
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6
     plo R5
-    ldi 1
+    lda R6
     phi R5
     
     ldi HEXVIEWER.0
@@ -2727,8 +2804,9 @@ HEXVIEW_CALLER
     plo FCALL_REG
     sep FCALL_REG
     
+HEXVIEW_CALLER_END
     glo STACK_REG
-    adi 4
+    adi 8
     plo STACK_REG
     ghi STACK_REG
     adci 0
