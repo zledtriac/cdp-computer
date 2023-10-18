@@ -51,7 +51,7 @@
    0016   f8 30             ldi DMA_ADDRESS.1
    0018   b0                phi DMA_REG
                             
-   0019   c0 0c 89          lbr MAIN_PROGRAM
+   0019   c0 0d 28          lbr MAIN_PROGRAM
                             
                         ;-FUNCTION CALL HELPER-------------------------
                         ;-WHERE TO JUMP-(CALL_REG)---------------------
@@ -201,9 +201,9 @@
    017a   f8 00             ldi 00h             ;put 0 to the endof the string
    017c   57                str R7
                             
-   017d   f8 f3             ldi NEW_LINE.0      ;load the address of CRLF string
+   017d   f8 92             ldi NEW_LINE.0      ;load the address of CRLF string
    017f   a6                plo R6
-   0180   f8 0c             ldi NEW_LINE.1
+   0180   f8 0d             ldi NEW_LINE.1
    0182   b6                phi R6
                             
    0183   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -1444,398 +1444,566 @@
    0600   de                sep RETURN      ;RETURN    
                         ;----------------------------------------------
                         
+                        ;-READ HEX-------------------------------------
+                        ;-R4-string pointer----------------------------
+                        ;-R5-result pointer----------------------------
+   0601                 READ_HEX
+   0601   ef                sex STACK_REG
+                            
+   0602   96                ghi R6
+   0603   73                stxd
+   0604   86                glo R6
+   0605   73                stxd
+                            
+   0606   97                ghi R7
+   0607   73                stxd
+   0608   87                glo R7
+   0609   73                stxd
+                            
+   060a   94                ghi R4
+   060b   73                stxd
+   060c   84                glo R4
+   060d   73                stxd        ;+3 string pointer
+                            
+   060e   95                ghi R5
+   060f   73                stxd
+   0610   85                glo R5
+   0611   73                stxd        ;+1 result pointer
+                            
+   0612   f8 00             ldi 0       ;set result to 0
+   0614   55                str R5
+   0615   15                inc R5
+   0616   55                str R5
+   0617   15                inc R5
+   0618   55                str R5
+   0619   15                inc R5
+   061a   55                str R5
+                            
+   061b   25                dec R5
+   061c   25                dec R5
+   061d   25                dec R5
+                            
+   061e                 READ_HEX_MAINLOOP
+   061e   f8 00             ldi 0
+   0620   a7                plo R7
+                            
+   0621   04                ldn R4
+   0622   ff 30             smi 48
+   0624   3b 71             bm READ_HEX_END
+   0626   17                inc R7
+   0627   ff 0a             smi 10
+   0629   3b 3d             bm READ_HEX_CONTINUE
+   062b   ff 07             smi 7
+   062d   3b 71             bm READ_HEX_END
+   062f   17                inc R7
+   0630   ff 06             smi 6
+   0632   3b 3d             bm READ_HEX_CONTINUE
+   0634   ff 1a             smi 26
+   0636   3b 71             bm READ_HEX_END
+   0638   17                inc R7
+   0639   ff 06             smi 6
+   063b   33 71             bpz READ_HEX_END
+                            
+   063d                 READ_HEX_CONTINUE
+   063d   f8 04             ldi 4
+   063f   a6                plo R6
+                        
+   0640                 READ_HEX_SHIFTLOOP      ;result = result << 4
+   0640   05                ldn R5
+   0641   fe                shl
+   0642   55                str R5
+   0643   15                inc R5
+                            
+   0644   05                ldn R5
+   0645   7e                shlc
+   0646   55                str R5
+   0647   15                inc R5
+                            
+   0648   05                ldn R5
+   0649   7e                shlc
+   064a   55                str R5
+   064b   15                inc R5
+                            
+   064c   05                ldn R5
+   064d   7e                shlc
+   064e   55                str R5
+                            
+   064f   25                dec R5
+   0650   25                dec R5
+   0651   25                dec R5
+                            
+   0652   26                dec R6
+   0653   86                glo R6
+   0654   3a 40             bnz READ_HEX_SHIFTLOOP
+                            
+   0656   e5                sex R5
+                            
+   0657   27                dec R7
+   0658   87                glo R7
+   0659   3a 60             bnz READ_HEX_HEXDIGIT
+   065b   04                ldn R4
+   065c   ff 30             smi 48
+   065e   30 6c             br READ_HEX_NEXTCHAR
+                        
+   0660                 READ_HEX_HEXDIGIT   
+   0660   27                dec R7
+   0661   87                glo R7
+   0662   3a 69             bnz READ_HEX_HEXDIGITLOWER
+   0664   04                ldn R4
+   0665   ff 37             smi 55
+   0667   30 6c             br READ_HEX_NEXTCHAR
+                            
+   0669                 READ_HEX_HEXDIGITLOWER
+   0669   04                ldn R4
+   066a   ff 57             smi 87
+                            
+   066c                 READ_HEX_NEXTCHAR
+   066c   f4                add
+   066d   55                str R5
+   066e   14                inc R4
+   066f   30 1e             br READ_HEX_MAINLOOP
+                        
+   0671                 READ_HEX_END
+   0671   8f                glo STACK_REG
+   0672   fc 05             adi 5
+   0674   af                plo STACK_REG
+   0675   9f                ghi STACK_REG
+   0676   7c 00             adci 0
+   0678   bf                phi STACK_REG
+                            
+   0679   ef                sex STACK_REG
+                            
+   067a   72                ldxa
+   067b   a7                plo R7
+   067c   72                ldxa
+   067d   b7                phi R7
+                            
+   067e   72                ldxa
+   067f   a6                plo R6
+   0680   f0                ldx
+   0681   b6                phi R6
+                            
+   0682   de                sep RETURN
+                        ;----------------------------------------------
+                        
                         ;-FACTOR---------------------------------------
                         ;-R4-string pointer----------------------------
                         ;-R5-result pointer----------------------------
                         ;-R10-result code------------------------------
-   0601                 FACTOR
-   0601   ef                sex STACK_REG
+   0683                 FACTOR
+   0683   ef                sex STACK_REG
                             
-   0602   94                ghi R4
-   0603   73                stxd
-   0604   84                glo R4
-   0605   73                stxd    ;+4 string pt
+   0684   94                ghi R4
+   0685   73                stxd
+   0686   84                glo R4
+   0687   73                stxd    ;+4 string pt
                             
-   0606   95                ghi R5
-   0607   73                stxd
-   0608   85                glo R5
-   0609   73                stxd    ;+2 result pt
+   0688   95                ghi R5
+   0689   73                stxd
+   068a   85                glo R5
+   068b   73                stxd    ;+2 result pt
                             
-   060a   f8 00             ldi 0
-   060c   73                stxd    ;+1 flag, indicates if the factor needs to be negated
+   068c   f8 00             ldi 0
+   068e   73                stxd    ;+1 flag, indicates if the factor needs to be negated
                             
                             
-   060d                 FACTOR_MAIN
-   060d   04                ldn R4
-   060e   fb 20             xri 32
-   0610   c2 06 61          lbz FACTOR_NEXT_CYCLE       ;if ' '
-   0613   04                ldn R4
-   0614   fb 2b             xri 43
-   0616   c2 06 61          lbz FACTOR_NEXT_CYCLE       ;if '+'
-   0619   04                ldn R4
-   061a   fb 2d             xri 45
-   061c   c2 06 56          lbz FACTOR_NEGATE           ;if '-'
-   061f   04                ldn R4
-   0620   fb 28             xri 40
-   0622   c2 06 3d          lbz FACTOR_PARENTHESIS      ;if '('
-   0625   04                ldn R4
-   0626   ff 30             smi 48
-   0628   cb 06 65          lbnf FACTOR_END
-   062b   ff 0a             smi 10
-   062d   c3 06 65          lbdf FACTOR_END
-                            
-   0630   f8 61             ldi READ_DEC.0
-   0632   ad                plo CALL_REG
-   0633   f8 05             ldi READ_DEC.1
-   0635   bd                phi CALL_REG
-                            
-   0636   f8 00             ldi FCALL.0
-   0638   ae                plo FCALL_REG
-   0639   de                sep FCALL_REG
-                            
-   063a   c0 06 65          lbr FACTOR_END
-                            
-   063d                 FACTOR_PARENTHESIS
-   063d   14                inc R4
-                            
-   063e   f8 8b             ldi EXPRESSION.0
-   0640   ad                plo CALL_REG
-   0641   f8 07             ldi EXPRESSION.1
-   0643   bd                phi CALL_REG
-                            
-   0644   f8 00             ldi FCALL.0
-   0646   ae                plo FCALL_REG
-   0647   de                sep FCALL_REG
+   068f                 FACTOR_MAIN
+   068f   04                ldn R4
+   0690   fb 20             xri 32
+   0692   c2 06 fe          lbz FACTOR_NEXT_CYCLE       ;if ' '
+   0695   04                ldn R4
+   0696   fb 2b             xri 43
+   0698   c2 06 fe          lbz FACTOR_NEXT_CYCLE       ;if '+'
+   069b   04                ldn R4
+   069c   fb 2d             xri 45
+   069e   c2 06 f3          lbz FACTOR_NEGATE           ;if '-'
+   06a1   04                ldn R4
+   06a2   fb 28             xri 40
+   06a4   c2 06 d9          lbz FACTOR_PARENTHESIS      ;if '('
+   06a7   04                ldn R4
+   06a8   ff 30             smi 48
+   06aa   cb 07 02          lbnf FACTOR_END             ;if *R4 < '0'
+   06ad   ff 0a             smi 10
+   06af   c3 07 02          lbdf FACTOR_END             ;if *R4 > '9'
                         
-   0648                 FACTOR_PARENTHESIS_SKIPSPACES
-   0648   44                lda R4
-   0649   fb 20             xri 32
-   064b   32 48             bz FACTOR_PARENTHESIS_SKIPSPACES
-   064d   24                dec R4
+   06b2   04                ldn R4
+   06b3   fb 30             xri 48
+   06b5   3a be             bnz FACTOR_READ_DEC         ;if *R4 != '0'
                             
-   064e   44                lda R4
-   064f   fb 29             xri 41
-   0651   32 65             bz FACTOR_END
+   06b7   14                inc R4                      ;increment R4 to get the next char
+   06b8   04                ldn R4
+   06b9   fb 78             xri 120
+   06bb   32 cb             bz FACTOR_READ_HEX          ;if *R4 == 'x'
                             
-   0653   c0 06 0d          lbr FACTOR_MAIN
+   06bd   24                dec R4                      ;decrement R4 to step back
+                        
+   06be                 FACTOR_READ_DEC    
+   06be   f8 61             ldi READ_DEC.0
+   06c0   ad                plo CALL_REG
+   06c1   f8 05             ldi READ_DEC.1
+   06c3   bd                phi CALL_REG
                             
-   0656                 FACTOR_NEGATE
-   0656   8f                glo STACK_REG
-   0657   a6                plo R6
-   0658   9f                ghi STACK_REG
-   0659   b6                phi R6
-   065a   16                inc R6
+   06c4   f8 00             ldi FCALL.0
+   06c6   ae                plo FCALL_REG
+   06c7   de                sep FCALL_REG
                             
-   065b   06                ldn R6
-   065c   fb ff             xri 0FFh
-   065e   fa 01             ani 1
-   0660   56                str R6
+   06c8   c0 07 02          lbr FACTOR_END
                             
-   0661                 FACTOR_NEXT_CYCLE
-   0661   14                inc R4
-   0662   c0 06 0d          lbr FACTOR_MAIN
+   06cb                 FACTOR_READ_HEX
+   06cb   14                inc R4
                             
-   0665                 FACTOR_END
-   0665   8f                glo STACK_REG
-   0666   a6                plo R6
-   0667   9f                ghi STACK_REG
-   0668   b6                phi R6
-   0669   16                inc R6
+   06cc   f8 01             ldi READ_HEX.0
+   06ce   ad                plo CALL_REG
+   06cf   f8 06             ldi READ_HEX.1
+   06d1   bd                phi CALL_REG
                             
-   066a   06                ldn R6
-   066b   c2 06 8b          lbz FACTOR_FINAL
+   06d2   f8 00             ldi FCALL.0
+   06d4   ae                plo FCALL_REG
+   06d5   de                sep FCALL_REG
                             
-   066e   8f                glo STACK_REG
-   066f   fc 02             adi 2
-   0671   a6                plo R6
-   0672   9f                ghi STACK_REG
-   0673   7c 00             adci 0
-   0675   b6                phi R6
+   06d6   c0 07 02          lbr FACTOR_END
                             
-   0676   06                ldn R6
-   0677   a5                plo R5
-   0678   16                inc R6
-   0679   06                ldn R6
-   067a   b5                phi R5
+   06d9                 FACTOR_PARENTHESIS
+   06d9   14                inc R4
                             
-   067b   e5                sex R5
+   06da   f8 28             ldi EXPRESSION.0
+   06dc   ad                plo CALL_REG
+   06dd   f8 08             ldi EXPRESSION.1
+   06df   bd                phi CALL_REG
                             
-   067c   f8 82             ldi 082h
-   067e   fe                shl
-   067f   a6                plo R6
+   06e0   f8 00             ldi FCALL.0
+   06e2   ae                plo FCALL_REG
+   06e3   de                sep FCALL_REG
+                        
+   06e4                 FACTOR_PARENTHESIS_SKIPSPACES
+   06e4   44                lda R4
+   06e5   fb 20             xri 32
+   06e7   32 e4             bz FACTOR_PARENTHESIS_SKIPSPACES
+   06e9   24                dec R4
                             
-   0680                 FACTOR_INVERTING
-   0680   f0                ldx
-   0681   fb ff             xri 0FFh
-   0683   7c 00             adci 0
-   0685   55                str R5
-   0686   60                irx
+   06ea   44                lda R4
+   06eb   fb 29             xri 41
+   06ed   c2 07 02          lbz FACTOR_END
                             
-   0687   26                dec R6
-   0688   86                glo R6
-   0689   3a 80             bnz FACTOR_INVERTING
+   06f0   c0 06 8f          lbr FACTOR_MAIN
                             
-   068b                 FACTOR_FINAL
-   068b   8f                glo STACK_REG
-   068c   fc 05             adi 5
-   068e   af                plo STACK_REG
-   068f   9f                ghi STACK_REG
-   0690   7c 00             adci 0
-   0692   bf                phi STACK_REG
+   06f3                 FACTOR_NEGATE
+   06f3   8f                glo STACK_REG
+   06f4   a6                plo R6
+   06f5   9f                ghi STACK_REG
+   06f6   b6                phi R6
+   06f7   16                inc R6
                             
-   0693   de                sep RETURN
+   06f8   06                ldn R6
+   06f9   fb ff             xri 0FFh
+   06fb   fa 01             ani 1
+   06fd   56                str R6
+                            
+   06fe                 FACTOR_NEXT_CYCLE
+   06fe   14                inc R4
+   06ff   c0 06 8f          lbr FACTOR_MAIN
+                            
+   0702                 FACTOR_END
+   0702   8f                glo STACK_REG
+   0703   a6                plo R6
+   0704   9f                ghi STACK_REG
+   0705   b6                phi R6
+   0706   16                inc R6
+                            
+   0707   06                ldn R6
+   0708   c2 07 28          lbz FACTOR_FINAL
+                            
+   070b   8f                glo STACK_REG
+   070c   fc 02             adi 2
+   070e   a6                plo R6
+   070f   9f                ghi STACK_REG
+   0710   7c 00             adci 0
+   0712   b6                phi R6
+                            
+   0713   06                ldn R6
+   0714   a5                plo R5
+   0715   16                inc R6
+   0716   06                ldn R6
+   0717   b5                phi R5
+                            
+   0718   e5                sex R5
+                            
+   0719   f8 82             ldi 082h
+   071b   fe                shl
+   071c   a6                plo R6
+                            
+   071d                 FACTOR_INVERTING
+   071d   f0                ldx
+   071e   fb ff             xri 0FFh
+   0720   7c 00             adci 0
+   0722   55                str R5
+   0723   60                irx
+                            
+   0724   26                dec R6
+   0725   86                glo R6
+   0726   3a 1d             bnz FACTOR_INVERTING
+                            
+   0728                 FACTOR_FINAL
+   0728   8f                glo STACK_REG
+   0729   fc 05             adi 5
+   072b   af                plo STACK_REG
+   072c   9f                ghi STACK_REG
+   072d   7c 00             adci 0
+   072f   bf                phi STACK_REG
+                            
+   0730   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-TERM-----------------------------------------
                         ;-R4-string pointer----------------------------
                         ;-R5-result------------------------------------
-   0694                 TERM
-   0694   ef                sex STACK_REG
+   0731                 TERM
+   0731   ef                sex STACK_REG
                             
-   0695   94                ghi R4
-   0696   73                stxd
-   0697   84                glo R4
-   0698   73                stxd
+   0732   94                ghi R4
+   0733   73                stxd
+   0734   84                glo R4
+   0735   73                stxd
                             
-   0699   95                ghi R5
-   069a   73                stxd
-   069b   85                glo R5
-   069c   73                stxd
+   0736   95                ghi R5
+   0737   73                stxd
+   0738   85                glo R5
+   0739   73                stxd
                             
-   069d   f8 01             ldi FACTOR.0
-   069f   ad                plo CALL_REG
-   06a0   f8 06             ldi FACTOR.1
-   06a2   bd                phi CALL_REG
+   073a   f8 83             ldi FACTOR.0
+   073c   ad                plo CALL_REG
+   073d   f8 06             ldi FACTOR.1
+   073f   bd                phi CALL_REG
                             
-   06a3   f8 00             ldi FCALL.0
-   06a5   ae                plo FCALL_REG
-   06a6   de                sep FCALL_REG
+   0740   f8 00             ldi FCALL.0
+   0742   ae                plo FCALL_REG
+   0743   de                sep FCALL_REG
                             
-   06a7                 TERM_MAIN
-   06a7   04                ldn R4
-   06a8   fb 20             xri 32
-   06aa   c2 07 75          lbz TERM_NEXT_CYCLE
-   06ad   04                ldn R4
-   06ae   fb 2a             xri 42
-   06b0   c2 07 20          lbz TERM_MULTIPLY       ;if '*'
-   06b3   04                ldn R4
-   06b4   fb 2f             xri 47
-   06b6   32 bb             bz TERM_DIVIDE          ;if '/'
+   0744                 TERM_MAIN
+   0744   04                ldn R4
+   0745   fb 20             xri 32
+   0747   c2 08 12          lbz TERM_NEXT_CYCLE
+   074a   04                ldn R4
+   074b   fb 2a             xri 42
+   074d   c2 07 bd          lbz TERM_MULTIPLY       ;if '*'
+   0750   04                ldn R4
+   0751   fb 2f             xri 47
+   0753   32 58             bz TERM_DIVIDE          ;if '/'
                             
-   06b8   c0 07 79          lbr TERM_END
+   0755   c0 08 16          lbr TERM_END
                             
-   06bb                 TERM_DIVIDE
-   06bb   14                inc R4
+   0758                 TERM_DIVIDE
+   0758   14                inc R4
                             
-   06bc   f8 00             ldi 0
-   06be   73                stxd
-   06bf   73                stxd
-   06c0   73                stxd
-   06c1   73                stxd    ;+5 remainder
+   0759   f8 00             ldi 0
+   075b   73                stxd
+   075c   73                stxd
+   075d   73                stxd
+   075e   73                stxd    ;+5 remainder
                             
-   06c2   73                stxd
-   06c3   73                stxd
-   06c4   73                stxd
-   06c5   73                stxd    ;+1 divider
+   075f   73                stxd
+   0760   73                stxd
+   0761   73                stxd
+   0762   73                stxd    ;+1 divider
                             
-   06c6   8f                glo STACK_REG
-   06c7   a5                plo R5
-   06c8   9f                ghi STACK_REG
-   06c9   b5                phi R5
-   06ca   15                inc R5
-                            
-   06cb   f8 01             ldi FACTOR.0
-   06cd   ad                plo CALL_REG
-   06ce   f8 06             ldi FACTOR.1
-   06d0   bd                phi CALL_REG
-                            
-   06d1   f8 00             ldi FCALL.0
-   06d3   ae                plo FCALL_REG
-   06d4   de                sep FCALL_REG
-                            
-   06d5   8f                glo STACK_REG ;save R4 pointer
-   06d6   fc 0b             adi 11
-   06d8   a6                plo R6
-   06d9   9f                ghi STACK_REG
-   06da   7c 00             adci 0
-   06dc   b6                phi R6
-                            
-   06dd   84                glo R4
-   06de   56                str R6
-   06df   16                inc R6
-   06e0   94                ghi R4
-   06e1   56                str R6
-                            
-   06e2   8f                glo STACK_REG
-   06e3   fc 09             adi 9
-   06e5   a8                plo R8
-   06e6   9f                ghi STACK_REG
-   06e7   7c 00             adci 0
-   06e9   b8                phi R8
-                            
-   06ea   08                ldn R8
-   06eb   a4                plo R4
-   06ec   a6                plo R6
-   06ed   18                inc R8
-   06ee   08                ldn R8
-   06ef   b4                phi R4
-   06f0   b6                phi R6
-                            
-   06f1   8f                glo STACK_REG
-   06f2   a5                plo R5
-   06f3   9f                ghi STACK_REG
-   06f4   b5                phi R5
-   06f5   15                inc R5
-                            
-   06f6   8f                glo STACK_REG
-   06f7   fc 05             adi 5
-   06f9   a7                plo R7
-   06fa   9f                ghi STACK_REG
-   06fb   7c 00             adci 0
-   06fd   b7                phi R7
-                            
-   06fe   f8 d4             ldi INTEGER_DIV.0
-   0700   ad                plo CALL_REG
-   0701   f8 01             ldi INTEGER_DIV.1
-   0703   bd                phi CALL_REG
-                            
-   0704   f8 00             ldi FCALL.0
-   0706   ae                plo FCALL_REG
-   0707   de                sep FCALL_REG
-                            
-   0708   8f                glo STACK_REG
-   0709   fc 0b             adi 11
-   070b   a6                plo R6
-   070c   9f                ghi STACK_REG
-   070d   7c 00             adci 0
-   070f   b6                phi R6
-                            
-   0710   06                ldn R6
-   0711   a4                plo R4
-   0712   16                inc R6
-   0713   06                ldn R6
-   0714   b4                phi R4
-                            
-   0715   8f                glo STACK_REG
-   0716   fc 08             adi 8
-   0718   af                plo STACK_REG
-   0719   9f                ghi STACK_REG
-   071a   7c 00             adci 0
-   071c   bf                phi STACK_REG
-                        
-   071d   c0 06 a7          lbr TERM_MAIN
-                            
-   0720                 TERM_MULTIPLY
-   0720   14                inc R4
-                            
-   0721   f8 00             ldi 0
-   0723   73                stxd
-   0724   73                stxd
-   0725   73                stxd
-   0726   73                stxd
-                            
-   0727   8f                glo STACK_REG
-   0728   a5                plo R5
-   0729   9f                ghi STACK_REG
-   072a   b5                phi R5
-   072b   15                inc R5
-                            
-   072c   f8 01             ldi FACTOR.0
-   072e   ad                plo CALL_REG
-   072f   f8 06             ldi FACTOR.1
-   0731   bd                phi CALL_REG
-                            
-   0732   f8 00             ldi FCALL.0
-   0734   ae                plo FCALL_REG
-   0735   de                sep FCALL_REG
-                            
-   0736   8f                glo STACK_REG
-   0737   fc 07             adi 7
-   0739   a6                plo R6
-   073a   9f                ghi STACK_REG
-   073b   7c 00             adci 0
-   073d   b6                phi R6
-                            
-   073e   84                glo R4
-   073f   56                str R6
-   0740   16                inc R6
-   0741   94                ghi R4
-   0742   56                str R6
-                            
-   0743   8f                glo STACK_REG
-   0744   fc 05             adi 5
-   0746   a8                plo R8
-   0747   9f                ghi STACK_REG
-   0748   7c 00             adci 0
-   074a   b8                phi R8
-                            
-   074b   08                ldn R8
-   074c   a4                plo R4
-   074d   a6                plo R6
-   074e   18                inc R8
-   074f   08                ldn R8
-   0750   b4                phi R4
-   0751   b6                phi R6
-                            
-   0752   8f                glo STACK_REG
-   0753   a5                plo R5
-   0754   9f                ghi STACK_REG
-   0755   b5                phi R5
-   0756   15                inc R5
-                            
-   0757   f8 72             ldi INTEGER_MUL.0
-   0759   ad                plo CALL_REG
-   075a   f8 03             ldi INTEGER_MUL.1
-   075c   bd                phi CALL_REG
-                            
-   075d   f8 00             ldi FCALL.0
-   075f   ae                plo FCALL_REG
-   0760   de                sep FCALL_REG
-                            
-   0761   8f                glo STACK_REG
-   0762   fc 07             adi 7
-   0764   a6                plo R6
+   0763   8f                glo STACK_REG
+   0764   a5                plo R5
    0765   9f                ghi STACK_REG
-   0766   7c 00             adci 0
-   0768   b6                phi R6
+   0766   b5                phi R5
+   0767   15                inc R5
                             
-   0769   06                ldn R6
-   076a   a4                plo R4
-   076b   16                inc R6
-   076c   06                ldn R6
-   076d   b4                phi R4
+   0768   f8 83             ldi FACTOR.0
+   076a   ad                plo CALL_REG
+   076b   f8 06             ldi FACTOR.1
+   076d   bd                phi CALL_REG
                             
-   076e   1f                inc STACK_REG
-   076f   1f                inc STACK_REG
-   0770   1f                inc STACK_REG
-   0771   1f                inc STACK_REG
+   076e   f8 00             ldi FCALL.0
+   0770   ae                plo FCALL_REG
+   0771   de                sep FCALL_REG
+                            
+   0772   8f                glo STACK_REG ;save R4 pointer
+   0773   fc 0b             adi 11
+   0775   a6                plo R6
+   0776   9f                ghi STACK_REG
+   0777   7c 00             adci 0
+   0779   b6                phi R6
+                            
+   077a   84                glo R4
+   077b   56                str R6
+   077c   16                inc R6
+   077d   94                ghi R4
+   077e   56                str R6
+                            
+   077f   8f                glo STACK_REG
+   0780   fc 09             adi 9
+   0782   a8                plo R8
+   0783   9f                ghi STACK_REG
+   0784   7c 00             adci 0
+   0786   b8                phi R8
+                            
+   0787   08                ldn R8
+   0788   a4                plo R4
+   0789   a6                plo R6
+   078a   18                inc R8
+   078b   08                ldn R8
+   078c   b4                phi R4
+   078d   b6                phi R6
+                            
+   078e   8f                glo STACK_REG
+   078f   a5                plo R5
+   0790   9f                ghi STACK_REG
+   0791   b5                phi R5
+   0792   15                inc R5
+                            
+   0793   8f                glo STACK_REG
+   0794   fc 05             adi 5
+   0796   a7                plo R7
+   0797   9f                ghi STACK_REG
+   0798   7c 00             adci 0
+   079a   b7                phi R7
+                            
+   079b   f8 d4             ldi INTEGER_DIV.0
+   079d   ad                plo CALL_REG
+   079e   f8 01             ldi INTEGER_DIV.1
+   07a0   bd                phi CALL_REG
+                            
+   07a1   f8 00             ldi FCALL.0
+   07a3   ae                plo FCALL_REG
+   07a4   de                sep FCALL_REG
+                            
+   07a5   8f                glo STACK_REG
+   07a6   fc 0b             adi 11
+   07a8   a6                plo R6
+   07a9   9f                ghi STACK_REG
+   07aa   7c 00             adci 0
+   07ac   b6                phi R6
+                            
+   07ad   06                ldn R6
+   07ae   a4                plo R4
+   07af   16                inc R6
+   07b0   06                ldn R6
+   07b1   b4                phi R4
+                            
+   07b2   8f                glo STACK_REG
+   07b3   fc 08             adi 8
+   07b5   af                plo STACK_REG
+   07b6   9f                ghi STACK_REG
+   07b7   7c 00             adci 0
+   07b9   bf                phi STACK_REG
                         
-   0772   c0 06 a7          lbr TERM_MAIN
+   07ba   c0 07 44          lbr TERM_MAIN
                             
-   0775                 TERM_NEXT_CYCLE
-   0775   14                inc R4
-   0776   c0 06 a7          lbr TERM_MAIN
+   07bd                 TERM_MULTIPLY
+   07bd   14                inc R4
                             
-   0779                 TERM_END
-   0779   8f                glo STACK_REG
-   077a   a6                plo R6
-   077b   9f                ghi STACK_REG
-   077c   b6                phi R6
-   077d   16                inc R6
+   07be   f8 00             ldi 0
+   07c0   73                stxd
+   07c1   73                stxd
+   07c2   73                stxd
+   07c3   73                stxd
                             
-   077e   46                lda R6
-   077f   a5                plo R5
-   0780   46                lda R6
-   0781   b5                phi R5
+   07c4   8f                glo STACK_REG
+   07c5   a5                plo R5
+   07c6   9f                ghi STACK_REG
+   07c7   b5                phi R5
+   07c8   15                inc R5
                             
-   0782   8f                glo STACK_REG
-   0783   fc 04             adi 4
-   0785   af                plo STACK_REG
-   0786   9f                ghi STACK_REG
-   0787   7c 00             adci 0
-   0789   bf                phi STACK_REG
+   07c9   f8 83             ldi FACTOR.0
+   07cb   ad                plo CALL_REG
+   07cc   f8 06             ldi FACTOR.1
+   07ce   bd                phi CALL_REG
                             
-   078a   de                sep RETURN
+   07cf   f8 00             ldi FCALL.0
+   07d1   ae                plo FCALL_REG
+   07d2   de                sep FCALL_REG
+                            
+   07d3   8f                glo STACK_REG
+   07d4   fc 07             adi 7
+   07d6   a6                plo R6
+   07d7   9f                ghi STACK_REG
+   07d8   7c 00             adci 0
+   07da   b6                phi R6
+                            
+   07db   84                glo R4
+   07dc   56                str R6
+   07dd   16                inc R6
+   07de   94                ghi R4
+   07df   56                str R6
+                            
+   07e0   8f                glo STACK_REG
+   07e1   fc 05             adi 5
+   07e3   a8                plo R8
+   07e4   9f                ghi STACK_REG
+   07e5   7c 00             adci 0
+   07e7   b8                phi R8
+                            
+   07e8   08                ldn R8
+   07e9   a4                plo R4
+   07ea   a6                plo R6
+   07eb   18                inc R8
+   07ec   08                ldn R8
+   07ed   b4                phi R4
+   07ee   b6                phi R6
+                            
+   07ef   8f                glo STACK_REG
+   07f0   a5                plo R5
+   07f1   9f                ghi STACK_REG
+   07f2   b5                phi R5
+   07f3   15                inc R5
+                            
+   07f4   f8 72             ldi INTEGER_MUL.0
+   07f6   ad                plo CALL_REG
+   07f7   f8 03             ldi INTEGER_MUL.1
+   07f9   bd                phi CALL_REG
+                            
+   07fa   f8 00             ldi FCALL.0
+   07fc   ae                plo FCALL_REG
+   07fd   de                sep FCALL_REG
+                            
+   07fe   8f                glo STACK_REG
+   07ff   fc 07             adi 7
+   0801   a6                plo R6
+   0802   9f                ghi STACK_REG
+   0803   7c 00             adci 0
+   0805   b6                phi R6
+                            
+   0806   06                ldn R6
+   0807   a4                plo R4
+   0808   16                inc R6
+   0809   06                ldn R6
+   080a   b4                phi R4
+                            
+   080b   1f                inc STACK_REG
+   080c   1f                inc STACK_REG
+   080d   1f                inc STACK_REG
+   080e   1f                inc STACK_REG
+                        
+   080f   c0 07 44          lbr TERM_MAIN
+                            
+   0812                 TERM_NEXT_CYCLE
+   0812   14                inc R4
+   0813   c0 07 44          lbr TERM_MAIN
+                            
+   0816                 TERM_END
+   0816   8f                glo STACK_REG
+   0817   a6                plo R6
+   0818   9f                ghi STACK_REG
+   0819   b6                phi R6
+   081a   16                inc R6
+                            
+   081b   46                lda R6
+   081c   a5                plo R5
+   081d   46                lda R6
+   081e   b5                phi R5
+                            
+   081f   8f                glo STACK_REG
+   0820   fc 04             adi 4
+   0822   af                plo STACK_REG
+   0823   9f                ghi STACK_REG
+   0824   7c 00             adci 0
+   0826   bf                phi STACK_REG
+                            
+   0827   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-EXPRESSION-----------------------------------
@@ -1843,1325 +2011,1327 @@
                         ;-R5-result pointer----------------------------
                         ;-Local registers------------------------------
                         ;-R6-R7----------------------------------------
-   078b                 EXPRESSION
-   078b   ef                sex STACK_REG
+   0828                 EXPRESSION
+   0828   ef                sex STACK_REG
                             
-   078c   97                ghi R7      ;saving local registers
-   078d   73                stxd
-   078e   87                glo R7
-   078f   73                stxd
+   0829   97                ghi R7      ;saving local registers
+   082a   73                stxd
+   082b   87                glo R7
+   082c   73                stxd
                             
-   0790   96                ghi R6
-   0791   73                stxd
-   0792   86                glo R6
-   0793   73                stxd
+   082d   96                ghi R6
+   082e   73                stxd
+   082f   86                glo R6
+   0830   73                stxd
                             
-   0794   94                ghi R4      ;R4 pointer to input string 
-   0795   73                stxd
-   0796   84                glo R4
-   0797   73                stxd        ;+3 input string pointer
+   0831   94                ghi R4      ;R4 pointer to input string 
+   0832   73                stxd
+   0833   84                glo R4
+   0834   73                stxd        ;+3 input string pointer
                             
-   0798   95                ghi R5      ;R5 pointer to result
-   0799   73                stxd
-   079a   85                glo R5
-   079b   73                stxd        ;+1 result pointer
+   0835   95                ghi R5      ;R5 pointer to result
+   0836   73                stxd
+   0837   85                glo R5
+   0838   73                stxd        ;+1 result pointer
                             
-   079c                 EXPRESSION_SKIPSPACES           ;skip spaces
-   079c   44                lda R4
-   079d   fb 20             xri 32
-   079f   32 9c             bz EXPRESSION_SKIPSPACES
-   07a1   24                dec R4
+   0839                 EXPRESSION_SKIPSPACES           ;skip spaces
+   0839   44                lda R4
+   083a   fb 20             xri 32
+   083c   32 39             bz EXPRESSION_SKIPSPACES
+   083e   24                dec R4
                             
-   07a2   f8 94             ldi TERM.0                  ;read TERM
-   07a4   ad                plo CALL_REG
-   07a5   f8 06             ldi TERM.1
-   07a7   bd                phi CALL_REG
+   083f   f8 31             ldi TERM.0                  ;read TERM
+   0841   ad                plo CALL_REG
+   0842   f8 07             ldi TERM.1
+   0844   bd                phi CALL_REG
                             
-   07a8   f8 00             ldi FCALL.0
-   07aa   ae                plo FCALL_REG
-   07ab   de                sep FCALL_REG
+   0845   f8 00             ldi FCALL.0
+   0847   ae                plo FCALL_REG
+   0848   de                sep FCALL_REG
                             
-   07ac                 EXPRESSION_MAIN
-   07ac   04                ldn R4
-   07ad   fb 20             xri 32                      ;if ' '
-   07af   c2 08 71          lbz EXPRESSION_NEXT_CYCLE
-   07b2   04                ldn R4
-   07b3   fb 2b             xri 43                      ;if '+'
-   07b5   32 c0             bz EXPRESSION_ADD
-   07b7   04                ldn R4
-   07b8   fb 2d             xri 45                      ;if '-'
-   07ba   c2 08 19          lbz EXPRESSION_SUB
+   0849                 EXPRESSION_MAIN
+   0849   04                ldn R4
+   084a   fb 20             xri 32                      ;if ' '
+   084c   c2 09 0e          lbz EXPRESSION_NEXT_CYCLE
+   084f   04                ldn R4
+   0850   fb 2b             xri 43                      ;if '+'
+   0852   32 5d             bz EXPRESSION_ADD
+   0854   04                ldn R4
+   0855   fb 2d             xri 45                      ;if '-'
+   0857   c2 08 b6          lbz EXPRESSION_SUB
                             
                             
-   07bd   c0 08 75          lbr EXPRESSION_END
+   085a   c0 09 12          lbr EXPRESSION_END
                             
-   07c0                 EXPRESSION_ADD
-   07c0   14                inc R4
+   085d                 EXPRESSION_ADD
+   085d   14                inc R4
                             
-   07c1   f8 00             ldi 0               ;new result
-   07c3   73                stxd
-   07c4   73                stxd
-   07c5   73                stxd
-   07c6   73                stxd
+   085e   f8 00             ldi 0               ;new result
+   0860   73                stxd
+   0861   73                stxd
+   0862   73                stxd
+   0863   73                stxd
                             
-   07c7   8f                glo STACK_REG       ;set R5 pointer to new result
-   07c8   a5                plo R5
-   07c9   9f                ghi STACK_REG
-   07ca   b5                phi R5
-   07cb   15                inc R5
+   0864   8f                glo STACK_REG       ;set R5 pointer to new result
+   0865   a5                plo R5
+   0866   9f                ghi STACK_REG
+   0867   b5                phi R5
+   0868   15                inc R5
                             
-   07cc   f8 94             ldi TERM.0          ;read TERM
-   07ce   ad                plo CALL_REG
-   07cf   f8 06             ldi TERM.1
-   07d1   bd                phi CALL_REG
+   0869   f8 31             ldi TERM.0          ;read TERM
+   086b   ad                plo CALL_REG
+   086c   f8 07             ldi TERM.1
+   086e   bd                phi CALL_REG
                             
-   07d2   f8 00             ldi FCALL.0
-   07d4   ae                plo FCALL_REG
-   07d5   de                sep FCALL_REG
+   086f   f8 00             ldi FCALL.0
+   0871   ae                plo FCALL_REG
+   0872   de                sep FCALL_REG
                             
-   07d6   8f                glo STACK_REG       ; set R6 register to point to the input string pointer
-   07d7   fc 07             adi 7
-   07d9   a6                plo R6
-   07da   9f                ghi STACK_REG
-   07db   7c 00             adci 0
-   07dd   b6                phi R6
+   0873   8f                glo STACK_REG       ; set R6 register to point to the input string pointer
+   0874   fc 07             adi 7
+   0876   a6                plo R6
+   0877   9f                ghi STACK_REG
+   0878   7c 00             adci 0
+   087a   b6                phi R6
                             
-   07de   84                glo R4              ;input string pointer = R4
-   07df   56                str R6
-   07e0   16                inc R6
-   07e1   94                ghi R4
-   07e2   56                str R6
+   087b   84                glo R4              ;input string pointer = R4
+   087c   56                str R6
+   087d   16                inc R6
+   087e   94                ghi R4
+   087f   56                str R6
                             
-   07e3   8f                glo STACK_REG       ;set R5 register to point to result
-   07e4   a5                plo R5
-   07e5   9f                ghi STACK_REG
-   07e6   b5                phi R5
-   07e7   15                inc R5
+   0880   8f                glo STACK_REG       ;set R5 register to point to result
+   0881   a5                plo R5
+   0882   9f                ghi STACK_REG
+   0883   b5                phi R5
+   0884   15                inc R5
                             
-   07e8   8f                glo STACK_REG       ;set R6 register to point to the result pointer
-   07e9   fc 05             adi 5
-   07eb   a6                plo R6
-   07ec   9f                ghi STACK_REG
-   07ed   7c 00             adci 0
-   07ef   b6                phi R6
+   0885   8f                glo STACK_REG       ;set R6 register to point to the result pointer
+   0886   fc 05             adi 5
+   0888   a6                plo R6
+   0889   9f                ghi STACK_REG
+   088a   7c 00             adci 0
+   088c   b6                phi R6
                             
-   07f0   06                ldn R6              ;R4 = result pointer
-   07f1   a4                plo R4
-   07f2   16                inc R6
-   07f3   06                ldn R6
-   07f4   b4                phi R4
+   088d   06                ldn R6              ;R4 = result pointer
+   088e   a4                plo R4
+   088f   16                inc R6
+   0890   06                ldn R6
+   0891   b4                phi R4
                             
-   07f5   e4                sex R4
+   0892   e4                sex R4
                             
-   07f6   f8 02             ldi 2
-   07f8   fe                shl
-   07f9   a7                plo R7
+   0893   f8 02             ldi 2
+   0895   fe                shl
+   0896   a7                plo R7
                             
-   07fa                 EXPRESSION_ADD_LOOP     ;*result pointer += result;
-   07fa   05                ldn R5
-   07fb   74                adc
-   07fc   54                str R4
-   07fd   15                inc R5
-   07fe   60                irx
+   0897                 EXPRESSION_ADD_LOOP     ;*result pointer += result;
+   0897   05                ldn R5
+   0898   74                adc
+   0899   54                str R4
+   089a   15                inc R5
+   089b   60                irx
                             
-   07ff   27                dec R7
-   0800   87                glo R7
-   0801   ca 07 fa          lbnz EXPRESSION_ADD_LOOP
+   089c   27                dec R7
+   089d   87                glo R7
+   089e   ca 08 97          lbnz EXPRESSION_ADD_LOOP
                             
-   0804   ef                sex STACK_REG
+   08a1   ef                sex STACK_REG
                             
-   0805   8f                glo STACK_REG       
-   0806   fc 07             adi 7
-   0808   a6                plo R6
-   0809   9f                ghi STACK_REG
-   080a   7c 00             adci 0
-   080c   b6                phi R6
+   08a2   8f                glo STACK_REG       
+   08a3   fc 07             adi 7
+   08a5   a6                plo R6
+   08a6   9f                ghi STACK_REG
+   08a7   7c 00             adci 0
+   08a9   b6                phi R6
                             
-   080d   06                ldn R6              ;R4 = input string pointer
-   080e   a4                plo R4
-   080f   16                inc R6
-   0810   06                ldn R6
-   0811   b4                phi R4
+   08aa   06                ldn R6              ;R4 = input string pointer
+   08ab   a4                plo R4
+   08ac   16                inc R6
+   08ad   06                ldn R6
+   08ae   b4                phi R4
                             
-   0812   1f                inc STACK_REG
-   0813   1f                inc STACK_REG
-   0814   1f                inc STACK_REG
-   0815   1f                inc STACK_REG
+   08af   1f                inc STACK_REG
+   08b0   1f                inc STACK_REG
+   08b1   1f                inc STACK_REG
+   08b2   1f                inc STACK_REG
                         
-   0816   c0 07 ac          lbr EXPRESSION_MAIN
+   08b3   c0 08 49          lbr EXPRESSION_MAIN
                         
-   0819                 EXPRESSION_SUB
-   0819   14                inc R4
+   08b6                 EXPRESSION_SUB
+   08b6   14                inc R4
                             
-   081a   f8 00             ldi 0
-   081c   73                stxd
-   081d   73                stxd
-   081e   73                stxd
-   081f   73                stxd
+   08b7   f8 00             ldi 0
+   08b9   73                stxd
+   08ba   73                stxd
+   08bb   73                stxd
+   08bc   73                stxd
                             
-   0820   8f                glo STACK_REG
-   0821   a5                plo R5
-   0822   9f                ghi STACK_REG
-   0823   b5                phi R5
-   0824   15                inc R5
+   08bd   8f                glo STACK_REG
+   08be   a5                plo R5
+   08bf   9f                ghi STACK_REG
+   08c0   b5                phi R5
+   08c1   15                inc R5
                             
-   0825   f8 94             ldi TERM.0
-   0827   ad                plo CALL_REG
-   0828   f8 06             ldi TERM.1
-   082a   bd                phi CALL_REG
+   08c2   f8 31             ldi TERM.0
+   08c4   ad                plo CALL_REG
+   08c5   f8 07             ldi TERM.1
+   08c7   bd                phi CALL_REG
                             
-   082b   f8 00             ldi FCALL.0
-   082d   ae                plo FCALL_REG
-   082e   de                sep FCALL_REG
+   08c8   f8 00             ldi FCALL.0
+   08ca   ae                plo FCALL_REG
+   08cb   de                sep FCALL_REG
                             
-   082f   8f                glo STACK_REG
-   0830   fc 07             adi 7
-   0832   a6                plo R6
-   0833   9f                ghi STACK_REG
-   0834   7c 00             adci 0
-   0836   b6                phi R6
+   08cc   8f                glo STACK_REG
+   08cd   fc 07             adi 7
+   08cf   a6                plo R6
+   08d0   9f                ghi STACK_REG
+   08d1   7c 00             adci 0
+   08d3   b6                phi R6
                             
-   0837   84                glo R4
-   0838   56                str R6
-   0839   16                inc R6
-   083a   94                ghi R4
-   083b   56                str R6
+   08d4   84                glo R4
+   08d5   56                str R6
+   08d6   16                inc R6
+   08d7   94                ghi R4
+   08d8   56                str R6
                             
-   083c   8f                glo STACK_REG
-   083d   a5                plo R5
-   083e   9f                ghi STACK_REG
-   083f   b5                phi R5
-   0840   15                inc R5
+   08d9   8f                glo STACK_REG
+   08da   a5                plo R5
+   08db   9f                ghi STACK_REG
+   08dc   b5                phi R5
+   08dd   15                inc R5
                             
-   0841   8f                glo STACK_REG
-   0842   fc 05             adi 5
-   0844   a6                plo R6
-   0845   9f                ghi STACK_REG
-   0846   7c 00             adci 0
-   0848   b6                phi R6
+   08de   8f                glo STACK_REG
+   08df   fc 05             adi 5
+   08e1   a6                plo R6
+   08e2   9f                ghi STACK_REG
+   08e3   7c 00             adci 0
+   08e5   b6                phi R6
                             
-   0849   06                ldn R6
-   084a   a4                plo R4
-   084b   16                inc R6
-   084c   06                ldn R6
-   084d   b4                phi R4
+   08e6   06                ldn R6
+   08e7   a4                plo R4
+   08e8   16                inc R6
+   08e9   06                ldn R6
+   08ea   b4                phi R4
                             
-   084e   e4                sex R4
+   08eb   e4                sex R4
                             
-   084f   f8 82             ldi 082h
-   0851   fe                shl
-   0852   a7                plo R7
+   08ec   f8 82             ldi 082h
+   08ee   fe                shl
+   08ef   a7                plo R7
                             
-   0853                 EXPRESSION_SUB_LOOP
-   0853   05                ldn R5
-   0854   75                sdb
-   0855   54                str R4
-   0856   15                inc R5
-   0857   60                irx
+   08f0                 EXPRESSION_SUB_LOOP
+   08f0   05                ldn R5
+   08f1   75                sdb
+   08f2   54                str R4
+   08f3   15                inc R5
+   08f4   60                irx
                             
-   0858   27                dec R7
-   0859   87                glo R7
-   085a   3a 53             bnz EXPRESSION_SUB_LOOP
+   08f5   27                dec R7
+   08f6   87                glo R7
+   08f7   3a f0             bnz EXPRESSION_SUB_LOOP
                             
-   085c   ef                sex STACK_REG
+   08f9   ef                sex STACK_REG
                             
-   085d   8f                glo STACK_REG
-   085e   fc 07             adi 7
-   0860   a6                plo R6
-   0861   9f                ghi STACK_REG
-   0862   7c 00             adci 0
-   0864   b6                phi R6
+   08fa   8f                glo STACK_REG
+   08fb   fc 07             adi 7
+   08fd   a6                plo R6
+   08fe   9f                ghi STACK_REG
+   08ff   7c 00             adci 0
+   0901   b6                phi R6
                             
-   0865   06                ldn R6
-   0866   a4                plo R4
-   0867   16                inc R6
-   0868   06                ldn R6
-   0869   b4                phi R4
+   0902   06                ldn R6
+   0903   a4                plo R4
+   0904   16                inc R6
+   0905   06                ldn R6
+   0906   b4                phi R4
                             
-   086a   1f                inc STACK_REG
-   086b   1f                inc STACK_REG
-   086c   1f                inc STACK_REG
-   086d   1f                inc STACK_REG
+   0907   1f                inc STACK_REG
+   0908   1f                inc STACK_REG
+   0909   1f                inc STACK_REG
+   090a   1f                inc STACK_REG
                         
-   086e   c0 07 ac          lbr EXPRESSION_MAIN
+   090b   c0 08 49          lbr EXPRESSION_MAIN
                         
-   0871                 EXPRESSION_NEXT_CYCLE    
-   0871   14                inc R4
-   0872   c0 07 ac          lbr EXPRESSION_MAIN
+   090e                 EXPRESSION_NEXT_CYCLE    
+   090e   14                inc R4
+   090f   c0 08 49          lbr EXPRESSION_MAIN
                             
-   0875                 EXPRESSION_END
-   0875   ef                sex STACK_REG
-   0876   60                irx
+   0912                 EXPRESSION_END
+   0912   ef                sex STACK_REG
+   0913   60                irx
                             
-   0877   72                ldxa            ;restoring registers
-   0878   a5                plo R5
-   0879   72                ldxa
-   087a   b5                phi R5
-   087b   60                irx
-   087c   60                irx
-   087d   72                ldxa
-   087e   a6                plo R6
-   087f   72                ldxa
-   0880   b6                phi R6
-   0881   72                ldxa
-   0882   a7                plo R7
-   0883   f0                ldx
-   0884   b7                phi R7
+   0914   72                ldxa            ;restoring registers
+   0915   a5                plo R5
+   0916   72                ldxa
+   0917   b5                phi R5
+   0918   60                irx
+   0919   60                irx
+   091a   72                ldxa
+   091b   a6                plo R6
+   091c   72                ldxa
+   091d   b6                phi R6
+   091e   72                ldxa
+   091f   a7                plo R7
+   0920   f0                ldx
+   0921   b7                phi R7
                             
-   0885   de                sep RETURN
+   0922   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-HEXVIEWER------------------------------------
                         ;-R4-Start address-----------------------------
                         ;-R5-Count-------------------------------------
-   0886                 HEX_BASE_SRT
-   0886   0d 0a 42 61       db "\r\nBase address: 0x",0
-   088a   73 65 20 61   
-   088e   64 64 72 65   
-   0892   73 73 3a 20   
-   0896   30 78 00      
-   0899                 HEX_HEADER_STR
-   0899   0d 0a 0d 0a       db "\r\n\r\nOffset  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  String\r\n"
-   089d   4f 66 66 73   
-   08a1   65 74 20 20   
-   08a5   30 30 20 30   
-   08a9   31 20 30 32   
-   08ad   20 30 33 20   
-   08b1   30 34 20 30   
-   08b5   35 20 30 36   
-   08b9   20 30 37 20   
-   08bd   30 38 20 30   
-   08c1   39 20 30 41   
-   08c5   20 30 42 20   
-   08c9   30 43 20 30   
-   08cd   44 20 30 45   
-   08d1   20 30 46 20   
-   08d5   20 53 74 72   
-   08d9   69 6e 67 0d   
-   08dd   0a            
-   08de   2d 2d 2d 2d       db         "-------------------------------------------------------------------------\r\n",0
-   08e2   2d 2d 2d 2d   
-   08e6   2d 2d 2d 2d   
-   08ea   2d 2d 2d 2d   
-   08ee   2d 2d 2d 2d   
-   08f2   2d 2d 2d 2d   
-   08f6   2d 2d 2d 2d   
-   08fa   2d 2d 2d 2d   
-   08fe   2d 2d 2d 2d   
-   0902   2d 2d 2d 2d   
-   0906   2d 2d 2d 2d   
-   090a   2d 2d 2d 2d   
-   090e   2d 2d 2d 2d   
-   0912   2d 2d 2d 2d   
-   0916   2d 2d 2d 2d   
-   091a   2d 2d 2d 2d   
-   091e   2d 2d 2d 2d   
-   0922   2d 2d 2d 2d   
-   0926   2d 0d 0a 00   
+   0923                 HEX_BASE_SRT
+   0923   0d 0a 42 61       db "\r\nBase address: 0x",0
+   0927   73 65 20 61   
+   092b   64 64 72 65   
+   092f   73 73 3a 20   
+   0933   30 78 00      
+   0936                 HEX_HEADER_STR
+   0936   0d 0a 0d 0a       db "\r\n\r\nOffset  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  String\r\n"
+   093a   4f 66 66 73   
+   093e   65 74 20 20   
+   0942   30 30 20 30   
+   0946   31 20 30 32   
+   094a   20 30 33 20   
+   094e   30 34 20 30   
+   0952   35 20 30 36   
+   0956   20 30 37 20   
+   095a   30 38 20 30   
+   095e   39 20 30 41   
+   0962   20 30 42 20   
+   0966   30 43 20 30   
+   096a   44 20 30 45   
+   096e   20 30 46 20   
+   0972   20 53 74 72   
+   0976   69 6e 67 0d   
+   097a   0a            
+   097b   2d 2d 2d 2d       db         "-------------------------------------------------------------------------\r\n",0
+   097f   2d 2d 2d 2d   
+   0983   2d 2d 2d 2d   
+   0987   2d 2d 2d 2d   
+   098b   2d 2d 2d 2d   
+   098f   2d 2d 2d 2d   
+   0993   2d 2d 2d 2d   
+   0997   2d 2d 2d 2d   
+   099b   2d 2d 2d 2d   
+   099f   2d 2d 2d 2d   
+   09a3   2d 2d 2d 2d   
+   09a7   2d 2d 2d 2d   
+   09ab   2d 2d 2d 2d   
+   09af   2d 2d 2d 2d   
+   09b3   2d 2d 2d 2d   
+   09b7   2d 2d 2d 2d   
+   09bb   2d 2d 2d 2d   
+   09bf   2d 2d 2d 2d   
+   09c3   2d 0d 0a 00   
                         ;              "0000:   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................"
-   092a                 HEX_LINECNT_SEPARATOR
-   092a   3a 20 20 20       db ":   ",0
-   092e   00            
+   09c7                 HEX_LINECNT_SEPARATOR
+   09c7   3a 20 20 20       db ":   ",0
+   09cb   00            
                             
-   092f                 HEXVIEWER
-   092f   ef                sex STACK_REG
+   09cc                 HEXVIEWER
+   09cc   ef                sex STACK_REG
                             
-   0930   f8 00             ldi 0
-   0932   73                stxd
-   0933   73                stxd
-   0934   94                ghi R4
-   0935   73                stxd
-   0936   84                glo R4
-   0937   73                stxd    ;+17 current address
+   09cd   f8 00             ldi 0
+   09cf   73                stxd
+   09d0   73                stxd
+   09d1   94                ghi R4
+   09d2   73                stxd
+   09d3   84                glo R4
+   09d4   73                stxd    ;+17 current address
                             
-   0938   f8 00             ldi 0
-   093a   73                stxd
-   093b   73                stxd
-   093c   94                ghi R4
-   093d   73                stxd
-   093e   84                glo R4
-   093f   73                stxd    ;+13 start address
+   09d5   f8 00             ldi 0
+   09d7   73                stxd
+   09d8   73                stxd
+   09d9   94                ghi R4
+   09da   73                stxd
+   09db   84                glo R4
+   09dc   73                stxd    ;+13 start address
                             
-   0940   f8 00             ldi 0
-   0942   73                stxd
-   0943   73                stxd
-   0944   95                ghi R5
-   0945   73                stxd
-   0946   85                glo R5
-   0947   73                stxd    ;+9 last address
+   09dd   f8 00             ldi 0
+   09df   73                stxd
+   09e0   73                stxd
+   09e1   95                ghi R5
+   09e2   73                stxd
+   09e3   85                glo R5
+   09e4   73                stxd    ;+9 last address
                             
-   0948   f8 00             ldi 0
-   094a   73                stxd
-   094b   73                stxd
-   094c   73                stxd
-   094d   73                stxd    ;+5 line counter
+   09e5   f8 00             ldi 0
+   09e7   73                stxd
+   09e8   73                stxd
+   09e9   73                stxd
+   09ea   73                stxd    ;+5 line counter
                             
-   094e   73                stxd
-   094f   73                stxd
-   0950   73                stxd
-   0951   73                stxd    ;+1 temp for hex digits
+   09eb   73                stxd
+   09ec   73                stxd
+   09ed   73                stxd
+   09ee   73                stxd    ;+1 temp for hex digits
                             
-   0952   8f                glo STACK_REG
-   0953   fc 0d             adi 13
-   0955   a4                plo R4
-   0956   9f                ghi STACK_REG
-   0957   7c 00             adci 0
-   0959   b4                phi R4
+   09ef   8f                glo STACK_REG
+   09f0   fc 0d             adi 13
+   09f2   a4                plo R4
+   09f3   9f                ghi STACK_REG
+   09f4   7c 00             adci 0
+   09f6   b4                phi R4
                             
-   095a   8f                glo STACK_REG
-   095b   fc 09             adi 9
-   095d   a6                plo R6
-   095e   9f                ghi STACK_REG
-   095f   7c 00             adci 0
-   0961   b6                phi R6
+   09f7   8f                glo STACK_REG
+   09f8   fc 09             adi 9
+   09fa   a6                plo R6
+   09fb   9f                ghi STACK_REG
+   09fc   7c 00             adci 0
+   09fe   b6                phi R6
                             
-   0962   e4                sex R4
+   09ff   e4                sex R4
                             
-   0963   85                glo R5      ;adding R5 value to start address and store it to last address
-   0964   f4                add
-   0965   56                str R6
-   0966   60                irx
-   0967   16                inc R6
-   0968   95                ghi R5
-   0969   74                adc
-   096a   56                str R6
-   096b   60                irx
-   096c   16                inc R6
-   096d   f8 00             ldi 0
-   096f   74                adc
-   0970   56                str R6
+   0a00   85                glo R5      ;adding R5 value to start address and store it to last address
+   0a01   f4                add
+   0a02   56                str R6
+   0a03   60                irx
+   0a04   16                inc R6
+   0a05   95                ghi R5
+   0a06   74                adc
+   0a07   56                str R6
+   0a08   60                irx
+   0a09   16                inc R6
+   0a0a   f8 00             ldi 0
+   0a0c   74                adc
+   0a0d   56                str R6
                             
-   0971   f8 86             ldi HEX_BASE_SRT.0     ;prepare to print base address
-   0973   a6                plo R6
-   0974   f8 08             ldi HEX_BASE_SRT.1
-   0976   b6                phi R6
+   0a0e   f8 23             ldi HEX_BASE_SRT.0     ;prepare to print base address
+   0a10   a6                plo R6
+   0a11   f8 09             ldi HEX_BASE_SRT.1
+   0a13   b6                phi R6
                         	
-   0977   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0979   ad                plo CALL_REG
-   097a   f8 01             ldi PRINT.1
-   097c   bd                phi CALL_REG
+   0a14   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0a16   ad                plo CALL_REG
+   0a17   f8 01             ldi PRINT.1
+   0a19   bd                phi CALL_REG
                             
-   097d   f8 00             ldi FCALL.0
-   097f   ae                plo FCALL_REG
-   0980   de                sep FCALL_REG
+   0a1a   f8 00             ldi FCALL.0
+   0a1c   ae                plo FCALL_REG
+   0a1d   de                sep FCALL_REG
                             
-   0981   8f                glo STACK_REG       ;prepare to print the address in hex
-   0982   fc 0d             adi 13
-   0984   a4                plo R4
-   0985   9f                ghi STACK_REG
-   0986   7c 00             adci 0
-   0988   b4                phi R4
+   0a1e   8f                glo STACK_REG       ;prepare to print the address in hex
+   0a1f   fc 0d             adi 13
+   0a21   a4                plo R4
+   0a22   9f                ghi STACK_REG
+   0a23   7c 00             adci 0
+   0a25   b4                phi R4
                             
-   0989   f8 04             ldi 4               ;with 4 digits
-   098b   a5                plo R5
+   0a26   f8 04             ldi 4               ;with 4 digits
+   0a28   a5                plo R5
                             
-   098c   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   098e   ad                plo CALL_REG
-   098f   f8 04             ldi PRINT_HEX.1
-   0991   bd                phi CALL_REG
+   0a29   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0a2b   ad                plo CALL_REG
+   0a2c   f8 04             ldi PRINT_HEX.1
+   0a2e   bd                phi CALL_REG
                             
-   0992   f8 00             ldi FCALL.0
-   0994   ae                plo FCALL_REG
-   0995   de                sep FCALL_REG
+   0a2f   f8 00             ldi FCALL.0
+   0a31   ae                plo FCALL_REG
+   0a32   de                sep FCALL_REG
                             
-   0996   f8 99             ldi HEX_HEADER_STR.0     ;prepare to print the header
-   0998   a6                plo R6
-   0999   f8 08             ldi HEX_HEADER_STR.1
-   099b   b6                phi R6
+   0a33   f8 36             ldi HEX_HEADER_STR.0     ;prepare to print the header
+   0a35   a6                plo R6
+   0a36   f8 09             ldi HEX_HEADER_STR.1
+   0a38   b6                phi R6
                         	
-   099c   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   099e   ad                plo CALL_REG
-   099f   f8 01             ldi PRINT.1
-   09a1   bd                phi CALL_REG
+   0a39   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0a3b   ad                plo CALL_REG
+   0a3c   f8 01             ldi PRINT.1
+   0a3e   bd                phi CALL_REG
                             
-   09a2   f8 00             ldi FCALL.0
-   09a4   ae                plo FCALL_REG
-   09a5   de                sep FCALL_REG
+   0a3f   f8 00             ldi FCALL.0
+   0a41   ae                plo FCALL_REG
+   0a42   de                sep FCALL_REG
                         
-   09a6                 HEXVIEWER_MAINLOOP
-   09a6   8f                glo STACK_REG       ;prepare to print the first address in hex
-   09a7   fc 05             adi 5
-   09a9   a4                plo R4
-   09aa   9f                ghi STACK_REG
-   09ab   7c 00             adci 0
-   09ad   b4                phi R4
+   0a43                 HEXVIEWER_MAINLOOP
+   0a43   8f                glo STACK_REG       ;prepare to print the first address in hex
+   0a44   fc 05             adi 5
+   0a46   a4                plo R4
+   0a47   9f                ghi STACK_REG
+   0a48   7c 00             adci 0
+   0a4a   b4                phi R4
                             
-   09ae   f8 04             ldi 4               ;with 4 digits
-   09b0   a5                plo R5
+   0a4b   f8 04             ldi 4               ;with 4 digits
+   0a4d   a5                plo R5
                             
-   09b1   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   09b3   ad                plo CALL_REG
-   09b4   f8 04             ldi PRINT_HEX.1
-   09b6   bd                phi CALL_REG
+   0a4e   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0a50   ad                plo CALL_REG
+   0a51   f8 04             ldi PRINT_HEX.1
+   0a53   bd                phi CALL_REG
                             
-   09b7   f8 00             ldi FCALL.0
-   09b9   ae                plo FCALL_REG
-   09ba   de                sep FCALL_REG
+   0a54   f8 00             ldi FCALL.0
+   0a56   ae                plo FCALL_REG
+   0a57   de                sep FCALL_REG
                             
-   09bb   f8 2a             ldi HEX_LINECNT_SEPARATOR.0     ;prepare to print address separator
-   09bd   a6                plo R6
-   09be   f8 09             ldi HEX_LINECNT_SEPARATOR.1
-   09c0   b6                phi R6
+   0a58   f8 c7             ldi HEX_LINECNT_SEPARATOR.0     ;prepare to print address separator
+   0a5a   a6                plo R6
+   0a5b   f8 09             ldi HEX_LINECNT_SEPARATOR.1
+   0a5d   b6                phi R6
                         	
-   09c1   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   09c3   ad                plo CALL_REG
-   09c4   f8 01             ldi PRINT.1
-   09c6   bd                phi CALL_REG
+   0a5e   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0a60   ad                plo CALL_REG
+   0a61   f8 01             ldi PRINT.1
+   0a63   bd                phi CALL_REG
                             
-   09c7   f8 00             ldi FCALL.0
-   09c9   ae                plo FCALL_REG
-   09ca   de                sep FCALL_REG
+   0a64   f8 00             ldi FCALL.0
+   0a66   ae                plo FCALL_REG
+   0a67   de                sep FCALL_REG
                             
-   09cb   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
-   09cd   a8                plo R8
+   0a68   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
+   0a6a   a8                plo R8
                            
-   09ce                 HEXVIEWER_PRINT_HEX_LOOP
-   09ce   8f                glo STACK_REG       ;set R4 pointer to current address
-   09cf   fc 11             adi 17
-   09d1   a4                plo R4
-   09d2   9f                ghi STACK_REG
-   09d3   7c 00             adci 0
-   09d5   b4                phi R4
-                            
-   09d6   8f                glo STACK_REG       ;set R5 pointer to last address
-   09d7   fc 09             adi 9
-   09d9   a5                plo R5
-   09da   9f                ghi STACK_REG
-   09db   7c 00             adci 0
-   09dd   b5                phi R5
-                        
-   09de   e4                sex R4          ;check if current address is >= last address
-                            
-   09df   45                lda R5
-   09e0   f5                sd
-   09e1   60                irx
-                            
-   09e2   45                lda R5
-   09e3   75                sdb
-   09e4   60                irx
-                            
-   09e5   45                lda R5
-   09e6   75                sdb
-   09e7   60                irx
-                            
-   09e8   05                ldn R5
-   09e9   75                sdb
-                            
-   09ea   c3 0a 12          lbdf HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
-                        
-   09ed   8f                glo STACK_REG       ;set R4 pointer to current address
-   09ee   fc 11             adi 17
-   09f0   a4                plo R4
-   09f1   9f                ghi STACK_REG
-   09f2   7c 00             adci 0
-   09f4   b4                phi R4
-                            
-   09f5   44                lda R4              ;get current address and load it in R5
-   09f6   a5                plo R5
-   09f7   44                lda R4
-   09f8   b5                phi R5
-                            
-   09f9   05                ldn R5              ;get data from R5 address
-   09fa   a5                plo R5              ;store data in R5 low
-                            
-   09fb   8f                glo STACK_REG       ;set R4 pointer to temp
-   09fc   a4                plo R4
-   09fd   9f                ghi STACK_REG
-   09fe   b4                phi R4
-   09ff   14                inc R4
-                            
-   0a00   85                glo R5              ;get data from R5 low
-   0a01   54                str R4              ;store data to temp
-                           
-   0a02   f8 02             ldi 2
-   0a04   a5                plo R5              ;set R5 low to 2 digits
-                            
-   0a05   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   0a07   ad                plo CALL_REG
-   0a08   f8 04             ldi PRINT_HEX.1
-   0a0a   bd                phi CALL_REG
-                            
-   0a0b   f8 00             ldi FCALL.0
-   0a0d   ae                plo FCALL_REG
-   0a0e   de                sep FCALL_REG
-                            
-   0a0f   c0 0a 22          lbr HEXVIEWER_NEXT_HEX
-                            
-   0a12                 HEXVIEWER_PRINT_HEX_SPACES
-   0a12   f8 2c             ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
-   0a14   a6                plo R6
-   0a15   f8 09             ldi HEX_LINECNT_SEPARATOR+2.1
-   0a17   b6                phi R6
-                        	
-   0a18   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0a1a   ad                plo CALL_REG
-   0a1b   f8 01             ldi PRINT.1
-   0a1d   bd                phi CALL_REG
-                            
-   0a1e   f8 00             ldi FCALL.0
-   0a20   ae                plo FCALL_REG
-   0a21   de                sep FCALL_REG
-                        
-   0a22                 HEXVIEWER_NEXT_HEX
-   0a22   f8 2d             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
-   0a24   a6                plo R6
-   0a25   f8 09             ldi HEX_LINECNT_SEPARATOR+3.1
-   0a27   b6                phi R6
-                        	
-   0a28   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0a2a   ad                plo CALL_REG
-   0a2b   f8 01             ldi PRINT.1
-   0a2d   bd                phi CALL_REG
-                            
-   0a2e   f8 00             ldi FCALL.0
-   0a30   ae                plo FCALL_REG
-   0a31   de                sep FCALL_REG
-                            
-   0a32   8f                glo STACK_REG       ;set R4 pointer to current address
-   0a33   fc 11             adi 17
-   0a35   a4                plo R4
-   0a36   9f                ghi STACK_REG
-   0a37   7c 00             adci 0
-   0a39   b4                phi R4
-                            
-   0a3a   e4                sex R4
-   0a3b   f8 01             ldi 1
-   0a3d   f4                add
-   0a3e   54                str R4
-   0a3f   60                irx
-                            
-   0a40   f8 00             ldi 0
-   0a42   74                adc
-   0a43   54                str R4
-   0a44   60                irx
-                            
-   0a45   f8 00             ldi 0
-   0a47   74                adc
-   0a48   54                str R4
-   0a49   60                irx
-                            
-   0a4a   f8 00             ldi 0
-   0a4c   74                adc
-   0a4d   54                str R4
-                            
-   0a4e   28                dec R8
-   0a4f   88                glo R8
-   0a50   ca 09 ce          lbnz HEXVIEWER_PRINT_HEX_LOOP
-                            
-   0a53   f8 2d             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
-   0a55   a6                plo R6
-   0a56   f8 09             ldi HEX_LINECNT_SEPARATOR+3.1
-   0a58   b6                phi R6
-                        	
-   0a59   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0a5b   ad                plo CALL_REG
-   0a5c   f8 01             ldi PRINT.1
-   0a5e   bd                phi CALL_REG
-                            
-   0a5f   f8 00             ldi FCALL.0
-   0a61   ae                plo FCALL_REG
-   0a62   de                sep FCALL_REG
-                            
-   0a63   8f                glo STACK_REG       ;set R4 pointer to current address
-   0a64   fc 11             adi 17
-   0a66   a4                plo R4
-   0a67   9f                ghi STACK_REG
-   0a68   7c 00             adci 0
-   0a6a   b4                phi R4
-                            
-   0a6b   8f                glo STACK_REG       ;set R5 pointer to start address
-   0a6c   fc 0d             adi 13
-   0a6e   a5                plo R5
+   0a6b                 HEXVIEWER_PRINT_HEX_LOOP
+   0a6b   8f                glo STACK_REG       ;set R4 pointer to current address
+   0a6c   fc 11             adi 17
+   0a6e   a4                plo R4
    0a6f   9f                ghi STACK_REG
    0a70   7c 00             adci 0
-   0a72   b5                phi R5
+   0a72   b4                phi R4
                             
-   0a73   e5                sex R5
-                            
-   0a74   72                ldxa
-   0a75   54                str R4
-   0a76   14                inc R4
-                            
-   0a77   72                ldxa
-   0a78   54                str R4
-   0a79   14                inc R4
-                            
-   0a7a   72                ldxa
-   0a7b   54                str R4
-   0a7c   14                inc R4
-                            
-   0a7d   72                ldxa
-   0a7e   54                str R4
-                            
-   0a7f   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
-   0a81   a8                plo R8
+   0a73   8f                glo STACK_REG       ;set R5 pointer to last address
+   0a74   fc 09             adi 9
+   0a76   a5                plo R5
+   0a77   9f                ghi STACK_REG
+   0a78   7c 00             adci 0
+   0a7a   b5                phi R5
                         
-   0a82                 HEXVIEWER_PRINT_STR_LOOP
-   0a82   8f                glo STACK_REG       ;set R4 pointer to current address
-   0a83   fc 11             adi 17
-   0a85   a4                plo R4
-   0a86   9f                ghi STACK_REG
-   0a87   7c 00             adci 0
-   0a89   b4                phi R4
+   0a7b   e4                sex R4          ;check if current address is >= last address
                             
-   0a8a   8f                glo STACK_REG       ;set R5 pointer to last address
-   0a8b   fc 09             adi 9
-   0a8d   a5                plo R5
+   0a7c   45                lda R5
+   0a7d   f5                sd
+   0a7e   60                irx
+                            
+   0a7f   45                lda R5
+   0a80   75                sdb
+   0a81   60                irx
+                            
+   0a82   45                lda R5
+   0a83   75                sdb
+   0a84   60                irx
+                            
+   0a85   05                ldn R5
+   0a86   75                sdb
+                            
+   0a87   c3 0a af          lbdf HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
+                        
+   0a8a   8f                glo STACK_REG       ;set R4 pointer to current address
+   0a8b   fc 11             adi 17
+   0a8d   a4                plo R4
    0a8e   9f                ghi STACK_REG
    0a8f   7c 00             adci 0
-   0a91   b5                phi R5
-                        
-   0a92   e4                sex R4          ;check if current address is <= last address
+   0a91   b4                phi R4
                             
-   0a93   45                lda R5
-   0a94   f5                sd
-   0a95   60                irx
+   0a92   44                lda R4              ;get current address and load it in R5
+   0a93   a5                plo R5
+   0a94   44                lda R4
+   0a95   b5                phi R5
                             
-   0a96   45                lda R5
-   0a97   75                sdb
-   0a98   60                irx
+   0a96   05                ldn R5              ;get data from R5 address
+   0a97   a5                plo R5              ;store data in R5 low
                             
-   0a99   45                lda R5
-   0a9a   75                sdb
-   0a9b   60                irx
+   0a98   8f                glo STACK_REG       ;set R4 pointer to temp
+   0a99   a4                plo R4
+   0a9a   9f                ghi STACK_REG
+   0a9b   b4                phi R4
+   0a9c   14                inc R4
                             
-   0a9c   05                ldn R5
-   0a9d   75                sdb
+   0a9d   85                glo R5              ;get data from R5 low
+   0a9e   54                str R4              ;store data to temp
+                           
+   0a9f   f8 02             ldi 2
+   0aa1   a5                plo R5              ;set R5 low to 2 digits
                             
-   0a9e   33 d3             bpz HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
+   0aa2   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0aa4   ad                plo CALL_REG
+   0aa5   f8 04             ldi PRINT_HEX.1
+   0aa7   bd                phi CALL_REG
                             
-   0aa0   8f                glo STACK_REG       ;set R4 pointer to current address
-   0aa1   fc 11             adi 17
-   0aa3   a4                plo R4
-   0aa4   9f                ghi STACK_REG
-   0aa5   7c 00             adci 0
-   0aa7   b4                phi R4
+   0aa8   f8 00             ldi FCALL.0
+   0aaa   ae                plo FCALL_REG
+   0aab   de                sep FCALL_REG
                             
-   0aa8   44                lda R4              ;get current address and load it in R5
-   0aa9   a5                plo R5
-   0aaa   44                lda R4
-   0aab   b5                phi R5
+   0aac   c0 0a bf          lbr HEXVIEWER_NEXT_HEX
                             
-   0aac   05                ldn R5              ;get data from R5 address
-   0aad   a5                plo R5              ;store data in R5 low
-                            
-   0aae   ff 20             smi 32
-   0ab0   3b c4             bm HEXVIEWER_PRINT_STR_DOT
-   0ab2   ff 5f             smi 95
-   0ab4   33 c4             bpz HEXVIEWER_PRINT_STR_DOT
-                            
-   0ab6   85                glo R5
-   0ab7   b4                phi R4
-                            
-   0ab8   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0aba   ad                plo CALL_REG
-   0abb   f8 01             ldi SERIAL_SEND_START.1
-   0abd   bd                phi CALL_REG
-                            
-   0abe   f8 00             ldi FCALL.0
-   0ac0   ae                plo FCALL_REG
-   0ac1   de                sep FCALL_REG
-                            
-   0ac2   30 e0             br HEXVIEWER_NEXT_STR
-                            
-   0ac4                 HEXVIEWER_PRINT_STR_DOT
-   0ac4   f8 2e             ldi 46
-   0ac6   b4                phi R4
-                            
-   0ac7   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0ac9   ad                plo CALL_REG
-   0aca   f8 01             ldi SERIAL_SEND_START.1
-   0acc   bd                phi CALL_REG
-                            
-   0acd   f8 00             ldi FCALL.0
-   0acf   ae                plo FCALL_REG
-   0ad0   de                sep FCALL_REG
-                            
-   0ad1   30 e0             br HEXVIEWER_NEXT_STR
-                        
-   0ad3                 HEXVIEWER_PRINT_STR_SPACE
-   0ad3   f8 20             ldi 32
-   0ad5   b4                phi R4
-                            
-   0ad6   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0ad8   ad                plo CALL_REG
-   0ad9   f8 01             ldi SERIAL_SEND_START.1
-   0adb   bd                phi CALL_REG
-                            
-   0adc   f8 00             ldi FCALL.0
-   0ade   ae                plo FCALL_REG
-   0adf   de                sep FCALL_REG
-                            
-   0ae0                 HEXVIEWER_NEXT_STR
-   0ae0   8f                glo STACK_REG       ;set R4 pointer to current address
-   0ae1   fc 11             adi 17
-   0ae3   a4                plo R4
-   0ae4   9f                ghi STACK_REG
-   0ae5   7c 00             adci 0
-   0ae7   b4                phi R4
-                            
-   0ae8   e4                sex R4
-   0ae9   f8 01             ldi 1
-   0aeb   f4                add
-   0aec   54                str R4
-   0aed   60                irx
-                            
-   0aee   f8 00             ldi 0
-   0af0   74                adc
-   0af1   54                str R4
-   0af2   60                irx
-                            
-   0af3   f8 00             ldi 0
-   0af5   74                adc
-   0af6   54                str R4
-   0af7   60                irx
-                            
-   0af8   f8 00             ldi 0
-   0afa   74                adc
-   0afb   54                str R4
-                            
-   0afc   28                dec R8
-   0afd   88                glo R8
-   0afe   3a 82             bnz HEXVIEWER_PRINT_STR_LOOP
-                            
-   0b00   f8 f3             ldi NEW_LINE.0     ;prepare to print a space
-   0b02   a6                plo R6
-   0b03   f8 0c             ldi NEW_LINE.1
-   0b05   b6                phi R6
+   0aaf                 HEXVIEWER_PRINT_HEX_SPACES
+   0aaf   f8 c9             ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
+   0ab1   a6                plo R6
+   0ab2   f8 09             ldi HEX_LINECNT_SEPARATOR+2.1
+   0ab4   b6                phi R6
                         	
-   0b06   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0b08   ad                plo CALL_REG
-   0b09   f8 01             ldi PRINT.1
-   0b0b   bd                phi CALL_REG
+   0ab5   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0ab7   ad                plo CALL_REG
+   0ab8   f8 01             ldi PRINT.1
+   0aba   bd                phi CALL_REG
                             
-   0b0c   f8 00             ldi FCALL.0
-   0b0e   ae                plo FCALL_REG
-   0b0f   de                sep FCALL_REG
-                            
-   0b10   8f                glo STACK_REG       ;set R4 pointer to current address
-   0b11   fc 11             adi 17
-   0b13   a4                plo R4
-   0b14   9f                ghi STACK_REG
-   0b15   7c 00             adci 0
-   0b17   b4                phi R4
-                            
-   0b18   8f                glo STACK_REG       ;set R5 pointer to last address
-   0b19   fc 09             adi 9
-   0b1b   a5                plo R5
-   0b1c   9f                ghi STACK_REG
-   0b1d   7c 00             adci 0
-   0b1f   b5                phi R5
+   0abb   f8 00             ldi FCALL.0
+   0abd   ae                plo FCALL_REG
+   0abe   de                sep FCALL_REG
                         
-   0b20   e4                sex R4          ;check if current address is >= last address
+   0abf                 HEXVIEWER_NEXT_HEX
+   0abf   f8 ca             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+   0ac1   a6                plo R6
+   0ac2   f8 09             ldi HEX_LINECNT_SEPARATOR+3.1
+   0ac4   b6                phi R6
+                        	
+   0ac5   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0ac7   ad                plo CALL_REG
+   0ac8   f8 01             ldi PRINT.1
+   0aca   bd                phi CALL_REG
                             
-   0b21   45                lda R5
-   0b22   f5                sd
-   0b23   60                irx
+   0acb   f8 00             ldi FCALL.0
+   0acd   ae                plo FCALL_REG
+   0ace   de                sep FCALL_REG
                             
-   0b24   45                lda R5
-   0b25   75                sdb
-   0b26   60                irx
+   0acf   8f                glo STACK_REG       ;set R4 pointer to current address
+   0ad0   fc 11             adi 17
+   0ad2   a4                plo R4
+   0ad3   9f                ghi STACK_REG
+   0ad4   7c 00             adci 0
+   0ad6   b4                phi R4
                             
-   0b27   45                lda R5
-   0b28   75                sdb
-   0b29   60                irx
+   0ad7   e4                sex R4
+   0ad8   f8 01             ldi 1
+   0ada   f4                add
+   0adb   54                str R4
+   0adc   60                irx
                             
-   0b2a   05                ldn R5
-   0b2b   75                sdb
+   0add   f8 00             ldi 0
+   0adf   74                adc
+   0ae0   54                str R4
+   0ae1   60                irx
                             
-   0b2c   33 69             bpz HEXVIEWER_END
+   0ae2   f8 00             ldi 0
+   0ae4   74                adc
+   0ae5   54                str R4
+   0ae6   60                irx
                             
-   0b2e   8f                glo STACK_REG       ;set R4 pointer to line counter
-   0b2f   fc 05             adi 5
-   0b31   a4                plo R4
-   0b32   9f                ghi STACK_REG
-   0b33   7c 00             adci 0
-   0b35   b4                phi R4
+   0ae7   f8 00             ldi 0
+   0ae9   74                adc
+   0aea   54                str R4
                             
-   0b36   e4                sex R4
+   0aeb   28                dec R8
+   0aec   88                glo R8
+   0aed   ca 0a 6b          lbnz HEXVIEWER_PRINT_HEX_LOOP
                             
-   0b37   f8 10             ldi 16
-   0b39   f4                add
-   0b3a   54                str R4
-   0b3b   60                irx
+   0af0   f8 ca             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+   0af2   a6                plo R6
+   0af3   f8 09             ldi HEX_LINECNT_SEPARATOR+3.1
+   0af5   b6                phi R6
+                        	
+   0af6   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0af8   ad                plo CALL_REG
+   0af9   f8 01             ldi PRINT.1
+   0afb   bd                phi CALL_REG
                             
-   0b3c   f8 00             ldi 0
-   0b3e   74                adc
-   0b3f   54                str R4
-   0b40   60                irx
+   0afc   f8 00             ldi FCALL.0
+   0afe   ae                plo FCALL_REG
+   0aff   de                sep FCALL_REG
                             
-   0b41   f8 00             ldi 0
-   0b43   74                adc
-   0b44   54                str R4
-   0b45   60                irx
+   0b00   8f                glo STACK_REG       ;set R4 pointer to current address
+   0b01   fc 11             adi 17
+   0b03   a4                plo R4
+   0b04   9f                ghi STACK_REG
+   0b05   7c 00             adci 0
+   0b07   b4                phi R4
                             
-   0b46   f8 00             ldi 0
-   0b48   74                adc
-   0b49   54                str R4
+   0b08   8f                glo STACK_REG       ;set R5 pointer to start address
+   0b09   fc 0d             adi 13
+   0b0b   a5                plo R5
+   0b0c   9f                ghi STACK_REG
+   0b0d   7c 00             adci 0
+   0b0f   b5                phi R5
                             
-   0b4a   8f                glo STACK_REG       ;set R4 pointer to current address
-   0b4b   fc 11             adi 17
-   0b4d   a4                plo R4
-   0b4e   9f                ghi STACK_REG
-   0b4f   7c 00             adci 0
-   0b51   b4                phi R4
+   0b10   e5                sex R5
                             
-   0b52   8f                glo STACK_REG       ;set R5 pointer to start address
-   0b53   fc 0d             adi 13
-   0b55   a5                plo R5
-   0b56   9f                ghi STACK_REG
-   0b57   7c 00             adci 0
-   0b59   b5                phi R5
+   0b11   72                ldxa
+   0b12   54                str R4
+   0b13   14                inc R4
                             
-   0b5a   e4                sex R4
+   0b14   72                ldxa
+   0b15   54                str R4
+   0b16   14                inc R4
                             
-   0b5b   72                ldxa
-   0b5c   55                str R5
-   0b5d   15                inc R5
+   0b17   72                ldxa
+   0b18   54                str R4
+   0b19   14                inc R4
                             
-   0b5e   72                ldxa
-   0b5f   55                str R5
-   0b60   15                inc R5
+   0b1a   72                ldxa
+   0b1b   54                str R4
                             
-   0b61   72                ldxa
-   0b62   55                str R5
-   0b63   15                inc R5
-                            
-   0b64   72                ldxa
-   0b65   55                str R5
-                            
-   0b66   c0 09 a6          lbr HEXVIEWER_MAINLOOP
+   0b1c   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
+   0b1e   a8                plo R8
                         
-   0b69                 HEXVIEWER_END
-   0b69   8f                glo STACK_REG
-   0b6a   fc 14             adi 20
-   0b6c   af                plo STACK_REG
-   0b6d   9f                ghi STACK_REG
-   0b6e   7c 00             adci 0
-   0b70   bf                phi STACK_REG
+   0b1f                 HEXVIEWER_PRINT_STR_LOOP
+   0b1f   8f                glo STACK_REG       ;set R4 pointer to current address
+   0b20   fc 11             adi 17
+   0b22   a4                plo R4
+   0b23   9f                ghi STACK_REG
+   0b24   7c 00             adci 0
+   0b26   b4                phi R4
                             
-   0b71   de                sep RETURN
+   0b27   8f                glo STACK_REG       ;set R5 pointer to last address
+   0b28   fc 09             adi 9
+   0b2a   a5                plo R5
+   0b2b   9f                ghi STACK_REG
+   0b2c   7c 00             adci 0
+   0b2e   b5                phi R5
+                        
+   0b2f   e4                sex R4          ;check if current address is <= last address
+                            
+   0b30   45                lda R5
+   0b31   f5                sd
+   0b32   60                irx
+                            
+   0b33   45                lda R5
+   0b34   75                sdb
+   0b35   60                irx
+                            
+   0b36   45                lda R5
+   0b37   75                sdb
+   0b38   60                irx
+                            
+   0b39   05                ldn R5
+   0b3a   75                sdb
+                            
+   0b3b   33 70             bpz HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
+                            
+   0b3d   8f                glo STACK_REG       ;set R4 pointer to current address
+   0b3e   fc 11             adi 17
+   0b40   a4                plo R4
+   0b41   9f                ghi STACK_REG
+   0b42   7c 00             adci 0
+   0b44   b4                phi R4
+                            
+   0b45   44                lda R4              ;get current address and load it in R5
+   0b46   a5                plo R5
+   0b47   44                lda R4
+   0b48   b5                phi R5
+                            
+   0b49   05                ldn R5              ;get data from R5 address
+   0b4a   a5                plo R5              ;store data in R5 low
+                            
+   0b4b   ff 20             smi 32
+   0b4d   3b 61             bm HEXVIEWER_PRINT_STR_DOT
+   0b4f   ff 5f             smi 95
+   0b51   33 61             bpz HEXVIEWER_PRINT_STR_DOT
+                            
+   0b53   85                glo R5
+   0b54   b4                phi R4
+                            
+   0b55   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   0b57   ad                plo CALL_REG
+   0b58   f8 01             ldi SERIAL_SEND_START.1
+   0b5a   bd                phi CALL_REG
+                            
+   0b5b   f8 00             ldi FCALL.0
+   0b5d   ae                plo FCALL_REG
+   0b5e   de                sep FCALL_REG
+                            
+   0b5f   30 7d             br HEXVIEWER_NEXT_STR
+                            
+   0b61                 HEXVIEWER_PRINT_STR_DOT
+   0b61   f8 2e             ldi 46
+   0b63   b4                phi R4
+                            
+   0b64   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   0b66   ad                plo CALL_REG
+   0b67   f8 01             ldi SERIAL_SEND_START.1
+   0b69   bd                phi CALL_REG
+                            
+   0b6a   f8 00             ldi FCALL.0
+   0b6c   ae                plo FCALL_REG
+   0b6d   de                sep FCALL_REG
+                            
+   0b6e   30 7d             br HEXVIEWER_NEXT_STR
+                        
+   0b70                 HEXVIEWER_PRINT_STR_SPACE
+   0b70   f8 20             ldi 32
+   0b72   b4                phi R4
+                            
+   0b73   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   0b75   ad                plo CALL_REG
+   0b76   f8 01             ldi SERIAL_SEND_START.1
+   0b78   bd                phi CALL_REG
+                            
+   0b79   f8 00             ldi FCALL.0
+   0b7b   ae                plo FCALL_REG
+   0b7c   de                sep FCALL_REG
+                            
+   0b7d                 HEXVIEWER_NEXT_STR
+   0b7d   8f                glo STACK_REG       ;set R4 pointer to current address
+   0b7e   fc 11             adi 17
+   0b80   a4                plo R4
+   0b81   9f                ghi STACK_REG
+   0b82   7c 00             adci 0
+   0b84   b4                phi R4
+                            
+   0b85   e4                sex R4
+   0b86   f8 01             ldi 1
+   0b88   f4                add
+   0b89   54                str R4
+   0b8a   60                irx
+                            
+   0b8b   f8 00             ldi 0
+   0b8d   74                adc
+   0b8e   54                str R4
+   0b8f   60                irx
+                            
+   0b90   f8 00             ldi 0
+   0b92   74                adc
+   0b93   54                str R4
+   0b94   60                irx
+                            
+   0b95   f8 00             ldi 0
+   0b97   74                adc
+   0b98   54                str R4
+                            
+   0b99   28                dec R8
+   0b9a   88                glo R8
+   0b9b   3a 1f             bnz HEXVIEWER_PRINT_STR_LOOP
+                            
+   0b9d   f8 92             ldi NEW_LINE.0     ;prepare to print a space
+   0b9f   a6                plo R6
+   0ba0   f8 0d             ldi NEW_LINE.1
+   0ba2   b6                phi R6
+                        	
+   0ba3   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0ba5   ad                plo CALL_REG
+   0ba6   f8 01             ldi PRINT.1
+   0ba8   bd                phi CALL_REG
+                            
+   0ba9   f8 00             ldi FCALL.0
+   0bab   ae                plo FCALL_REG
+   0bac   de                sep FCALL_REG
+                            
+   0bad   8f                glo STACK_REG       ;set R4 pointer to current address
+   0bae   fc 11             adi 17
+   0bb0   a4                plo R4
+   0bb1   9f                ghi STACK_REG
+   0bb2   7c 00             adci 0
+   0bb4   b4                phi R4
+                            
+   0bb5   8f                glo STACK_REG       ;set R5 pointer to last address
+   0bb6   fc 09             adi 9
+   0bb8   a5                plo R5
+   0bb9   9f                ghi STACK_REG
+   0bba   7c 00             adci 0
+   0bbc   b5                phi R5
+                        
+   0bbd   e4                sex R4          ;check if current address is >= last address
+                            
+   0bbe   45                lda R5
+   0bbf   f5                sd
+   0bc0   60                irx
+                            
+   0bc1   45                lda R5
+   0bc2   75                sdb
+   0bc3   60                irx
+                            
+   0bc4   45                lda R5
+   0bc5   75                sdb
+   0bc6   60                irx
+                            
+   0bc7   05                ldn R5
+   0bc8   75                sdb
+                            
+   0bc9   c3 0c 07          lbdf HEXVIEWER_END
+                            
+   0bcc   8f                glo STACK_REG       ;set R4 pointer to line counter
+   0bcd   fc 05             adi 5
+   0bcf   a4                plo R4
+   0bd0   9f                ghi STACK_REG
+   0bd1   7c 00             adci 0
+   0bd3   b4                phi R4
+                            
+   0bd4   e4                sex R4
+                            
+   0bd5   f8 10             ldi 16
+   0bd7   f4                add
+   0bd8   54                str R4
+   0bd9   60                irx
+                            
+   0bda   f8 00             ldi 0
+   0bdc   74                adc
+   0bdd   54                str R4
+   0bde   60                irx
+                            
+   0bdf   f8 00             ldi 0
+   0be1   74                adc
+   0be2   54                str R4
+   0be3   60                irx
+                            
+   0be4   f8 00             ldi 0
+   0be6   74                adc
+   0be7   54                str R4
+                            
+   0be8   8f                glo STACK_REG       ;set R4 pointer to current address
+   0be9   fc 11             adi 17
+   0beb   a4                plo R4
+   0bec   9f                ghi STACK_REG
+   0bed   7c 00             adci 0
+   0bef   b4                phi R4
+                            
+   0bf0   8f                glo STACK_REG       ;set R5 pointer to start address
+   0bf1   fc 0d             adi 13
+   0bf3   a5                plo R5
+   0bf4   9f                ghi STACK_REG
+   0bf5   7c 00             adci 0
+   0bf7   b5                phi R5
+                            
+   0bf8   e4                sex R4
+                            
+   0bf9   72                ldxa
+   0bfa   55                str R5
+   0bfb   15                inc R5
+                            
+   0bfc   72                ldxa
+   0bfd   55                str R5
+   0bfe   15                inc R5
+                            
+   0bff   72                ldxa
+   0c00   55                str R5
+   0c01   15                inc R5
+                            
+   0c02   72                ldxa
+   0c03   55                str R5
+                            
+   0c04   c0 0a 43          lbr HEXVIEWER_MAINLOOP
+                        
+   0c07                 HEXVIEWER_END
+   0c07   8f                glo STACK_REG
+   0c08   fc 14             adi 20
+   0c0a   af                plo STACK_REG
+   0c0b   9f                ghi STACK_REG
+   0c0c   7c 00             adci 0
+   0c0e   bf                phi STACK_REG
+                            
+   0c0f   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-HEXVIEW_CALLER-------------------------------
-   0b72                 HEXVIEW_CALLER
-   0b72   ef                sex STACK_REG
+   0c10                 HEXVIEW_CALLER
+   0c10   ef                sex STACK_REG
                             
-   0b73   f8 00             ldi 0
-   0b75   73                stxd
-   0b76   73                stxd
-   0b77   73                stxd
-   0b78   73                stxd    ;+5 first arg
+   0c11   f8 00             ldi 0
+   0c13   73                stxd
+   0c14   73                stxd
+   0c15   73                stxd
+   0c16   73                stxd    ;+5 first arg
                             
-   0b79   73                stxd
-   0b7a   73                stxd
-   0b7b   f8 01             ldi 1
-   0b7d   73                stxd
-   0b7e   f8 00             ldi 0
-   0b80   73                stxd    ;+1 second arg
+   0c17   73                stxd
+   0c18   73                stxd
+   0c19   f8 01             ldi 1
+   0c1b   73                stxd
+   0c1c   f8 00             ldi 0
+   0c1e   73                stxd    ;+1 second arg
                             
-   0b81   8f                glo STACK_REG
-   0b82   fc 05             adi 5
-   0b84   a5                plo R5
-   0b85   9f                ghi STACK_REG
-   0b86   7c 00             adci 0
-   0b88   b5                phi R5
+   0c1f   8f                glo STACK_REG
+   0c20   fc 05             adi 5
+   0c22   a5                plo R5
+   0c23   9f                ghi STACK_REG
+   0c24   7c 00             adci 0
+   0c26   b5                phi R5
                             
-   0b89   f8 8b             ldi EXPRESSION.0
-   0b8b   ad                plo CALL_REG
-   0b8c   f8 07             ldi EXPRESSION.1
-   0b8e   bd                phi CALL_REG
+   0c27   f8 28             ldi EXPRESSION.0
+   0c29   ad                plo CALL_REG
+   0c2a   f8 08             ldi EXPRESSION.1
+   0c2c   bd                phi CALL_REG
                             
-   0b8f   f8 00             ldi FCALL.0
-   0b91   ae                plo FCALL_REG
-   0b92   de                sep FCALL_REG
+   0c2d   f8 00             ldi FCALL.0
+   0c2f   ae                plo FCALL_REG
+   0c30   de                sep FCALL_REG
                             
-   0b93   44                lda R4
-   0b94   fb 2c             xri 44
-   0b96   32 ab             bz HEXVIEW_CALLER_NEXTARG
-   0b98   24                dec R4
-   0b99   44                lda R4
-   0b9a   32 ba             bz HEXVIEW_CALLER_EXEC
-   0b9c   24                dec R4
+   0c31   44                lda R4
+   0c32   fb 2c             xri 44
+   0c34   32 49             bz HEXVIEW_CALLER_NEXTARG
+   0c36   24                dec R4
+   0c37   44                lda R4
+   0c38   32 58             bz HEXVIEW_CALLER_EXEC
+   0c3a   24                dec R4
                             
-   0b9d   04                ldn R4
-   0b9e   b4                phi R4
+   0c3b   04                ldn R4
+   0c3c   b4                phi R4
                             
-   0b9f   f8 13             ldi SERIAL_SEND_START.0
-   0ba1   ad                plo CALL_REG
-   0ba2   f8 01             ldi SERIAL_SEND_START.1
-   0ba4   bd                phi CALL_REG
+   0c3d   f8 13             ldi SERIAL_SEND_START.0
+   0c3f   ad                plo CALL_REG
+   0c40   f8 01             ldi SERIAL_SEND_START.1
+   0c42   bd                phi CALL_REG
                             
-   0ba5   f8 00             ldi FCALL.0
-   0ba7   ae                plo FCALL_REG
-   0ba8   de                sep FCALL_REG
+   0c43   f8 00             ldi FCALL.0
+   0c45   ae                plo FCALL_REG
+   0c46   de                sep FCALL_REG
                             
-   0ba9   30 d9             br HEXVIEW_CALLER_END
+   0c47   30 77             br HEXVIEW_CALLER_END
                             
-   0bab                 HEXVIEW_CALLER_NEXTARG
-   0bab   8f                glo STACK_REG
-   0bac   a5                plo R5
-   0bad   9f                ghi STACK_REG
-   0bae   b5                phi R5
-   0baf   15                inc R5
+   0c49                 HEXVIEW_CALLER_NEXTARG
+   0c49   8f                glo STACK_REG
+   0c4a   a5                plo R5
+   0c4b   9f                ghi STACK_REG
+   0c4c   b5                phi R5
+   0c4d   15                inc R5
                             
-   0bb0   f8 8b             ldi EXPRESSION.0
-   0bb2   ad                plo CALL_REG
-   0bb3   f8 07             ldi EXPRESSION.1
-   0bb5   bd                phi CALL_REG
+   0c4e   f8 28             ldi EXPRESSION.0
+   0c50   ad                plo CALL_REG
+   0c51   f8 08             ldi EXPRESSION.1
+   0c53   bd                phi CALL_REG
                             
-   0bb6   f8 00             ldi FCALL.0
-   0bb8   ae                plo FCALL_REG
-   0bb9   de                sep FCALL_REG
+   0c54   f8 00             ldi FCALL.0
+   0c56   ae                plo FCALL_REG
+   0c57   de                sep FCALL_REG
                             
-   0bba                 HEXVIEW_CALLER_EXEC
-   0bba   8f                glo STACK_REG
-   0bbb   fc 05             adi 5
-   0bbd   a5                plo R5
-   0bbe   9f                ghi STACK_REG
-   0bbf   7c 00             adci 0
-   0bc1   b5                phi R5
+   0c58                 HEXVIEW_CALLER_EXEC
+   0c58   8f                glo STACK_REG
+   0c59   fc 05             adi 5
+   0c5b   a5                plo R5
+   0c5c   9f                ghi STACK_REG
+   0c5d   7c 00             adci 0
+   0c5f   b5                phi R5
                             
-   0bc2   45                lda R5
-   0bc3   a4                plo R4
-   0bc4   45                lda R5
-   0bc5   b4                phi R4
+   0c60   45                lda R5
+   0c61   a4                plo R4
+   0c62   45                lda R5
+   0c63   b4                phi R4
                             
-   0bc6   8f                glo STACK_REG
-   0bc7   a6                plo R6
-   0bc8   9f                ghi STACK_REG
-   0bc9   b6                phi R6
-   0bca   16                inc R6
+   0c64   8f                glo STACK_REG
+   0c65   a6                plo R6
+   0c66   9f                ghi STACK_REG
+   0c67   b6                phi R6
+   0c68   16                inc R6
                             
-   0bcb   46                lda R6
-   0bcc   a5                plo R5
-   0bcd   46                lda R6
-   0bce   b5                phi R5
+   0c69   46                lda R6
+   0c6a   a5                plo R5
+   0c6b   46                lda R6
+   0c6c   b5                phi R5
                             
-   0bcf   f8 2f             ldi HEXVIEWER.0
-   0bd1   ad                plo CALL_REG
-   0bd2   f8 09             ldi HEXVIEWER.1
-   0bd4   bd                phi CALL_REG
-                            
-   0bd5   f8 00             ldi FCALL.0
-   0bd7   ae                plo FCALL_REG
-   0bd8   de                sep FCALL_REG
-                            
-   0bd9                 HEXVIEW_CALLER_END
-   0bd9   8f                glo STACK_REG
-   0bda   fc 08             adi 8
-   0bdc   af                plo STACK_REG
-   0bdd   9f                ghi STACK_REG
-   0bde   7c 00             adci 0
-   0be0   bf                phi STACK_REG
-                            
-   0be1   de                sep RETURN
-                        ;----------------------------------------------
-                        
-                        ;-TEST FUNCTION--------------------------------
-   0be2                 TEST_STR1
-   0be2   52 65 73 75       db "Result: ",0
-   0be6   6c 74 3a 20   
-   0bea   00            
-                        
-   0beb                 FUNC_TEST
-   0beb   ef                sex STACK_REG
-                            
-   0bec   f8 00             ldi 0
-   0bee   73                stxd
-   0bef   73                stxd
-   0bf0   73                stxd
-   0bf1   73                stxd    ;+1 result
-                            
-   0bf2   8f                glo STACK_REG
-   0bf3   a5                plo R5
-   0bf4   9f                ghi STACK_REG
-   0bf5   b5                phi R5
-   0bf6   15                inc R5
-                            
-   0bf7   f8 8b             ldi EXPRESSION.0
-   0bf9   ad                plo CALL_REG
-   0bfa   f8 07             ldi EXPRESSION.1
-   0bfc   bd                phi CALL_REG
-                            
-   0bfd   f8 00             ldi FCALL.0
-   0bff   ae                plo FCALL_REG
-   0c00   de                sep FCALL_REG
-                            
-   0c01   8f                glo STACK_REG
-   0c02   a4                plo R4
-   0c03   9f                ghi STACK_REG
-   0c04   b4                phi R4
-   0c05   14                inc R4
-                        
-   0c06   f8 00             ldi 0
-   0c08   a5                plo R5
-                            
-   0c09   f8 ae             ldi PRINT_DEC.0     ;prepare to print the Decimal result.
-   0c0b   ad                plo CALL_REG
-   0c0c   f8 04             ldi PRINT_DEC.1
-   0c0e   bd                phi CALL_REG
-                            
-   0c0f   f8 00             ldi FCALL.0
-   0c11   ae                plo FCALL_REG
-   0c12   de                sep FCALL_REG
-                            
-   0c13   f8 f3             ldi NEW_LINE.0  ;print newline
-   0c15   a6                plo R6
-   0c16   f8 0c             ldi NEW_LINE.1
-   0c18   b6                phi R6
-                        	
-   0c19   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   0c1b   ad                plo CALL_REG
-   0c1c   f8 01             ldi PRINT.1
-   0c1e   bd                phi CALL_REG
-                            
-   0c1f   f8 00             ldi FCALL.0
-   0c21   ae                plo FCALL_REG
-   0c22   de                sep FCALL_REG
-                            
-   0c23   8f                glo STACK_REG
-   0c24   fc 04             adi 4
-   0c26   af                plo STACK_REG
-   0c27   9f                ghi STACK_REG
-   0c28   7c 00             adci 0
-   0c2a   bf                phi STACK_REG
-                            
-   0c2b   de                sep RETURN
-                        ;----------------------------------------------
-                        
-                        ;-COMMAND-CHECK--------------------------------
-                        ;-R4-input string------------------------------
-   0c2c                 COMMAND_CHECK
-   0c2c   f8 06             ldi COMMAND_FUNC_LIST.0
-   0c2e   a5                plo R5
-   0c2f   f8 0d             ldi COMMAND_FUNC_LIST.1
-   0c31   b5                phi R5
-                            
-   0c32   f8 f6             ldi COMMAND_LIST.0
-   0c34   a9                plo R9
-   0c35   f8 0c             ldi COMMAND_LIST.1
-   0c37   b9                phi R9
-                            
-   0c38   84                glo R4
-   0c39   a6                plo R6
-   0c3a   94                ghi R4
-   0c3b   b6                phi R6
-                            
-   0c3c                 COMMAND_CHECK_GOTOSPACE
-   0c3c   46                lda R6
-   0c3d   c2 0c 48          lbz COMMAND_CHECK_INSERTZERO
-   0c40   fb 20             xri 32
-   0c42   c2 0c 49          lbz COMMAND_CHECK_REPLACESPACE
-   0c45   c0 0c 3c          lbr COMMAND_CHECK_GOTOSPACE
-                            
-   0c48                 COMMAND_CHECK_INSERTZERO
-   0c48   56                str R6
-   0c49                 COMMAND_CHECK_REPLACESPACE
-   0c49   26                dec R6
-   0c4a   56                str R6
-   0c4b   16                inc R6
-                            
-   0c4c                 COMMAND_CHECK_LOOP
-   0c4c   84                glo R4
-   0c4d   a8                plo R8
-   0c4e   94                ghi R4
-   0c4f   b8                phi R8
-                            
-   0c50   09                ldn R9
-   0c51   c2 0c 78          lbz COMMAND_CHECK_END
-                        
-   0c54   f8 c0             ldi STR_COMPARATOR.0
-   0c56   ad                plo CALL_REG
-   0c57   f8 01             ldi STR_COMPARATOR.1
-   0c59   bd                phi CALL_REG
-                            
-   0c5a   f8 00             ldi FCALL.0
-   0c5c   ae                plo FCALL_REG
-   0c5d   de                sep FCALL_REG
-                            
-   0c5e   8a                glo R10
-   0c5f   ca 0c 6b          lbnz COMMAND_CHECK_EXEC
-                            
-   0c62                 COMMAND_CHECK_STR_END
-   0c62   09                ldn R9
-   0c63   19                inc R9
-   0c64   3a 62             bnz COMMAND_CHECK_STR_END
-                            
-   0c66   15                inc R5
-   0c67   15                inc R5
-   0c68   c0 0c 4c          lbr COMMAND_CHECK_LOOP
-                            
-   0c6b                 COMMAND_CHECK_EXEC
-   0c6b   86                glo R6
-   0c6c   a4                plo R4
-   0c6d   96                ghi R6
-   0c6e   b4                phi R4
-                            
-   0c6f   45                lda R5
-   0c70   ad                plo CALL_REG
-   0c71   05                ldn R5
+   0c6d   f8 cc             ldi HEXVIEWER.0
+   0c6f   ad                plo CALL_REG
+   0c70   f8 09             ldi HEXVIEWER.1
    0c72   bd                phi CALL_REG
                             
    0c73   f8 00             ldi FCALL.0
    0c75   ae                plo FCALL_REG
    0c76   de                sep FCALL_REG
                             
-   0c77   de                sep RETURN
+   0c77                 HEXVIEW_CALLER_END
+   0c77   8f                glo STACK_REG
+   0c78   fc 08             adi 8
+   0c7a   af                plo STACK_REG
+   0c7b   9f                ghi STACK_REG
+   0c7c   7c 00             adci 0
+   0c7e   bf                phi STACK_REG
                             
-   0c78                 COMMAND_CHECK_END
-   0c78   f8 0a             ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
-   0c7a   a6                plo R6
-   0c7b   f8 0d             ldi UNKNOWN_COMMAND.1
-   0c7d   b6                phi R6
+   0c7f   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-TEST FUNCTION--------------------------------
+   0c80                 TEST_STR1
+   0c80   52 65 73 75       db "Result: ",0
+   0c84   6c 74 3a 20   
+   0c88   00            
+                        
+   0c89                 FUNC_TEST
+   0c89   ef                sex STACK_REG
+                            
+   0c8a   f8 00             ldi 0
+   0c8c   73                stxd
+   0c8d   73                stxd
+   0c8e   73                stxd
+   0c8f   73                stxd    ;+1 result
+                            
+   0c90   8f                glo STACK_REG
+   0c91   a5                plo R5
+   0c92   9f                ghi STACK_REG
+   0c93   b5                phi R5
+   0c94   15                inc R5
+                            
+   0c95   f8 28             ldi EXPRESSION.0
+   0c97   ad                plo CALL_REG
+   0c98   f8 08             ldi EXPRESSION.1
+   0c9a   bd                phi CALL_REG
+                            
+   0c9b   f8 00             ldi FCALL.0
+   0c9d   ae                plo FCALL_REG
+   0c9e   de                sep FCALL_REG
+                            
+   0c9f   8f                glo STACK_REG
+   0ca0   a4                plo R4
+   0ca1   9f                ghi STACK_REG
+   0ca2   b4                phi R4
+   0ca3   14                inc R4
+                        
+   0ca4   f8 00             ldi 0
+   0ca6   a5                plo R5
+                            
+   0ca7   f8 ae             ldi PRINT_DEC.0     ;prepare to print the Decimal result.
+   0ca9   ad                plo CALL_REG
+   0caa   f8 04             ldi PRINT_DEC.1
+   0cac   bd                phi CALL_REG
+                            
+   0cad   f8 00             ldi FCALL.0
+   0caf   ae                plo FCALL_REG
+   0cb0   de                sep FCALL_REG
+                            
+   0cb1   f8 92             ldi NEW_LINE.0  ;print newline
+   0cb3   a6                plo R6
+   0cb4   f8 0d             ldi NEW_LINE.1
+   0cb6   b6                phi R6
                         	
-   0c7e   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   0c80   ad                plo CALL_REG
-   0c81   f8 01             ldi PRINT.1
-   0c83   bd                phi CALL_REG
+   0cb7   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   0cb9   ad                plo CALL_REG
+   0cba   f8 01             ldi PRINT.1
+   0cbc   bd                phi CALL_REG
                             
-   0c84   f8 00             ldi FCALL.0
-   0c86   ae                plo FCALL_REG
-   0c87   de                sep FCALL_REG   ;call PRINT
+   0cbd   f8 00             ldi FCALL.0
+   0cbf   ae                plo FCALL_REG
+   0cc0   de                sep FCALL_REG
                             
-   0c88   de                sep RETURN
+   0cc1   8f                glo STACK_REG
+   0cc2   fc 04             adi 4
+   0cc4   af                plo STACK_REG
+   0cc5   9f                ghi STACK_REG
+   0cc6   7c 00             adci 0
+   0cc8   bf                phi STACK_REG
+                            
+   0cc9   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-COMMAND-CHECK--------------------------------
+                        ;-R4-input string------------------------------
+   0cca                 COMMAND_CHECK
+   0cca   f8 a5             ldi COMMAND_FUNC_LIST.0
+   0ccc   a5                plo R5
+   0ccd   f8 0d             ldi COMMAND_FUNC_LIST.1
+   0ccf   b5                phi R5
+                            
+   0cd0   f8 95             ldi COMMAND_LIST.0
+   0cd2   a9                plo R9
+   0cd3   f8 0d             ldi COMMAND_LIST.1
+   0cd5   b9                phi R9
+                            
+   0cd6   84                glo R4
+   0cd7   a6                plo R6
+   0cd8   94                ghi R4
+   0cd9   b6                phi R6
+                            
+   0cda                 COMMAND_CHECK_GOTOSPACE
+   0cda   46                lda R6
+   0cdb   c2 0c e6          lbz COMMAND_CHECK_INSERTZERO
+   0cde   fb 20             xri 32
+   0ce0   c2 0c e7          lbz COMMAND_CHECK_REPLACESPACE
+   0ce3   c0 0c da          lbr COMMAND_CHECK_GOTOSPACE
+                            
+   0ce6                 COMMAND_CHECK_INSERTZERO
+   0ce6   56                str R6
+   0ce7                 COMMAND_CHECK_REPLACESPACE
+   0ce7   26                dec R6
+   0ce8   56                str R6
+   0ce9   16                inc R6
+                            
+   0cea                 COMMAND_CHECK_LOOP
+   0cea   84                glo R4
+   0ceb   a8                plo R8
+   0cec   94                ghi R4
+   0ced   b8                phi R8
+                            
+   0cee   09                ldn R9
+   0cef   c2 0d 17          lbz COMMAND_CHECK_END
+                        
+   0cf2   f8 c0             ldi STR_COMPARATOR.0
+   0cf4   ad                plo CALL_REG
+   0cf5   f8 01             ldi STR_COMPARATOR.1
+   0cf7   bd                phi CALL_REG
+                            
+   0cf8   f8 00             ldi FCALL.0
+   0cfa   ae                plo FCALL_REG
+   0cfb   de                sep FCALL_REG
+                            
+   0cfc   8a                glo R10
+   0cfd   ca 0d 0a          lbnz COMMAND_CHECK_EXEC
+                            
+   0d00                 COMMAND_CHECK_STR_END
+   0d00   09                ldn R9
+   0d01   19                inc R9
+   0d02   ca 0d 00          lbnz COMMAND_CHECK_STR_END
+                            
+   0d05   15                inc R5
+   0d06   15                inc R5
+   0d07   c0 0c ea          lbr COMMAND_CHECK_LOOP
+                            
+   0d0a                 COMMAND_CHECK_EXEC
+   0d0a   86                glo R6
+   0d0b   a4                plo R4
+   0d0c   96                ghi R6
+   0d0d   b4                phi R4
+                            
+   0d0e   45                lda R5
+   0d0f   ad                plo CALL_REG
+   0d10   05                ldn R5
+   0d11   bd                phi CALL_REG
+                            
+   0d12   f8 00             ldi FCALL.0
+   0d14   ae                plo FCALL_REG
+   0d15   de                sep FCALL_REG
+                            
+   0d16   de                sep RETURN
+                            
+   0d17                 COMMAND_CHECK_END
+   0d17   f8 a9             ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
+   0d19   a6                plo R6
+   0d1a   f8 0d             ldi UNKNOWN_COMMAND.1
+   0d1c   b6                phi R6
+                        	
+   0d1d   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   0d1f   ad                plo CALL_REG
+   0d20   f8 01             ldi PRINT.1
+   0d22   bd                phi CALL_REG
+                            
+   0d23   f8 00             ldi FCALL.0
+   0d25   ae                plo FCALL_REG
+   0d26   de                sep FCALL_REG   ;call PRINT
+                            
+   0d27   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-MAIN-----------------------------------------
-   0c89                 MAIN_PROGRAM
-   0c89   f8 cc             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
-   0c8b   a6                plo R6
-   0c8c   f8 0c             ldi BOOT_MSG.1
-   0c8e   b6                phi R6
+   0d28                 MAIN_PROGRAM
+   0d28   f8 6b             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
+   0d2a   a6                plo R6
+   0d2b   f8 0d             ldi BOOT_MSG.1
+   0d2d   b6                phi R6
                         	
-   0c8f   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   0c91   ad                plo CALL_REG
-   0c92   f8 01             ldi PRINT.1
-   0c94   bd                phi CALL_REG
+   0d2e   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   0d30   ad                plo CALL_REG
+   0d31   f8 01             ldi PRINT.1
+   0d33   bd                phi CALL_REG
                             
-   0c95   f8 00             ldi FCALL.0
-   0c97   ae                plo FCALL_REG
-   0c98   de                sep FCALL_REG   ;call PRINT
+   0d34   f8 00             ldi FCALL.0
+   0d36   ae                plo FCALL_REG
+   0d37   de                sep FCALL_REG   ;call PRINT
                         
-   0c99                 ASK_INPUT
-   0c99   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
-   0c9b   a7                plo R7
-   0c9c   f8 20             ldi INPUT_BUFF.1
-   0c9e   b7                phi R7
+   0d38                 ASK_INPUT
+   0d38   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
+   0d3a   a7                plo R7
+   0d3b   f8 20             ldi INPUT_BUFF.1
+   0d3d   b7                phi R7
                             
-   0c9f   f8 68             ldi READLINE.0      ;prepare to call READLINE
-   0ca1   ad                plo CALL_REG
-   0ca2   f8 01             ldi READLINE.1
-   0ca4   bd                phi CALL_REG
+   0d3e   f8 68             ldi READLINE.0      ;prepare to call READLINE
+   0d40   ad                plo CALL_REG
+   0d41   f8 01             ldi READLINE.1
+   0d43   bd                phi CALL_REG
                             
-   0ca5   f8 00             ldi FCALL.0
-   0ca7   ae                plo FCALL_REG
-   0ca8   de                sep FCALL_REG       ;call READLINE
+   0d44   f8 00             ldi FCALL.0
+   0d46   ae                plo FCALL_REG
+   0d47   de                sep FCALL_REG       ;call READLINE
                             
                             ;Program goes here
-   0ca9   f8 00             ldi INPUT_BUFF.0
-   0cab   a4                plo R4
-   0cac   f8 20             ldi INPUT_BUFF.1
-   0cae   b4                phi R4
+   0d48   f8 00             ldi INPUT_BUFF.0
+   0d4a   a4                plo R4
+   0d4b   f8 20             ldi INPUT_BUFF.1
+   0d4d   b4                phi R4
                             
-   0caf   f8 2c             ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
-   0cb1   ad                plo CALL_REG
-   0cb2   f8 0c             ldi COMMAND_CHECK.1
-   0cb4   bd                phi CALL_REG
+   0d4e   f8 ca             ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
+   0d50   ad                plo CALL_REG
+   0d51   f8 0c             ldi COMMAND_CHECK.1
+   0d53   bd                phi CALL_REG
                             
-   0cb5   f8 00             ldi FCALL.0
-   0cb7   ae                plo FCALL_REG
-   0cb8   de                sep FCALL_REG
+   0d54   f8 00             ldi FCALL.0
+   0d56   ae                plo FCALL_REG
+   0d57   de                sep FCALL_REG
                             ;Program ends here
                             
-   0cb9   f8 ef             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
-   0cbb   a6                plo R6
-   0cbc   f8 0c             ldi ASK_IN.1
-   0cbe   b6                phi R6
+   0d58   f8 8e             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
+   0d5a   a6                plo R6
+   0d5b   f8 0d             ldi ASK_IN.1
+   0d5d   b6                phi R6
                             
-   0cbf   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0cc1   ad                plo CALL_REG
-   0cc2   f8 01             ldi PRINT.1
-   0cc4   bd                phi CALL_REG
+   0d5e   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0d60   ad                plo CALL_REG
+   0d61   f8 01             ldi PRINT.1
+   0d63   bd                phi CALL_REG
                             
-   0cc5   f8 00             ldi FCALL.0
-   0cc7   ae                plo FCALL_REG
-   0cc8   de                sep FCALL_REG       ;call PRINT
+   0d64   f8 00             ldi FCALL.0
+   0d66   ae                plo FCALL_REG
+   0d67   de                sep FCALL_REG       ;call PRINT
                         	
-   0cc9   c0 0c 99          lbr ASK_INPUT
+   0d68   c0 0d 38          lbr ASK_INPUT
                         ;----------------------------------------------
                         
                         ;-CONSTANT DATA--------------------------------
-   0ccc                 BOOT_MSG
-   0ccc   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
-   0cd0   20 2d 20 43   
-   0cd4   44 50 31 38   
-   0cd8   30 32 20 54   
-   0cdc   65 72 6d 69   
-   0ce0   6e 61 6c 2e   
-   0ce4   0d 0a 0d 0a   
-   0ce8   52 45 41 44   
-   0cec   59 0d 0a      
-   0cef                 ASK_IN
-   0cef   0d 0a 3e 00       db "\r\n>",0
-   0cf3                 NEW_LINE
-   0cf3   0d 0a 00          db "\r\n",0
-   0cf6                 COMMAND_LIST
-   0cf6   70 72 69 6e       db "print",0,"mem_view",0,0
-   0cfa   74 00 6d 65   
-   0cfe   6d 5f 76 69   
-   0d02   65 77 00 00   
-   0d06                 COMMAND_FUNC_LIST
-   0d06   eb 0b             db FUNC_TEST.0,FUNC_TEST.1
-   0d08   72 0b             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
-   0d0a                 UNKNOWN_COMMAND
-   0d0a   55 6e 6b 6e       db "Unknown command.\r\n",0
-   0d0e   6f 77 6e 20   
-   0d12   63 6f 6d 6d   
-   0d16   61 6e 64 2e   
-   0d1a   0d 0a 00      
-   0d1d                 TEST_RESP
-   0d1d   45 76 65 72       db "Everything is ok!",0
-   0d21   79 74 68 69   
-   0d25   6e 67 20 69   
-   0d29   73 20 6f 6b   
-   0d2d   21 00         
+   0d6b                 BOOT_MSG
+   0d6b   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
+   0d6f   20 2d 20 43   
+   0d73   44 50 31 38   
+   0d77   30 32 20 54   
+   0d7b   65 72 6d 69   
+   0d7f   6e 61 6c 2e   
+   0d83   0d 0a 0d 0a   
+   0d87   52 45 41 44   
+   0d8b   59 0d 0a      
+   0d8e                 ASK_IN
+   0d8e   0d 0a 3e 00       db "\r\n>",0
+   0d92                 NEW_LINE
+   0d92   0d 0a 00          db "\r\n",0
+   0d95                 COMMAND_LIST
+   0d95   70 72 69 6e       db "print",0,"mem_view",0,0
+   0d99   74 00 6d 65   
+   0d9d   6d 5f 76 69   
+   0da1   65 77 00 00   
+   0da5                 COMMAND_FUNC_LIST
+   0da5   89 0c             db FUNC_TEST.0,FUNC_TEST.1
+   0da7   10 0c             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+   0da9                 UNKNOWN_COMMAND
+   0da9   55 6e 6b 6e       db "Unknown command.\r\n",0
+   0dad   6f 77 6e 20   
+   0db1   63 6f 6d 6d   
+   0db5   61 6e 64 2e   
+   0db9   0d 0a 00      
+   0dbc                 TEST_RESP
+   0dbc   45 76 65 72       db "Everything is ok!",0
+   0dc0   79 74 68 69   
+   0dc4   6e 67 20 69   
+   0dc8   73 20 6f 6b   
+   0dcc   21 00         
                         
-   0d2f                     end
-0cef  ASK_IN        0c99  ASK_INPUT     0164  BACKSPACE_ACTION    0ccc  BOOT_MSG  
-000d  CALL_REG      0283  CARRY_SHIFTING    0c2c  COMMAND_CHECK    0c78  COMMAND_CHECK_END
-0c6b  COMMAND_CHECK_EXEC    0c3c  COMMAND_CHECK_GOTOSPACE    0c48  COMMAND_CHECK_INSERTZERO    0c4c  COMMAND_CHECK_LOOP
-0c49  COMMAND_CHECK_REPLACESPACE    0c62  COMMAND_CHECK_STR_END    0d06  COMMAND_FUNC_LIST    0cf6  COMMAND_LIST
+   0dce                     end
+0d8e  ASK_IN        0d38  ASK_INPUT     0164  BACKSPACE_ACTION    0d6b  BOOT_MSG  
+000d  CALL_REG      0283  CARRY_SHIFTING    0cca  COMMAND_CHECK    0d17  COMMAND_CHECK_END
+0d0a  COMMAND_CHECK_EXEC    0cda  COMMAND_CHECK_GOTOSPACE    0ce6  COMMAND_CHECK_INSERTZERO    0cea  COMMAND_CHECK_LOOP
+0ce7  COMMAND_CHECK_REPLACESPACE    0d00  COMMAND_CHECK_STR_END    0da5  COMMAND_FUNC_LIST    0d95  COMMAND_LIST
 028d  DIVISION_LOOP    3000  DMA_ADDRESS    0013  DMA_INIT      0000  DMA_REG   
-017a  END_LINE      078b  EXPRESSION    07c0  EXPRESSION_ADD    07fa  EXPRESSION_ADD_LOOP
-0875  EXPRESSION_END    07ac  EXPRESSION_MAIN    0871  EXPRESSION_NEXT_CYCLE    079c  EXPRESSION_SKIPSPACES
-0819  EXPRESSION_SUB    0853  EXPRESSION_SUB_LOOP    0601  FACTOR        0665  FACTOR_END
-068b  FACTOR_FINAL    0680  FACTOR_INVERTING    060d  FACTOR_MAIN    0656  FACTOR_NEGATE
-0661  FACTOR_NEXT_CYCLE    063d  FACTOR_PARENTHESIS    0648  FACTOR_PARENTHESIS_SKIPSPACES    0100  FCALL     
-000e  FCALL_REG     031f  FINAL_CHECK    0343  FINAL_CHECK2    010a  FRETURN   
-0beb  FUNC_TEST     092f  HEXVIEWER     0b69  HEXVIEWER_END    09a6  HEXVIEWER_MAINLOOP
-0a22  HEXVIEWER_NEXT_HEX    0ae0  HEXVIEWER_NEXT_STR    09ce  HEXVIEWER_PRINT_HEX_LOOP    0a12  HEXVIEWER_PRINT_HEX_SPACES
-0ac4  HEXVIEWER_PRINT_STR_DOT    0a82  HEXVIEWER_PRINT_STR_LOOP    0ad3  HEXVIEWER_PRINT_STR_SPACE    0b72  HEXVIEW_CALLER
-0bd9  HEXVIEW_CALLER_END    0bba  HEXVIEW_CALLER_EXEC    0bab  HEXVIEW_CALLER_NEXTARG    0886  HEX_BASE_SRT
-0412  HEX_CHARS     0899  HEX_HEADER_STR    092a  HEX_LINECNT_SEPARATOR    2000  INPUT_BUFF
-01d4  INTEGER_DIV    0224  INTEGER_DIV_INVERT_LOOP1    0234  INTEGER_DIV_NEXT_CHECK    0372  INTEGER_MUL
-03d3  INTEGER_MUL_ADD    0409  INTEGER_MUL_END    039f  INTEGER_MUL_LOOP    03dc  INTEGER_MUL_SHIFT
-03fd  INTEGER_MUL_SHMULTIPLICAND    03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR    0001  INTP_REG  
-0002  INTX_REG      0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4
-0c89  MAIN_PROGRAM    0cf3  NEW_LINE      0307  NEXT_BIT      0003  PC_REG    
-0152  PRINT         045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC     0540  PRINT_DEC_END
-0549  PRINT_DEC_FINAL    04ed  PRINT_DEC_INVER_LOOP    04f8  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP
-0422  PRINT_HEX     048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R
-000a  R10           000b  R11           000c  R12           0004  R4        
-0005  R5            0006  R6            0007  R7            0008  R8        
-0009  R9            0168  READLINE      018e  READLINE_BACKSPACE    016b  READLINE_LOOP
-0561  READ_DEC      05ef  READ_DEC_END    057b  READ_DEC_MAIN_LOOP    000e  RETURN    
-013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT    0143  SERIAL_SAVE_BIT
-011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START    02a5  SHIFTING_Q
-0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS    000f  STACK_REG 
-0000  START         01aa  STORE_CHAR    01c3  STR_CHARCHECK    01c0  STR_COMPARATOR
-01c9  STR_EQUAL     01d0  STR_INC       02fd  SUBTRACT_FOR_REAL    0694  TERM      
-06bb  TERM_DIVIDE    0779  TERM_END      06a7  TERM_MAIN     0720  TERM_MULTIPLY
-0775  TERM_NEXT_CYCLE    0d1d  TEST_RESP     0be2  TEST_STR1     0369  THE_END   
-02c7  TRY_SUBTRACTING    0d0a  UNKNOWN_COMMAND    
+017a  END_LINE      0828  EXPRESSION    085d  EXPRESSION_ADD    0897  EXPRESSION_ADD_LOOP
+0912  EXPRESSION_END    0849  EXPRESSION_MAIN    090e  EXPRESSION_NEXT_CYCLE    0839  EXPRESSION_SKIPSPACES
+08b6  EXPRESSION_SUB    08f0  EXPRESSION_SUB_LOOP    0683  FACTOR        0702  FACTOR_END
+0728  FACTOR_FINAL    071d  FACTOR_INVERTING    068f  FACTOR_MAIN    06f3  FACTOR_NEGATE
+06fe  FACTOR_NEXT_CYCLE    06d9  FACTOR_PARENTHESIS    06e4  FACTOR_PARENTHESIS_SKIPSPACES    06be  FACTOR_READ_DEC
+06cb  FACTOR_READ_HEX    0100  FCALL         000e  FCALL_REG     031f  FINAL_CHECK
+0343  FINAL_CHECK2    010a  FRETURN       0c89  FUNC_TEST     09cc  HEXVIEWER 
+0c07  HEXVIEWER_END    0a43  HEXVIEWER_MAINLOOP    0abf  HEXVIEWER_NEXT_HEX    0b7d  HEXVIEWER_NEXT_STR
+0a6b  HEXVIEWER_PRINT_HEX_LOOP    0aaf  HEXVIEWER_PRINT_HEX_SPACES    0b61  HEXVIEWER_PRINT_STR_DOT    0b1f  HEXVIEWER_PRINT_STR_LOOP
+0b70  HEXVIEWER_PRINT_STR_SPACE    0c10  HEXVIEW_CALLER    0c77  HEXVIEW_CALLER_END    0c58  HEXVIEW_CALLER_EXEC
+0c49  HEXVIEW_CALLER_NEXTARG    0923  HEX_BASE_SRT    0412  HEX_CHARS     0936  HEX_HEADER_STR
+09c7  HEX_LINECNT_SEPARATOR    2000  INPUT_BUFF    01d4  INTEGER_DIV    0224  INTEGER_DIV_INVERT_LOOP1
+0234  INTEGER_DIV_NEXT_CHECK    0372  INTEGER_MUL    03d3  INTEGER_MUL_ADD    0409  INTEGER_MUL_END
+039f  INTEGER_MUL_LOOP    03dc  INTEGER_MUL_SHIFT    03fd  INTEGER_MUL_SHMULTIPLICAND    03e9  INTEGER_MUL_SHMULTIPLIER
+0262  INTEGER_SHIFT_DR    0001  INTP_REG      0002  INTX_REG      0253  INVERT_LOOP2
+0337  INVERT_LOOP3    035e  INVERT_LOOP4    0d28  MAIN_PROGRAM    0d92  NEW_LINE  
+0307  NEXT_BIT      0003  PC_REG        0152  PRINT         045e  PRINT_CHECK_DIGIT
+04ae  PRINT_DEC     0540  PRINT_DEC_END    0549  PRINT_DEC_FINAL    04ed  PRINT_DEC_INVER_LOOP
+04f8  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX     048f  PRINT_HEX_END
+0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10           000b  R11       
+000c  R12           0004  R4            0005  R5            0006  R6        
+0007  R7            0008  R8            0009  R9            0168  READLINE  
+018e  READLINE_BACKSPACE    016b  READLINE_LOOP    0561  READ_DEC      05ef  READ_DEC_END
+057b  READ_DEC_MAIN_LOOP    0601  READ_HEX      063d  READ_HEX_CONTINUE    0671  READ_HEX_END
+0660  READ_HEX_HEXDIGIT    0669  READ_HEX_HEXDIGITLOWER    061e  READ_HEX_MAINLOOP    066c  READ_HEX_NEXTCHAR
+0640  READ_HEX_SHIFTLOOP    000e  RETURN        013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START
+0139  SERIAL_SAMPLE_BIT    0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START
+0131  SERIAL_WAIT_START    02a5  SHIFTING_Q    0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR
+ffff  STACK_ADDRESS    000f  STACK_REG     0000  START         01aa  STORE_CHAR
+01c3  STR_CHARCHECK    01c0  STR_COMPARATOR    01c9  STR_EQUAL     01d0  STR_INC   
+02fd  SUBTRACT_FOR_REAL    0731  TERM          0758  TERM_DIVIDE    0816  TERM_END  
+0744  TERM_MAIN     07bd  TERM_MULTIPLY    0812  TERM_NEXT_CYCLE    0dbc  TEST_RESP 
+0c80  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING    0da9  UNKNOWN_COMMAND
 

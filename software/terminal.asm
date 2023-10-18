@@ -1441,6 +1441,148 @@ READ_DEC_END
     sep RETURN      ;RETURN    
 ;----------------------------------------------
 
+;-READ HEX-------------------------------------
+;-R4-string pointer----------------------------
+;-R5-result pointer----------------------------
+READ_HEX
+    sex STACK_REG
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ghi R7
+    stxd
+    glo R7
+    stxd
+    
+    ghi R4
+    stxd
+    glo R4
+    stxd        ;+3 string pointer
+    
+    ghi R5
+    stxd
+    glo R5
+    stxd        ;+1 result pointer
+    
+    ldi 0       ;set result to 0
+    str R5
+    inc R5
+    str R5
+    inc R5
+    str R5
+    inc R5
+    str R5
+    
+    dec R5
+    dec R5
+    dec R5
+    
+READ_HEX_MAINLOOP
+    ldi 0
+    plo R7
+    
+    ldn R4
+    smi 48
+    bm READ_HEX_END
+    inc R7
+    smi 10
+    bm READ_HEX_CONTINUE
+    smi 7
+    bm READ_HEX_END
+    inc R7
+    smi 6
+    bm READ_HEX_CONTINUE
+    smi 26
+    bm READ_HEX_END
+    inc R7
+    smi 6
+    bpz READ_HEX_END
+    
+READ_HEX_CONTINUE
+    ldi 4
+    plo R6
+
+READ_HEX_SHIFTLOOP      ;result = result << 4
+    ldn R5
+    shl
+    str R5
+    inc R5
+    
+    ldn R5
+    shlc
+    str R5
+    inc R5
+    
+    ldn R5
+    shlc
+    str R5
+    inc R5
+    
+    ldn R5
+    shlc
+    str R5
+    
+    dec R5
+    dec R5
+    dec R5
+    
+    dec R6
+    glo R6
+    bnz READ_HEX_SHIFTLOOP
+    
+    sex R5
+    
+    dec R7
+    glo R7
+    bnz READ_HEX_HEXDIGIT
+    ldn R4
+    smi 48
+    br READ_HEX_NEXTCHAR
+
+READ_HEX_HEXDIGIT   
+    dec R7
+    glo R7
+    bnz READ_HEX_HEXDIGITLOWER
+    ldn R4
+    smi 55
+    br READ_HEX_NEXTCHAR
+    
+READ_HEX_HEXDIGITLOWER
+    ldn R4
+    smi 87
+    
+READ_HEX_NEXTCHAR
+    add
+    str R5
+    inc R4
+    br READ_HEX_MAINLOOP
+
+READ_HEX_END
+    glo STACK_REG
+    adi 5
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R7
+    ldxa
+    phi R7
+    
+    ldxa
+    plo R6
+    ldx
+    phi R6
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-FACTOR---------------------------------------
 ;-R4-string pointer----------------------------
 ;-R5-result pointer----------------------------
@@ -1477,13 +1619,39 @@ FACTOR_MAIN
     lbz FACTOR_PARENTHESIS      ;if '('
     ldn R4
     smi 48
-    lbnf FACTOR_END
+    lbnf FACTOR_END             ;if *R4 < '0'
     smi 10
-    lbdf FACTOR_END
+    lbdf FACTOR_END             ;if *R4 > '9'
+
+    ldn R4
+    xri 48
+    bnz FACTOR_READ_DEC         ;if *R4 != '0'
     
+    inc R4                      ;increment R4 to get the next char
+    ldn R4
+    xri 120
+    bz FACTOR_READ_HEX          ;if *R4 == 'x'
+    
+    dec R4                      ;decrement R4 to step back
+
+FACTOR_READ_DEC    
     ldi READ_DEC.0
     plo CALL_REG
     ldi READ_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lbr FACTOR_END
+    
+FACTOR_READ_HEX
+    inc R4
+    
+    ldi READ_HEX.0
+    plo CALL_REG
+    ldi READ_HEX.1
     phi CALL_REG
     
     ldi FCALL.0
@@ -1512,7 +1680,7 @@ FACTOR_PARENTHESIS_SKIPSPACES
     
     lda R4
     xri 41
-    bz FACTOR_END
+    lbz FACTOR_END
     
     lbr FACTOR_MAIN
     
@@ -2626,7 +2794,7 @@ HEXVIEWER_NEXT_STR
     ldn R5
     sdb
     
-    bpz HEXVIEWER_END
+    lbdf HEXVIEWER_END
     
     glo STACK_REG       ;set R4 pointer to line counter
     adi 5
@@ -2941,7 +3109,7 @@ COMMAND_CHECK_LOOP
 COMMAND_CHECK_STR_END
     ldn R9
     inc R9
-    bnz COMMAND_CHECK_STR_END
+    lbnz COMMAND_CHECK_STR_END
     
     inc R5
     inc R5
