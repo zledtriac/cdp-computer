@@ -22,6 +22,11 @@ DMA_ADDRESS EQU 03000h
 
 INPUT_BUFF EQU 02000h
 
+HEAP_LASTADDRESS EQU 02100h
+HEAP_START EQU 02110h
+HEAP_END EQU 0FC00h
+
+
     org 00h
 
 START
@@ -1087,10 +1092,36 @@ PRINT_HEX_END
 
 ;-PRINT DEC------------------------------------
 ;-R4-int pointer-------------------------------
-
+;-Local registers------------------------------
+;-R5-R6-R7-R10-R12-----------------------------
 ;-R10-flags------------------------------------
 PRINT_DEC
     sex STACK_REG
+    
+    ghi R5          ;saving local registers
+    stxd
+    glo R5
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ghi R7
+    stxd
+    glo R7
+    stxd
+
+    ghi R10
+    stxd
+    glo R10
+    stxd
+    
+    ghi R12
+    stxd
+    glo R12
+    stxd
     
     ldi 0
     plo R10
@@ -1142,7 +1173,7 @@ PRINT_DEC
     sex R4
     ldx
     ani 080h
-    bz PRINT_DEC_MAIN_LOOP
+    lbz PRINT_DEC_MAIN_LOOP
     
     glo R10
     ori 1
@@ -1260,11 +1291,38 @@ PRINT_DEC_FINAL
     sep FCALL_REG
     
     glo R12
-    adi 13
+    adi 14
     plo STACK_REG
     ghi R12
     adci 0
     phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R12
+    ldxa
+    phi R12
+    
+    ldxa
+    plo R10
+    ldxa
+    phi R10
+    
+    ldxa
+    plo R7
+    ldxa
+    phi R7
+    
+    ldxa
+    plo R6
+    ldxa
+    phi R6
+    
+    ldxa
+    plo R5
+    ldx
+    phi R5
     
     sep RETURN
 ;----------------------------------------------
@@ -1317,9 +1375,9 @@ READ_DEC_MAIN_LOOP
     
     ldn R4
     smi 48
-    bnf READ_DEC_END
+    lbnf READ_DEC_END
     smi 10
-    bdf READ_DEC_END
+    lbdf READ_DEC_END
     
     glo STACK_REG
     adi 5
@@ -1417,7 +1475,7 @@ READ_DEC_MAIN_LOOP
     ghi R4
     str R6
     
-    br READ_DEC_MAIN_LOOP
+    lbr READ_DEC_MAIN_LOOP
    
 READ_DEC_END
     glo STACK_REG
@@ -2276,6 +2334,936 @@ EXPRESSION_END
     sep RETURN
 ;----------------------------------------------
 
+;-DYN MEMORY INIT------------------------------
+DYN_MEMORY_INIT
+    ldi HEAP_LASTADDRESS.0
+    plo R4
+    ldi HEAP_LASTADDRESS.1
+    phi R4
+    
+    ldi HEAP_START.0
+    str R4
+    inc R4
+    ldi HEAP_START.1
+    str R4
+    
+    ldi HEAP_START.0
+    plo R4
+    ldi HEAP_START.1
+    phi R4
+    
+    ldi (HEAP_END - HEAP_START - 5).0
+    str R4
+    inc R4
+    ldi (HEAP_END - HEAP_START - 5).1
+    str R4
+    inc R4
+    
+    ldi 0
+    str R4
+    inc R4
+    str R4
+    inc R4
+    str R4
+    
+    sep RETURN
+;----------------------------------------------
+
+DYN_MEMORY_DEBUG_STR
+    db " -> size: ",0,", address: ",0,", previous: ",0,", ",0
+DYN_MEMORY_DEBUG_STR_FREE
+    db "FREE\r\n",0
+DYN_MEMORY_DEBUG_STR_USED
+    db "USED\r\n",0
+;-DYN MEMORY DEBUG-----------------------------
+DYN_MEMORY_DEBUG
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd                    ;+14 address + 5
+    
+    stxd
+    stxd
+    ldi HEAP_START.1
+    stxd
+    ldi HEAP_START.0
+    stxd                    ;+10 address
+    
+    ldi 0
+    stxd                    ;+9 used
+    
+    stxd
+    stxd
+    stxd
+    stxd                    ;+5 previous
+    
+    stxd
+    stxd
+    stxd
+    stxd                    ;+1 size
+    
+DYN_MEMORY_DEBUG_MAINLOOP
+    glo STACK_REG
+    adi 10
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    sex R4
+    
+    ldi HEAP_END.0
+    sd
+    inc R4
+    ldi HEAP_END.1
+    sdb
+    
+    lbdf DYN_MEMORY_DEBUG_END    ;if address >= HEAP_END
+    
+    glo STACK_REG
+    adi 10
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    lda R4                      ;R5 = address
+    plo R5
+    lda R4
+    phi R5
+    
+    glo STACK_REG
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+    
+    lda R5
+    str R4
+    inc R4
+    
+    lda R5
+    str R4
+    inc R4
+    
+    inc R4
+    inc R4
+    
+    lda R5
+    str R4
+    inc R4
+    
+    lda R5
+    str R4
+    inc R4
+    
+    inc R4
+    inc R4
+    
+    lda R5
+    str R4
+    
+    glo STACK_REG
+    adi 14
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo R5
+    str R4
+    inc R4
+    
+    ghi R5
+    str R4
+    
+DYN_MEMORY_DEBUG_PRINT
+    glo STACK_REG               ;set R4 to address
+    adi 10
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+
+    ldi PRINT_DEC.0             ;print address in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi DYN_MEMORY_DEBUG_STR.0      ;print the debug string
+    plo R6
+    ldi DYN_MEMORY_DEBUG_STR.1
+    phi R6
+    
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG       ;call PRINT
+    
+    glo R6                  ;save R6 value
+    plo R7
+    ghi R6
+    phi R7
+    
+    glo STACK_REG           ;set R4 to size
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+
+    ldi PRINT_DEC.0         ;print size in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R7                  ;continue printing the debug string
+    plo R6
+    ghi R7
+    phi R6
+    
+    ldi PRINT.0             ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG           ;call PRINT
+    
+    glo R6                  ;save R6 value
+    plo R7
+    ghi R6
+    phi R7
+    
+    glo STACK_REG           ;set R4 to address+5
+    adi 14
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi PRINT_DEC.0         ;print address+5 in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R7                  ;continue printing the debug string
+    plo R6
+    ghi R7
+    phi R6
+    
+    ldi PRINT.0             ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG           ;call PRINT
+    
+    glo R6                  ;save R6 value
+    plo R7
+    ghi R6
+    phi R7
+    
+    glo STACK_REG           ;set R4 to previous
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi PRINT_DEC.0         ;print previous in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R7                  ;continue printing the debug string
+    plo R6
+    ghi R7
+    phi R6
+    
+    ldi PRINT.0             ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG           ;call PRINT
+    
+    glo STACK_REG           ;set R4 to previous
+    adi 9
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldn R4
+    bz DYN_MEMORY_DEBUG_FREE
+    
+    ldi DYN_MEMORY_DEBUG_STR_USED.0
+    plo R6
+    ldi DYN_MEMORY_DEBUG_STR_USED.1
+    phi R6
+    
+    br DYN_MEMORY_DEBUG_NEXTADDRESS
+    
+DYN_MEMORY_DEBUG_FREE
+    ldi DYN_MEMORY_DEBUG_STR_FREE.0
+    plo R6
+    ldi DYN_MEMORY_DEBUG_STR_FREE.1
+    phi R6
+    
+DYN_MEMORY_DEBUG_NEXTADDRESS
+    ldi PRINT.0             ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG           ;call PRINT
+    
+    glo STACK_REG           ;set R4 to address
+    adi 10
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG           ;set R5 to address+5
+    adi 14
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    glo STACK_REG           ;set R6 to size
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    sex R6
+    
+    lda R5
+    add
+    irx
+    str R4
+    inc R4
+    
+    lda R5
+    adc
+    irx
+    str R4
+    inc R4
+    
+    lda R5
+    adc
+    irx
+    str R4
+    inc R4
+    
+    lda R5
+    adc
+    str R4
+    
+    lbr DYN_MEMORY_DEBUG_MAINLOOP
+
+DYN_MEMORY_DEBUG_END
+    glo STACK_REG           ;set R6 to size
+    adi 17
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-DYN MEMORY ALLOCATION------------------------
+;-R4-Size--------------------------------------
+;-R5-currentAddress----------------------------
+;-R10-return address---------------------------
+DYN_MEMORY_ALLOC
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd                ;+7 currentSize
+    
+    ghi R4
+    stxd
+    glo R4
+    stxd                ;+5 size
+    
+    glo R4              ;R4 += 5
+    adi 5
+    plo R4
+    ghi R4
+    adci 0
+    phi R4
+    
+    ghi R4
+    stxd
+    glo R4              ;newSize is initialized to size+5 for further calculation
+    stxd                ;+3 newSize
+
+    ldi HEAP_END.1
+    stxd
+    ldi HEAP_END.0
+    stxd                ;+1 endAddress = HEAP_END
+    
+    ldi HEAP_LASTADDRESS.0
+    plo R4
+    ldi HEAP_LASTADDRESS.1
+    phi R4
+    
+    lda R4
+    plo R5
+    lda R4
+    phi R5              ;R5 = lastAddress
+    
+    ldi 0               ;R10 = 0
+    plo R10
+    phi R10
+    
+    ldi 2               ;R8 = 2
+    plo R8
+    
+DYN_MEMORY_ALLOC_MAINLOOP
+    glo STACK_REG       ;set R4 pointer to endAddress
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+    
+    sex R4
+    
+    glo R5              ;currentAddress - endAddress
+    sm
+    irx
+    ghi R5
+    smb
+    
+    lbdf DYN_MEMORY_ALLOC_NEXTPASS      ;if currentAddress >= endAddress
+    
+    glo STACK_REG                       ;set R4 pointer to currentSize
+    adi 7
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo R5                              ;R6 = R5 (currentAddress)
+    plo R6
+    ghi R5
+    phi R6
+    
+    lda R6                              ;currentSize = block size
+    str R4
+    inc R4
+    
+    lda R6
+    str R4
+    
+    inc R6
+    inc R6
+        
+    ldn R6
+    lbnz DYN_MEMORY_ALLOC_NEXTADDRESS   ;if the current block is USED
+    
+    dec R4
+    
+    glo STACK_REG                   ;R6 pointer set to size
+    adi 5
+    plo R6
+    ghi STACK_REG
+    adci 0
+    phi R6
+    
+    lda R6                          ;currentSize == size
+    xor
+    irx
+    sex R6
+    or
+    sex R4
+    xor
+    
+    dec R6                              ;set back R6
+    dec R4                              ;set back R4
+    
+    lbnz DYN_MEMORY_ALLOC_SIZEBIGGER    ;if currentSize != size
+
+DYN_MEMORY_ALLOC_SIZEEQ
+    glo R5                              ;R6 = currentAddress + 4
+    adi 4
+    plo R6
+    ghi R5
+    adci 0
+    phi R6
+    
+    ldi 1
+    str R6                              ;used = 1
+    
+    inc R6                              ;R6++
+    glo R6
+    plo R10                             ;R10 = R6
+    ghi R6
+    phi R10
+    
+    lbr DYN_MEMORY_ALLOC_END            ;RETURN
+
+DYN_MEMORY_ALLOC_SIZEBIGGER
+    glo STACK_REG                   ;R6 pinter set to newSize (size+5)
+    adi 3
+    plo R6
+    ghi STACK_REG
+    adci 0
+    phi R6
+    
+    lda R6                          ;currentSize - newSize (size+5)
+    sd
+    irx
+    lda R6
+    sdb
+    
+    dec R6                              ;set back R6
+    dec R6
+       
+    lbnf DYN_MEMORY_ALLOC_NEXTADDRESS   ;if currentSize < newSize (size+5)
+    
+    dec R4                              ;R4 pointer to size
+    dec R4
+    dec R4
+    
+    glo R5                              ;R6 = R5 (currentAddress)
+    plo R6
+    ghi R5
+    phi R6
+    
+    lda R4                              ;set current block size to size
+    str R6
+    inc R6
+    
+    lda R4
+    str R6
+    inc R6
+    
+    inc R6                              ;R6 += 2
+    inc R6
+    
+    ldi 1                               ;set used to 1
+    str R6
+    
+    inc R6                              ;R6++
+    glo R6
+    plo R10                             ;R10 = R6
+    ghi R6                              ;R10 is set for return
+    phi R10
+    
+    glo STACK_REG                   ;R4 pinter set to newSize (size+5)
+    adi 3
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo R5                          ;R7 = currentAddress + size + 5
+    add
+    irx
+    plo R7
+    ghi R5
+    adc
+    phi R7                          ;R7 is the newAddress
+    
+    ldi HEAP_LASTADDRESS.0
+    plo R4
+    ldi HEAP_LASTADDRESS.1
+    phi R4
+    
+    glo R7                          ;lastAddress = R7
+    str R4
+    inc R4
+    
+    ghi R7
+    str R4
+
+    glo STACK_REG                   ;R4 pinter set to newSize
+    adi 3
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo STACK_REG                   ;R4 pinter set to currentSize
+    adi 7
+    plo R6
+    ghi STACK_REG
+    adci 0
+    phi R6
+    
+    lda R6                          ;newSize = currentSize - (size + 5)
+    sm
+    str R4
+    irx
+    
+    lda R6
+    smb
+    str R4
+    
+    dec R4                          ;set back R4 to newSize
+    
+    glo R7                          ;R6 = R7 (newAddress)
+    plo R6
+    ghi R7
+    phi R6
+    
+    lda R4                          ;new block size = newSize
+    str R6
+    inc R6
+    
+    lda R4
+    str R6
+    inc R6
+    
+    glo R5                          ;new block previous address = currentAddress
+    str R6
+    inc R6
+    
+    ghi R5
+    str R6
+    inc R6
+    
+    ldi 0                           ;new block used = 0
+    str R6
+    inc R6
+    
+    dec R4
+    dec R4
+    
+    glo R6                          ;R6 = R6 + newSize
+    add
+    irx
+    plo R6
+    ghi R6
+    adc
+    phi R6
+    
+    inc R6                          ;R6 += 2
+    inc R6
+    
+    glo R6
+    smi HEAP_END.0
+    ghi R6
+    smbi HEAP_END.1
+    
+    lbdf DYN_MEMORY_ALLOC_END
+    
+    glo R7                          ;next block previous address = R7
+    str R6
+    inc R6
+    
+    ghi R7
+    str R6
+    
+    lbr DYN_MEMORY_ALLOC_END
+    
+DYN_MEMORY_ALLOC_NEXTADDRESS
+    glo STACK_REG               ;set R4 pointer to currentSize
+    adi 7
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo R5
+    add
+    irx
+    plo R5
+    ghi R5
+    adc
+    phi R5                          ;currentAddress += size
+    
+    glo R5
+    adi 5
+    plo R5
+    ghi R5
+    adci 0
+    phi R5                          ;currentAddress += 5
+    
+    lbr DYN_MEMORY_ALLOC_MAINLOOP
+    
+DYN_MEMORY_ALLOC_NEXTPASS
+    ldi HEAP_START.0
+    plo R5
+    ldi HEAP_START.1
+    phi R5
+    
+    glo STACK_REG                       ;set R4 pointer to endAddress
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+    
+    ldi HEAP_LASTADDRESS.0
+    plo R6
+    ldi HEAP_LASTADDRESS.1
+    phi R6
+    
+    lda R6
+    str R4
+    inc R4
+    
+    lda R6
+    str R4
+
+    dec R8
+    glo R8
+    lbnz DYN_MEMORY_ALLOC_MAINLOOP
+    
+DYN_MEMORY_ALLOC_END
+    glo STACK_REG
+    adi 8
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-DYN MEMORY FREE------------------------------
+;-R4-address-----------------------------------
+;-Local registers------------------------------
+;-R5-R6----------------------------------------
+DYN_MEMORY_FREE
+    sex STACK_REG
+    
+    ghi R5      ;saving local registers
+    stxd
+    glo R5
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd        ;+5 size
+    
+    stxd
+    stxd
+    stxd
+    stxd        ;+1 nextSize
+    
+    dec R4      ;R4-- (address--)
+    str R4      ;set current block to free
+    
+    dec R4
+    dec R4
+    
+    lda R4      ;R6 = previous block address
+    plo R6
+    lda R4
+    phi R6
+    
+    dec R4      ;set R4 to the beginning of the current block
+    dec R4
+    dec R4
+    dec R4
+    
+    glo R6
+    lbnz DYN_MEMORY_FREE_NEXTCHECK
+    ghi R6
+    lbnz DYN_MEMORY_FREE_NEXTCHECK      ;if previousAddress != 0
+    
+    br DYN_MEMORY_FREE_MERGE
+
+DYN_MEMORY_FREE_NEXTCHECK
+    glo R6                              ;set R5 pointer to previous block used
+    adi 4
+    plo R5
+    ghi R6
+    adci 0
+    phi R5
+    
+    ldn R5
+    bnz DYN_MEMORY_FREE_MERGE           ;if used != 0
+    
+    glo R6                              ;set R4 to previous block
+    plo R4
+    ghi R6
+    phi R4
+    
+DYN_MEMORY_FREE_MERGE
+    glo STACK_REG                       ;set R5 pointer to size
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    sex R5                              ;set R5 to pointer
+    
+    lda R4                              ;load block size to size
+    str R5
+    inc R5
+    
+    lda R4
+    str R5
+    
+    dec R4
+    dec R4                              ;set back R4 and R5
+    dec R5
+    
+    glo R4                              ;R6 (nextAddress) = address + 5 
+    adi 5
+    plo R6
+    ghi R4
+    adci 0
+    phi R6
+    
+    glo R6                              ;R6 += size
+    add
+    irx
+    plo R6
+    ghi R6
+    adc
+    phi R6
+    
+DYN_MEMORY_FREE_MERGELOOP
+    glo R6
+    smi HEAP_END.0
+    ghi R6
+    smbi HEAP_END.1
+    
+    lbdf DYN_MEMORY_FREE_END            ;if nextAddress - HEAP_END >= 0
+    
+    glo R6                              ;set R5 to nextAddress used
+    adi 4
+    plo R5
+    ghi R6
+    adci 0
+    phi R5
+    
+    ldn R5
+    lbnz DYN_MEMORY_FREE_SETPREVIOUS    ;if used != 0
+    
+    glo STACK_REG                       ;set R5 pointer to nextSize
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R6                              ;load size + 5 to nextSize 
+    adi 5
+    str R5
+    irx
+    
+    ldn R6
+    adci 0
+    str R5
+    
+    dec R5                              ;set back R5 and R6
+    dec R6
+    
+    ldn R4                              ;current block size += nextSize
+    add
+    str R4
+    irx
+    inc R4
+    
+    ldn R4
+    adc
+    str R4
+    
+    dec R5                              ;set back R4 and R5
+    dec R4
+    
+    glo R6                              ;R6 (nextAddress) += nextSize
+    add
+    plo R6
+    irx
+    ghi R6
+    adc
+    phi R6
+    
+    br DYN_MEMORY_FREE_MERGELOOP
+
+DYN_MEMORY_FREE_SETPREVIOUS    
+    inc R6                              ;increment nextAddress to previous address section
+    inc R6
+    
+    glo R4                              ;set previous address to R4 value
+    str R6
+    inc R6
+    ghi R4
+    str R6
+
+DYN_MEMORY_FREE_END
+    glo STACK_REG
+    adi 9
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldi HEAP_LASTADDRESS.0
+    plo R5
+    ldi HEAP_LASTADDRESS.1
+    phi R5
+    
+    glo R4
+    str R5
+    inc R5
+    
+    ghi R4
+    str R5
+    
+    ldxa            ;restoring local registers
+    plo R6
+    ldxa
+    phi R6
+    
+    ldxa
+    plo R5
+    ldx
+    phi R5
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-HEXVIEWER------------------------------------
 ;-R4-Start address-----------------------------
 ;-R5-Count-------------------------------------
@@ -2653,7 +3641,7 @@ HEXVIEWER_PRINT_STR_LOOP
     ldn R5
     sdb
     
-    bpz HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
+    lbdf HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
     
     glo STACK_REG       ;set R4 pointer to current address
     adi 17
@@ -2747,7 +3735,7 @@ HEXVIEWER_NEXT_STR
     
     dec R8
     glo R8
-    bnz HEXVIEWER_PRINT_STR_LOOP
+    lbnz HEXVIEWER_PRINT_STR_LOOP
     
     ldi NEW_LINE.0     ;prepare to print a space
     plo R6
@@ -2868,6 +3856,360 @@ HEXVIEWER_END
     sep RETURN
 ;----------------------------------------------
 
+;-DYN MEMORY ALLOC CALLER----------------------
+DYN_MEMORY_ALLOC_CALLER_STR1
+    db " bytes of memory allocated at memory address ",0," (0x",0,")\r\n",0
+DYN_MEMORY_ALLOC_CALLER_STR2
+    db "Out of memory!\r\n",0
+
+DYN_MEMORY_ALLOC_CALLER
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd                        ;+5 address
+    
+    stxd
+    stxd
+    stxd
+    stxd                        ;+1 size
+    
+    glo STACK_REG               ;set R5 pointer to size
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0            ;evaluate expression
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG               ;set R5 pointer to size
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R5                      ;R4 = size
+    plo R4
+    lda R5
+    phi R4
+    
+    ldi DYN_MEMORY_ALLOC.0      ;call memory allocation
+    plo CALL_REG
+    ldi DYN_MEMORY_ALLOC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10                                 ;check if R10 has a value, if it is 0 then it failed
+    bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+    ghi R10
+    bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+    
+DYN_MEMORY_ALLOC_CALLER_FAIL
+    ldi DYN_MEMORY_ALLOC_CALLER_STR2.0      ;print out of memory
+    plo R6
+    ldi DYN_MEMORY_ALLOC_CALLER_STR2.1
+    phi R6
+    
+    ldi PRINT.0                             ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG                           ;call PRINT
+	
+    lbr DYN_MEMORY_ALLOC_CALLER_END         ;return
+
+DYN_MEMORY_ALLOC_CALLER_SUCCESS
+    glo STACK_REG                           ;set R5 pointer to address
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    glo R10                                 ;copy R10 value to address
+    str R4
+    inc R4
+    
+    ghi R10
+    str R4
+    
+    glo STACK_REG                           ;set R4 pointor to size
+    plo R4
+    ghi STACK_REG
+    phi R4
+    inc R4
+    
+    ldi PRINT_DEC.0                         ;print size in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi DYN_MEMORY_ALLOC_CALLER_STR1.0      ;print the first part of the allocation message
+    plo R6
+    ldi DYN_MEMORY_ALLOC_CALLER_STR1.1
+    phi R6
+    
+    ldi PRINT.0                             ;prepare to call PRINT
+    plo CALL_REG    
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG                           ;call PRINT
+    
+    glo STACK_REG                           ;set R4 pointer to address
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi PRINT_DEC.0                         ;print address in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi PRINT.0                             ;print the second part of the allocation message
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG                           ;call PRINT
+    
+    glo STACK_REG                           ;reset R4 pointer to address
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi 4                                   ;set number of digits to 4
+    plo R5
+    ldi 0
+    phi R5
+    
+    ldi PRINT_HEX.0                         ;print address in hexadecimal
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi PRINT.0                             ;print the last part of the allocation message
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG                           ;call PRINT
+
+DYN_MEMORY_ALLOC_CALLER_END
+    glo STACK_REG
+    adi 8
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-DYN MEMORY FREE CALLER-----------------------
+DYN_MEMORY_FREE_CALLER_STR1
+    db "Allocated memory has been freed at address ",0," (0x",0,")\r\n",0
+DYN_MEMORY_FREE_CALLER_STR2
+    db "Memory address is out of the heap range!\r\n",0
+    
+DYN_MEMORY_FREE_CALLER
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd                    ;+1 address
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    sex R5
+    
+    ldi HEAP_START.0
+    sd
+    irx
+    ldi HEAP_START.1
+    sdb
+    
+    dec R5
+    
+    bm DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+    
+    ldi HEAP_END.0
+    sd
+    irx
+    ldi HEAP_END.1
+    sdb
+    
+    dec R5
+    
+    bpz DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+    
+    ldxa
+    plo R4
+    ldx
+    phi R4
+    
+    dec R5
+    
+    ldi DYN_MEMORY_FREE.0                 ;call free
+    plo CALL_REG
+    ldi DYN_MEMORY_FREE.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi DYN_MEMORY_FREE_CALLER_STR1.0
+    plo R6
+    ldi DYN_MEMORY_FREE_CALLER_STR1.1
+    phi R6
+    
+    ldi PRINT.0                             ;print the success message 1st part
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R5
+    plo R4
+    ghi R5
+    phi R4
+    
+    ldi PRINT_DEC.0                         ;print address in decimal
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi PRINT.0                             ;print the success message 2nd part
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R5
+    plo R4
+    ghi R5
+    phi R4
+    
+    ldi 4
+    plo R5
+    ldi 0
+    phi R5
+    
+    ldi PRINT_HEX.0                         ;print address in hexadecimal
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi PRINT.0                             ;print the success message 2nd part
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    br DYN_MEMORY_FREE_CALLER_END
+    
+DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+    ldi DYN_MEMORY_FREE_CALLER_STR2.0
+    plo R6
+    ldi DYN_MEMORY_FREE_CALLER_STR2.1
+    phi R6
+    
+    ldi PRINT.0                             ;print the out of range message
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG                           ;call PRINT
+    
+DYN_MEMORY_FREE_CALLER_END
+    glo STACK_REG
+    adi 4
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-HEXVIEW_CALLER-------------------------------
 HEXVIEW_CALLER
     sex STACK_REG
@@ -2903,10 +4245,10 @@ HEXVIEW_CALLER
     
     lda R4
     xri 44
-    bz HEXVIEW_CALLER_NEXTARG
+    lbz HEXVIEW_CALLER_NEXTARG
     dec R4
     lda R4
-    bz HEXVIEW_CALLER_EXEC
+    lbz HEXVIEW_CALLER_EXEC
     dec R4
     
     ldn R4
@@ -3152,6 +4494,15 @@ COMMAND_CHECK_END
 
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
+    ldi DYN_MEMORY_INIT.0     ;heap init
+    plo CALL_REG
+    ldi DYN_MEMORY_INIT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG   ;call heap init
+    
     ldi BOOT_MSG.0  ;set the address of the boot msg in R6
     plo R6
     ldi BOOT_MSG.1
@@ -3222,10 +4573,13 @@ ASK_IN
 NEW_LINE
     db "\r\n",0
 COMMAND_LIST
-    db "print",0,"mem_view",0,0
+    db "print",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+    db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
+    db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
+    db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
