@@ -3264,6 +3264,157 @@ DYN_MEMORY_FREE_END
     sep RETURN
 ;----------------------------------------------
 
+;-GET-STRING-----------------------------------
+;-R4-Input string------------------------------
+;-R10-New string address-----------------------
+;-Local registers------------------------------
+;-R5-R6----------------------------------------
+GET_STRING
+    sex STACK_REG
+    
+    ghi R5
+    stxd
+    glo R5
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ghi R4
+    stxd
+    glo R4
+    stxd                    ;+1 startAddress
+    
+    ldi 0                   ;set R5 and R10 to zero
+    plo R5
+    phi R5
+    
+    glo R10
+    phi R10
+
+GET_STRING_LEN
+    ldn R4                  
+    smi 48
+    bm GET_STRING_LEN_END   ;if *R4 < '0'
+    ldn R4
+    smi 58
+    bm GET_STRING_ADDLEN    ;if *R4 <= '9'
+    ldn R4
+    smi 65
+    bm GET_STRING_LEN_END   ;if *R4 < 'A'
+    ldn R4
+    smi 91
+    bm GET_STRING_ADDLEN    ;if *R4 <= 'Z'
+    ldn R4
+    smi 97
+    bm GET_STRING_LEN_END   ;if *R4 < 'a'
+    ldn R4
+    smi 123
+    bm GET_STRING_ADDLEN    ;if *R4 <= 'z'
+    
+    br GET_STRING_LEN_END   ;length checking end
+    
+GET_STRING_ADDLEN
+    inc R5                  ;increment R4 and R5
+    inc R4
+    br GET_STRING_LEN
+        
+GET_STRING_LEN_END
+    glo R5
+    bnz GET_STRING_ALLOCATE_MEM
+    ghi R5
+    bz GET_STRING_END               ;if R5 == 0
+    
+GET_STRING_ALLOCATE_MEM
+    glo R5
+    plo R4
+    ghi R5
+    phi R4
+    inc R4                          ;increment R4 because we need spacefor the termination char
+    
+    ldi DYN_MEMORY_ALLOC.0         ;call DYN_MEMORY_ALLOC
+    plo CALL_REG
+    ldi DYN_MEMORY_ALLOC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10
+    bnz GET_STRING_COPY
+    ghi R10
+    bz GET_STRING_END               ;if R10 == 0
+    
+GET_STRING_COPY
+    glo STACK_REG                   ;restore R4
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6
+    plo R4
+    lda R6
+    phi R4
+    
+    glo R10                         ;R6 = R10
+    plo R6
+    ghi R10
+    phi R6
+    
+GET_STRING_COPY_LOOP
+    lda R4                          ;read data from R4 location
+    str R6                          ;and store to R6 location
+    inc R6
+    
+    dec R5                          ;decrement R5
+    glo R5
+    bnz GET_STRING_COPY_LOOP        ;if R5 != 0
+    
+    ldi 0
+    str R6                          ;terminate the string
+    dec R4
+
+GET_STRING_END
+    irx
+    irx
+    
+    ldxa                            ;restore local registers
+    plo R6
+    ldxa
+    phi R6
+    
+    ldxa
+    plo R5
+    ldx
+    phi R5
+    
+    sep RETURN
+;----------------------------------------------
+
+;-LET-STATEMENT--------------------------------
+;-R4-Input string------------------------------
+LET_STATEMENT
+    sex STACK_REG
+    
+LET_STATEMENT_SKIPSPACES
+    lda R4
+    xri 32
+    bz LET_STATEMENT_SKIPSPACES
+    
+    dec R4
+    
+    
+    
+LET_STATEMENT_END
+
+
+
+;----------------------------------------------
+
 ;-HEXVIEWER------------------------------------
 ;-R4-Start address-----------------------------
 ;-R5-Count-------------------------------------
