@@ -2707,10 +2707,31 @@ DYN_MEMORY_DEBUG_END
 
 ;-DYN MEMORY ALLOCATION------------------------
 ;-R4-Size--------------------------------------
-;-R5-currentAddress----------------------------
 ;-R10-return address---------------------------
+;-Local registers------------------------------
+;-R5-R6-R7-R8----------------------------------
 DYN_MEMORY_ALLOC
     sex STACK_REG
+    
+    ghi R8
+    stxd
+    glo R8
+    stxd
+    
+    ghi R7
+    stxd
+    glo R7
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ghi R5
+    stxd
+    glo R5
+    stxd
     
     ldi 0
     stxd
@@ -3048,11 +3069,33 @@ DYN_MEMORY_ALLOC_NEXTPASS
     
 DYN_MEMORY_ALLOC_END
     glo STACK_REG
-    adi 8
+    adi 9
     plo STACK_REG
     ghi STACK_REG
     adci 0
     phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R5
+    ldxa
+    phi R5
+    
+    ldxa
+    plo R6
+    ldxa
+    phi R6
+    
+    ldxa
+    plo R7
+    ldxa
+    phi R7
+    
+    ldxa
+    plo R8
+    ldx
+    phi R8
     
     sep RETURN
 ;----------------------------------------------
