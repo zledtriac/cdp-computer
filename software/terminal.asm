@@ -3450,12 +3450,17 @@ LET_STATEMENT_SKIPSPACES
     
     dec R4
     
+    ldi GET_STRING.0         ;call GET_STRING
+    plo CALL_REG
+    ldi GET_STRING.1
+    phi CALL_REG
     
-    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
 LET_STATEMENT_END
-
-
-
+    sep RETURN
 ;----------------------------------------------
 
 ;-HEXVIEWER------------------------------------
