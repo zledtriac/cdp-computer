@@ -22,7 +22,11 @@
                         
    2000                 INPUT_BUFF EQU 02000h
                         
-   2100                 HEAP_LASTADDRESS EQU 02100h
+   2100                 VARLIST_COUNT EQU 02100h
+   2102                 VARLIST_FIRSTNODE EQU 02102h
+   2104                 VARLIST_LASTNODE EQU 02104h
+                        
+   2106                 HEAP_LASTADDRESS EQU 02106h
    2110                 HEAP_START EQU 02110h
    fc00                 HEAP_END EQU 0FC00h
                         
@@ -56,7 +60,7 @@
    0016   f8 30             ldi DMA_ADDRESS.1
    0018   b0                phi DMA_REG
                             
-   0019   c0 12 e7          lbr MAIN_PROGRAM
+   0019   c0 14 71          lbr MAIN_PROGRAM
                             
                         ;-FUNCTION CALL HELPER-------------------------
                         ;-WHERE TO JUMP-(CALL_REG)---------------------
@@ -206,9 +210,9 @@
    017a   f8 00             ldi 00h             ;put 0 to the endof the string
    017c   57                str R7
                             
-   017d   f8 5b             ldi NEW_LINE.0      ;load the address of CRLF string
+   017d   f8 e5             ldi NEW_LINE.0      ;load the address of CRLF string
    017f   a6                plo R6
-   0180   f8 13             ldi NEW_LINE.1
+   0180   f8 14             ldi NEW_LINE.1
    0182   b6                phi R6
                             
    0183   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -2339,7 +2343,7 @@
                         
                         ;-DYN MEMORY INIT------------------------------
    0950                 DYN_MEMORY_INIT
-   0950   f8 00             ldi HEAP_LASTADDRESS.0
+   0950   f8 06             ldi HEAP_LASTADDRESS.0
    0952   a4                plo R4
    0953   f8 21             ldi HEAP_LASTADDRESS.1
    0955   b4                phi R4
@@ -2721,2025 +2725,2483 @@
                         
                         ;-DYN MEMORY ALLOCATION------------------------
                         ;-R4-Size--------------------------------------
-                        ;-R5-currentAddress----------------------------
                         ;-R10-return address---------------------------
+                        ;-Local registers------------------------------
+                        ;-R5-R6-R7-R8----------------------------------
    0ae7                 DYN_MEMORY_ALLOC
    0ae7   ef                sex STACK_REG
                             
-   0ae8   f8 00             ldi 0
-   0aea   73                stxd
-   0aeb   73                stxd                ;+7 currentSize
+   0ae8   98                ghi R8
+   0ae9   73                stxd
+   0aea   88                glo R8
+   0aeb   73                stxd
                             
-   0aec   94                ghi R4
+   0aec   97                ghi R7
    0aed   73                stxd
-   0aee   84                glo R4
-   0aef   73                stxd                ;+5 size
+   0aee   87                glo R7
+   0aef   73                stxd
                             
-   0af0   84                glo R4              ;R4 += 5
-   0af1   fc 05             adi 5
-   0af3   a4                plo R4
-   0af4   94                ghi R4
-   0af5   7c 00             adci 0
-   0af7   b4                phi R4
+   0af0   96                ghi R6
+   0af1   73                stxd
+   0af2   86                glo R6
+   0af3   73                stxd
                             
-   0af8   94                ghi R4
-   0af9   73                stxd
-   0afa   84                glo R4              ;newSize is initialized to size+5 for further calculation
-   0afb   73                stxd                ;+3 newSize
-                        
-   0afc   f8 fc             ldi HEAP_END.1
-   0afe   73                stxd
-   0aff   f8 00             ldi HEAP_END.0
-   0b01   73                stxd                ;+1 endAddress = HEAP_END
+   0af4   95                ghi R5
+   0af5   73                stxd
+   0af6   85                glo R5
+   0af7   73                stxd
                             
-   0b02   f8 00             ldi HEAP_LASTADDRESS.0
-   0b04   a4                plo R4
-   0b05   f8 21             ldi HEAP_LASTADDRESS.1
+   0af8   f8 00             ldi 0
+   0afa   73                stxd
+   0afb   73                stxd                ;+7 currentSize
+                            
+   0afc   94                ghi R4
+   0afd   73                stxd
+   0afe   84                glo R4
+   0aff   73                stxd                ;+5 size
+                            
+   0b00   84                glo R4              ;R4 += 5
+   0b01   fc 05             adi 5
+   0b03   a4                plo R4
+   0b04   94                ghi R4
+   0b05   7c 00             adci 0
    0b07   b4                phi R4
                             
-   0b08   44                lda R4
-   0b09   a5                plo R5
-   0b0a   44                lda R4
-   0b0b   b5                phi R5              ;R5 = lastAddress
+   0b08   94                ghi R4
+   0b09   73                stxd
+   0b0a   84                glo R4              ;newSize is initialized to size+5 for further calculation
+   0b0b   73                stxd                ;+3 newSize
+                        
+   0b0c   f8 fc             ldi HEAP_END.1
+   0b0e   73                stxd
+   0b0f   f8 00             ldi HEAP_END.0
+   0b11   73                stxd                ;+1 endAddress = HEAP_END
                             
-   0b0c   f8 00             ldi 0               ;R10 = 0
-   0b0e   aa                plo R10
-   0b0f   ba                phi R10
-                            
-   0b10   f8 02             ldi 2               ;R8 = 2
-   0b12   a8                plo R8
-                            
-   0b13                 DYN_MEMORY_ALLOC_MAINLOOP
-   0b13   8f                glo STACK_REG       ;set R4 pointer to endAddress
+   0b12   f8 06             ldi HEAP_LASTADDRESS.0
    0b14   a4                plo R4
-   0b15   9f                ghi STACK_REG
-   0b16   b4                phi R4
-   0b17   14                inc R4
+   0b15   f8 21             ldi HEAP_LASTADDRESS.1
+   0b17   b4                phi R4
                             
-   0b18   e4                sex R4
+   0b18   44                lda R4
+   0b19   a5                plo R5
+   0b1a   44                lda R4
+   0b1b   b5                phi R5              ;R5 = lastAddress
                             
-   0b19   85                glo R5              ;currentAddress - endAddress
-   0b1a   f7                sm
-   0b1b   60                irx
-   0b1c   95                ghi R5
-   0b1d   77                smb
+   0b1c   f8 00             ldi 0               ;R10 = 0
+   0b1e   aa                plo R10
+   0b1f   ba                phi R10
                             
-   0b1e   c3 0c 05          lbdf DYN_MEMORY_ALLOC_NEXTPASS      ;if currentAddress >= endAddress
+   0b20   f8 02             ldi 2               ;R8 = 2
+   0b22   a8                plo R8
                             
-   0b21   8f                glo STACK_REG                       ;set R4 pointer to currentSize
-   0b22   fc 07             adi 7
+   0b23                 DYN_MEMORY_ALLOC_MAINLOOP
+   0b23   8f                glo STACK_REG       ;set R4 pointer to endAddress
    0b24   a4                plo R4
    0b25   9f                ghi STACK_REG
-   0b26   7c 00             adci 0
-   0b28   b4                phi R4
+   0b26   b4                phi R4
+   0b27   14                inc R4
                             
-   0b29   85                glo R5                              ;R6 = R5 (currentAddress)
-   0b2a   a6                plo R6
-   0b2b   95                ghi R5
-   0b2c   b6                phi R6
+   0b28   e4                sex R4
                             
-   0b2d   46                lda R6                              ;currentSize = block size
-   0b2e   54                str R4
-   0b2f   14                inc R4
+   0b29   85                glo R5              ;currentAddress - endAddress
+   0b2a   f7                sm
+   0b2b   60                irx
+   0b2c   95                ghi R5
+   0b2d   77                smb
                             
-   0b30   46                lda R6
-   0b31   54                str R4
+   0b2e   c3 0c 15          lbdf DYN_MEMORY_ALLOC_NEXTPASS      ;if currentAddress >= endAddress
                             
-   0b32   16                inc R6
-   0b33   16                inc R6
+   0b31   8f                glo STACK_REG                       ;set R4 pointer to currentSize
+   0b32   fc 07             adi 7
+   0b34   a4                plo R4
+   0b35   9f                ghi STACK_REG
+   0b36   7c 00             adci 0
+   0b38   b4                phi R4
+                            
+   0b39   85                glo R5                              ;R6 = R5 (currentAddress)
+   0b3a   a6                plo R6
+   0b3b   95                ghi R5
+   0b3c   b6                phi R6
+                            
+   0b3d   46                lda R6                              ;currentSize = block size
+   0b3e   54                str R4
+   0b3f   14                inc R4
+                            
+   0b40   46                lda R6
+   0b41   54                str R4
+                            
+   0b42   16                inc R6
+   0b43   16                inc R6
                                 
-   0b34   06                ldn R6
-   0b35   ca 0b eb          lbnz DYN_MEMORY_ALLOC_NEXTADDRESS   ;if the current block is USED
+   0b44   06                ldn R6
+   0b45   ca 0b fb          lbnz DYN_MEMORY_ALLOC_NEXTADDRESS   ;if the current block is USED
                             
-   0b38   24                dec R4
+   0b48   24                dec R4
                             
-   0b39   8f                glo STACK_REG                   ;R6 pointer set to size
-   0b3a   fc 05             adi 5
-   0b3c   a6                plo R6
-   0b3d   9f                ghi STACK_REG
-   0b3e   7c 00             adci 0
-   0b40   b6                phi R6
+   0b49   8f                glo STACK_REG                   ;R6 pointer set to size
+   0b4a   fc 05             adi 5
+   0b4c   a6                plo R6
+   0b4d   9f                ghi STACK_REG
+   0b4e   7c 00             adci 0
+   0b50   b6                phi R6
                             
-   0b41   46                lda R6                          ;currentSize == size
-   0b42   f3                xor
-   0b43   60                irx
-   0b44   e6                sex R6
-   0b45   f1                or
-   0b46   e4                sex R4
-   0b47   f3                xor
+   0b51   46                lda R6                          ;currentSize == size
+   0b52   f3                xor
+   0b53   60                irx
+   0b54   e6                sex R6
+   0b55   f1                or
+   0b56   e4                sex R4
+   0b57   f3                xor
                             
-   0b48   26                dec R6                              ;set back R6
-   0b49   24                dec R4                              ;set back R4
+   0b58   26                dec R6                              ;set back R6
+   0b59   24                dec R4                              ;set back R4
                             
-   0b4a   ca 0b 60          lbnz DYN_MEMORY_ALLOC_SIZEBIGGER    ;if currentSize != size
+   0b5a   ca 0b 70          lbnz DYN_MEMORY_ALLOC_SIZEBIGGER    ;if currentSize != size
                         
-   0b4d                 DYN_MEMORY_ALLOC_SIZEEQ
-   0b4d   85                glo R5                              ;R6 = currentAddress + 4
-   0b4e   fc 04             adi 4
-   0b50   a6                plo R6
-   0b51   95                ghi R5
-   0b52   7c 00             adci 0
-   0b54   b6                phi R6
+   0b5d                 DYN_MEMORY_ALLOC_SIZEEQ
+   0b5d   85                glo R5                              ;R6 = currentAddress + 4
+   0b5e   fc 04             adi 4
+   0b60   a6                plo R6
+   0b61   95                ghi R5
+   0b62   7c 00             adci 0
+   0b64   b6                phi R6
                             
-   0b55   f8 01             ldi 1
-   0b57   56                str R6                              ;used = 1
+   0b65   f8 01             ldi 1
+   0b67   56                str R6                              ;used = 1
                             
-   0b58   16                inc R6                              ;R6++
-   0b59   86                glo R6
-   0b5a   aa                plo R10                             ;R10 = R6
-   0b5b   96                ghi R6
-   0b5c   ba                phi R10
+   0b68   16                inc R6                              ;R6++
+   0b69   86                glo R6
+   0b6a   aa                plo R10                             ;R10 = R6
+   0b6b   96                ghi R6
+   0b6c   ba                phi R10
                             
-   0b5d   c0 0c 20          lbr DYN_MEMORY_ALLOC_END            ;RETURN
+   0b6d   c0 0c 30          lbr DYN_MEMORY_ALLOC_END            ;RETURN
                         
-   0b60                 DYN_MEMORY_ALLOC_SIZEBIGGER
-   0b60   8f                glo STACK_REG                   ;R6 pinter set to newSize (size+5)
-   0b61   fc 03             adi 3
-   0b63   a6                plo R6
-   0b64   9f                ghi STACK_REG
-   0b65   7c 00             adci 0
-   0b67   b6                phi R6
+   0b70                 DYN_MEMORY_ALLOC_SIZEBIGGER
+   0b70   8f                glo STACK_REG                   ;R6 pinter set to newSize (size+5)
+   0b71   fc 03             adi 3
+   0b73   a6                plo R6
+   0b74   9f                ghi STACK_REG
+   0b75   7c 00             adci 0
+   0b77   b6                phi R6
                             
-   0b68   46                lda R6                          ;currentSize - newSize (size+5)
-   0b69   f5                sd
-   0b6a   60                irx
-   0b6b   46                lda R6
-   0b6c   75                sdb
+   0b78   46                lda R6                          ;currentSize - newSize (size+5)
+   0b79   f5                sd
+   0b7a   60                irx
+   0b7b   46                lda R6
+   0b7c   75                sdb
                             
-   0b6d   26                dec R6                              ;set back R6
-   0b6e   26                dec R6
+   0b7d   26                dec R6                              ;set back R6
+   0b7e   26                dec R6
                                
-   0b6f   cb 0b eb          lbnf DYN_MEMORY_ALLOC_NEXTADDRESS   ;if currentSize < newSize (size+5)
+   0b7f   cb 0b fb          lbnf DYN_MEMORY_ALLOC_NEXTADDRESS   ;if currentSize < newSize (size+5)
                             
-   0b72   24                dec R4                              ;R4 pointer to size
-   0b73   24                dec R4
-   0b74   24                dec R4
+   0b82   24                dec R4                              ;R4 pointer to size
+   0b83   24                dec R4
+   0b84   24                dec R4
                             
-   0b75   85                glo R5                              ;R6 = R5 (currentAddress)
-   0b76   a6                plo R6
-   0b77   95                ghi R5
-   0b78   b6                phi R6
+   0b85   85                glo R5                              ;R6 = R5 (currentAddress)
+   0b86   a6                plo R6
+   0b87   95                ghi R5
+   0b88   b6                phi R6
                             
-   0b79   44                lda R4                              ;set current block size to size
-   0b7a   56                str R6
-   0b7b   16                inc R6
+   0b89   44                lda R4                              ;set current block size to size
+   0b8a   56                str R6
+   0b8b   16                inc R6
                             
-   0b7c   44                lda R4
-   0b7d   56                str R6
-   0b7e   16                inc R6
+   0b8c   44                lda R4
+   0b8d   56                str R6
+   0b8e   16                inc R6
                             
-   0b7f   16                inc R6                              ;R6 += 2
-   0b80   16                inc R6
+   0b8f   16                inc R6                              ;R6 += 2
+   0b90   16                inc R6
                             
-   0b81   f8 01             ldi 1                               ;set used to 1
-   0b83   56                str R6
+   0b91   f8 01             ldi 1                               ;set used to 1
+   0b93   56                str R6
                             
-   0b84   16                inc R6                              ;R6++
-   0b85   86                glo R6
-   0b86   aa                plo R10                             ;R10 = R6
-   0b87   96                ghi R6                              ;R10 is set for return
-   0b88   ba                phi R10
+   0b94   16                inc R6                              ;R6++
+   0b95   86                glo R6
+   0b96   aa                plo R10                             ;R10 = R6
+   0b97   96                ghi R6                              ;R10 is set for return
+   0b98   ba                phi R10
                             
-   0b89   8f                glo STACK_REG                   ;R4 pinter set to newSize (size+5)
-   0b8a   fc 03             adi 3
-   0b8c   a4                plo R4
-   0b8d   9f                ghi STACK_REG
-   0b8e   7c 00             adci 0
-   0b90   b4                phi R4
+   0b99   8f                glo STACK_REG                   ;R4 pinter set to newSize (size+5)
+   0b9a   fc 03             adi 3
+   0b9c   a4                plo R4
+   0b9d   9f                ghi STACK_REG
+   0b9e   7c 00             adci 0
+   0ba0   b4                phi R4
                             
-   0b91   85                glo R5                          ;R7 = currentAddress + size + 5
-   0b92   f4                add
-   0b93   60                irx
-   0b94   a7                plo R7
-   0b95   95                ghi R5
-   0b96   74                adc
-   0b97   b7                phi R7                          ;R7 is the newAddress
+   0ba1   85                glo R5                          ;R7 = currentAddress + size + 5
+   0ba2   f4                add
+   0ba3   60                irx
+   0ba4   a7                plo R7
+   0ba5   95                ghi R5
+   0ba6   74                adc
+   0ba7   b7                phi R7                          ;R7 is the newAddress
                             
-   0b98   f8 00             ldi HEAP_LASTADDRESS.0
-   0b9a   a4                plo R4
-   0b9b   f8 21             ldi HEAP_LASTADDRESS.1
-   0b9d   b4                phi R4
+   0ba8   f8 06             ldi HEAP_LASTADDRESS.0
+   0baa   a4                plo R4
+   0bab   f8 21             ldi HEAP_LASTADDRESS.1
+   0bad   b4                phi R4
                             
-   0b9e   87                glo R7                          ;lastAddress = R7
-   0b9f   54                str R4
-   0ba0   14                inc R4
+   0bae   87                glo R7                          ;lastAddress = R7
+   0baf   54                str R4
+   0bb0   14                inc R4
                             
-   0ba1   97                ghi R7
-   0ba2   54                str R4
+   0bb1   97                ghi R7
+   0bb2   54                str R4
                         
-   0ba3   8f                glo STACK_REG                   ;R4 pinter set to newSize
-   0ba4   fc 03             adi 3
-   0ba6   a4                plo R4
-   0ba7   9f                ghi STACK_REG
-   0ba8   7c 00             adci 0
-   0baa   b4                phi R4
+   0bb3   8f                glo STACK_REG                   ;R4 pinter set to newSize
+   0bb4   fc 03             adi 3
+   0bb6   a4                plo R4
+   0bb7   9f                ghi STACK_REG
+   0bb8   7c 00             adci 0
+   0bba   b4                phi R4
                             
-   0bab   8f                glo STACK_REG                   ;R4 pinter set to currentSize
-   0bac   fc 07             adi 7
-   0bae   a6                plo R6
-   0baf   9f                ghi STACK_REG
-   0bb0   7c 00             adci 0
-   0bb2   b6                phi R6
+   0bbb   8f                glo STACK_REG                   ;R4 pinter set to currentSize
+   0bbc   fc 07             adi 7
+   0bbe   a6                plo R6
+   0bbf   9f                ghi STACK_REG
+   0bc0   7c 00             adci 0
+   0bc2   b6                phi R6
                             
-   0bb3   46                lda R6                          ;newSize = currentSize - (size + 5)
-   0bb4   f7                sm
-   0bb5   54                str R4
-   0bb6   60                irx
+   0bc3   46                lda R6                          ;newSize = currentSize - (size + 5)
+   0bc4   f7                sm
+   0bc5   54                str R4
+   0bc6   60                irx
                             
-   0bb7   46                lda R6
-   0bb8   77                smb
-   0bb9   54                str R4
+   0bc7   46                lda R6
+   0bc8   77                smb
+   0bc9   54                str R4
                             
-   0bba   24                dec R4                          ;set back R4 to newSize
+   0bca   24                dec R4                          ;set back R4 to newSize
                             
-   0bbb   87                glo R7                          ;R6 = R7 (newAddress)
-   0bbc   a6                plo R6
-   0bbd   97                ghi R7
-   0bbe   b6                phi R6
+   0bcb   87                glo R7                          ;R6 = R7 (newAddress)
+   0bcc   a6                plo R6
+   0bcd   97                ghi R7
+   0bce   b6                phi R6
                             
-   0bbf   44                lda R4                          ;new block size = newSize
-   0bc0   56                str R6
-   0bc1   16                inc R6
+   0bcf   44                lda R4                          ;new block size = newSize
+   0bd0   56                str R6
+   0bd1   16                inc R6
                             
-   0bc2   44                lda R4
-   0bc3   56                str R6
-   0bc4   16                inc R6
+   0bd2   44                lda R4
+   0bd3   56                str R6
+   0bd4   16                inc R6
                             
-   0bc5   85                glo R5                          ;new block previous address = currentAddress
-   0bc6   56                str R6
-   0bc7   16                inc R6
+   0bd5   85                glo R5                          ;new block previous address = currentAddress
+   0bd6   56                str R6
+   0bd7   16                inc R6
                             
-   0bc8   95                ghi R5
-   0bc9   56                str R6
-   0bca   16                inc R6
+   0bd8   95                ghi R5
+   0bd9   56                str R6
+   0bda   16                inc R6
                             
-   0bcb   f8 00             ldi 0                           ;new block used = 0
-   0bcd   56                str R6
-   0bce   16                inc R6
+   0bdb   f8 00             ldi 0                           ;new block used = 0
+   0bdd   56                str R6
+   0bde   16                inc R6
                             
-   0bcf   24                dec R4
-   0bd0   24                dec R4
+   0bdf   24                dec R4
+   0be0   24                dec R4
                             
-   0bd1   86                glo R6                          ;R6 = R6 + newSize
-   0bd2   f4                add
-   0bd3   60                irx
-   0bd4   a6                plo R6
-   0bd5   96                ghi R6
-   0bd6   74                adc
-   0bd7   b6                phi R6
+   0be1   86                glo R6                          ;R6 = R6 + newSize
+   0be2   f4                add
+   0be3   60                irx
+   0be4   a6                plo R6
+   0be5   96                ghi R6
+   0be6   74                adc
+   0be7   b6                phi R6
                             
-   0bd8   16                inc R6                          ;R6 += 2
-   0bd9   16                inc R6
+   0be8   16                inc R6                          ;R6 += 2
+   0be9   16                inc R6
                             
-   0bda   86                glo R6
-   0bdb   ff 00             smi HEAP_END.0
-   0bdd   96                ghi R6
-   0bde   7f fc             smbi HEAP_END.1
+   0bea   86                glo R6
+   0beb   ff 00             smi HEAP_END.0
+   0bed   96                ghi R6
+   0bee   7f fc             smbi HEAP_END.1
                             
-   0be0   c3 0c 20          lbdf DYN_MEMORY_ALLOC_END
+   0bf0   c3 0c 30          lbdf DYN_MEMORY_ALLOC_END
                             
-   0be3   87                glo R7                          ;next block previous address = R7
-   0be4   56                str R6
-   0be5   16                inc R6
+   0bf3   87                glo R7                          ;next block previous address = R7
+   0bf4   56                str R6
+   0bf5   16                inc R6
                             
-   0be6   97                ghi R7
-   0be7   56                str R6
+   0bf6   97                ghi R7
+   0bf7   56                str R6
                             
-   0be8   c0 0c 20          lbr DYN_MEMORY_ALLOC_END
+   0bf8   c0 0c 30          lbr DYN_MEMORY_ALLOC_END
                             
-   0beb                 DYN_MEMORY_ALLOC_NEXTADDRESS
-   0beb   8f                glo STACK_REG               ;set R4 pointer to currentSize
-   0bec   fc 07             adi 7
-   0bee   a4                plo R4
-   0bef   9f                ghi STACK_REG
-   0bf0   7c 00             adci 0
-   0bf2   b4                phi R4
+   0bfb                 DYN_MEMORY_ALLOC_NEXTADDRESS
+   0bfb   8f                glo STACK_REG               ;set R4 pointer to currentSize
+   0bfc   fc 07             adi 7
+   0bfe   a4                plo R4
+   0bff   9f                ghi STACK_REG
+   0c00   7c 00             adci 0
+   0c02   b4                phi R4
                             
-   0bf3   85                glo R5
-   0bf4   f4                add
-   0bf5   60                irx
-   0bf6   a5                plo R5
-   0bf7   95                ghi R5
-   0bf8   74                adc
-   0bf9   b5                phi R5                          ;currentAddress += size
+   0c03   85                glo R5
+   0c04   f4                add
+   0c05   60                irx
+   0c06   a5                plo R5
+   0c07   95                ghi R5
+   0c08   74                adc
+   0c09   b5                phi R5                          ;currentAddress += size
                             
-   0bfa   85                glo R5
-   0bfb   fc 05             adi 5
-   0bfd   a5                plo R5
-   0bfe   95                ghi R5
-   0bff   7c 00             adci 0
-   0c01   b5                phi R5                          ;currentAddress += 5
+   0c0a   85                glo R5
+   0c0b   fc 05             adi 5
+   0c0d   a5                plo R5
+   0c0e   95                ghi R5
+   0c0f   7c 00             adci 0
+   0c11   b5                phi R5                          ;currentAddress += 5
                             
-   0c02   c0 0b 13          lbr DYN_MEMORY_ALLOC_MAINLOOP
+   0c12   c0 0b 23          lbr DYN_MEMORY_ALLOC_MAINLOOP
                             
-   0c05                 DYN_MEMORY_ALLOC_NEXTPASS
-   0c05   f8 10             ldi HEAP_START.0
-   0c07   a5                plo R5
-   0c08   f8 21             ldi HEAP_START.1
-   0c0a   b5                phi R5
+   0c15                 DYN_MEMORY_ALLOC_NEXTPASS
+   0c15   f8 10             ldi HEAP_START.0
+   0c17   a5                plo R5
+   0c18   f8 21             ldi HEAP_START.1
+   0c1a   b5                phi R5
                             
-   0c0b   8f                glo STACK_REG                       ;set R4 pointer to endAddress
-   0c0c   a4                plo R4
-   0c0d   9f                ghi STACK_REG
-   0c0e   b4                phi R4
-   0c0f   14                inc R4
+   0c1b   8f                glo STACK_REG                       ;set R4 pointer to endAddress
+   0c1c   a4                plo R4
+   0c1d   9f                ghi STACK_REG
+   0c1e   b4                phi R4
+   0c1f   14                inc R4
                             
-   0c10   f8 00             ldi HEAP_LASTADDRESS.0
-   0c12   a6                plo R6
-   0c13   f8 21             ldi HEAP_LASTADDRESS.1
-   0c15   b6                phi R6
+   0c20   f8 06             ldi HEAP_LASTADDRESS.0
+   0c22   a6                plo R6
+   0c23   f8 21             ldi HEAP_LASTADDRESS.1
+   0c25   b6                phi R6
                             
-   0c16   46                lda R6
-   0c17   54                str R4
-   0c18   14                inc R4
+   0c26   46                lda R6
+   0c27   54                str R4
+   0c28   14                inc R4
                             
-   0c19   46                lda R6
-   0c1a   54                str R4
+   0c29   46                lda R6
+   0c2a   54                str R4
                         
-   0c1b   28                dec R8
-   0c1c   88                glo R8
-   0c1d   ca 0b 13          lbnz DYN_MEMORY_ALLOC_MAINLOOP
+   0c2b   28                dec R8
+   0c2c   88                glo R8
+   0c2d   ca 0b 23          lbnz DYN_MEMORY_ALLOC_MAINLOOP
                             
-   0c20                 DYN_MEMORY_ALLOC_END
-   0c20   8f                glo STACK_REG
-   0c21   fc 08             adi 8
-   0c23   af                plo STACK_REG
-   0c24   9f                ghi STACK_REG
-   0c25   7c 00             adci 0
-   0c27   bf                phi STACK_REG
+   0c30                 DYN_MEMORY_ALLOC_END
+   0c30   8f                glo STACK_REG
+   0c31   fc 09             adi 9
+   0c33   af                plo STACK_REG
+   0c34   9f                ghi STACK_REG
+   0c35   7c 00             adci 0
+   0c37   bf                phi STACK_REG
                             
-   0c28   de                sep RETURN
+   0c38   ef                sex STACK_REG
+                            
+   0c39   72                ldxa
+   0c3a   a5                plo R5
+   0c3b   72                ldxa
+   0c3c   b5                phi R5
+                            
+   0c3d   72                ldxa
+   0c3e   a6                plo R6
+   0c3f   72                ldxa
+   0c40   b6                phi R6
+                            
+   0c41   72                ldxa
+   0c42   a7                plo R7
+   0c43   72                ldxa
+   0c44   b7                phi R7
+                            
+   0c45   72                ldxa
+   0c46   a8                plo R8
+   0c47   f0                ldx
+   0c48   b8                phi R8
+                            
+   0c49   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-DYN MEMORY FREE------------------------------
                         ;-R4-address-----------------------------------
                         ;-Local registers------------------------------
                         ;-R5-R6----------------------------------------
-   0c29                 DYN_MEMORY_FREE
-   0c29   ef                sex STACK_REG
+   0c4a                 DYN_MEMORY_FREE
+   0c4a   ef                sex STACK_REG
                             
-   0c2a   95                ghi R5      ;saving local registers
-   0c2b   73                stxd
-   0c2c   85                glo R5
-   0c2d   73                stxd
+   0c4b   95                ghi R5      ;saving local registers
+   0c4c   73                stxd
+   0c4d   85                glo R5
+   0c4e   73                stxd
                             
-   0c2e   96                ghi R6
-   0c2f   73                stxd
-   0c30   86                glo R6
-   0c31   73                stxd
+   0c4f   96                ghi R6
+   0c50   73                stxd
+   0c51   86                glo R6
+   0c52   73                stxd
                             
-   0c32   f8 00             ldi 0
-   0c34   73                stxd
-   0c35   73                stxd
-   0c36   73                stxd
-   0c37   73                stxd        ;+5 size
+   0c53   f8 00             ldi 0
+   0c55   73                stxd
+   0c56   73                stxd
+   0c57   73                stxd
+   0c58   73                stxd        ;+5 size
                             
-   0c38   73                stxd
-   0c39   73                stxd
-   0c3a   73                stxd
-   0c3b   73                stxd        ;+1 nextSize
+   0c59   73                stxd
+   0c5a   73                stxd
+   0c5b   73                stxd
+   0c5c   73                stxd        ;+1 nextSize
                             
-   0c3c   24                dec R4      ;R4-- (address--)
-   0c3d   54                str R4      ;set current block to free
+   0c5d   24                dec R4      ;R4-- (address--)
+   0c5e   54                str R4      ;set current block to free
                             
-   0c3e   24                dec R4
-   0c3f   24                dec R4
+   0c5f   24                dec R4
+   0c60   24                dec R4
                             
-   0c40   44                lda R4      ;R6 = previous block address
-   0c41   a6                plo R6
-   0c42   44                lda R4
-   0c43   b6                phi R6
+   0c61   44                lda R4      ;R6 = previous block address
+   0c62   a6                plo R6
+   0c63   44                lda R4
+   0c64   b6                phi R6
                             
-   0c44   24                dec R4      ;set R4 to the beginning of the current block
-   0c45   24                dec R4
-   0c46   24                dec R4
-   0c47   24                dec R4
+   0c65   24                dec R4      ;set R4 to the beginning of the current block
+   0c66   24                dec R4
+   0c67   24                dec R4
+   0c68   24                dec R4
                             
-   0c48   86                glo R6
-   0c49   ca 0c 52          lbnz DYN_MEMORY_FREE_NEXTCHECK
-   0c4c   96                ghi R6
-   0c4d   ca 0c 52          lbnz DYN_MEMORY_FREE_NEXTCHECK      ;if previousAddress != 0
+   0c69   86                glo R6
+   0c6a   ca 0c 73          lbnz DYN_MEMORY_FREE_NEXTCHECK
+   0c6d   96                ghi R6
+   0c6e   ca 0c 73          lbnz DYN_MEMORY_FREE_NEXTCHECK      ;if previousAddress != 0
                             
-   0c50   30 61             br DYN_MEMORY_FREE_MERGE
+   0c71   30 82             br DYN_MEMORY_FREE_MERGE
                         
-   0c52                 DYN_MEMORY_FREE_NEXTCHECK
-   0c52   86                glo R6                              ;set R5 pointer to previous block used
-   0c53   fc 04             adi 4
-   0c55   a5                plo R5
-   0c56   96                ghi R6
-   0c57   7c 00             adci 0
-   0c59   b5                phi R5
+   0c73                 DYN_MEMORY_FREE_NEXTCHECK
+   0c73   86                glo R6                              ;set R5 pointer to previous block used
+   0c74   fc 04             adi 4
+   0c76   a5                plo R5
+   0c77   96                ghi R6
+   0c78   7c 00             adci 0
+   0c7a   b5                phi R5
                             
-   0c5a   05                ldn R5
-   0c5b   3a 61             bnz DYN_MEMORY_FREE_MERGE           ;if used != 0
+   0c7b   05                ldn R5
+   0c7c   3a 82             bnz DYN_MEMORY_FREE_MERGE           ;if used != 0
                             
-   0c5d   86                glo R6                              ;set R4 to previous block
-   0c5e   a4                plo R4
-   0c5f   96                ghi R6
-   0c60   b4                phi R4
+   0c7e   86                glo R6                              ;set R4 to previous block
+   0c7f   a4                plo R4
+   0c80   96                ghi R6
+   0c81   b4                phi R4
                             
-   0c61                 DYN_MEMORY_FREE_MERGE
-   0c61   8f                glo STACK_REG                       ;set R5 pointer to size
-   0c62   fc 05             adi 5
-   0c64   a5                plo R5
-   0c65   9f                ghi STACK_REG
-   0c66   7c 00             adci 0
-   0c68   b5                phi R5
+   0c82                 DYN_MEMORY_FREE_MERGE
+   0c82   8f                glo STACK_REG                       ;set R5 pointer to size
+   0c83   fc 05             adi 5
+   0c85   a5                plo R5
+   0c86   9f                ghi STACK_REG
+   0c87   7c 00             adci 0
+   0c89   b5                phi R5
                             
-   0c69   e5                sex R5                              ;set R5 to pointer
+   0c8a   e5                sex R5                              ;set R5 to pointer
                             
-   0c6a   44                lda R4                              ;load block size to size
-   0c6b   55                str R5
-   0c6c   15                inc R5
+   0c8b   44                lda R4                              ;load block size to size
+   0c8c   55                str R5
+   0c8d   15                inc R5
                             
-   0c6d   44                lda R4
-   0c6e   55                str R5
+   0c8e   44                lda R4
+   0c8f   55                str R5
                             
-   0c6f   24                dec R4
-   0c70   24                dec R4                              ;set back R4 and R5
-   0c71   25                dec R5
+   0c90   24                dec R4
+   0c91   24                dec R4                              ;set back R4 and R5
+   0c92   25                dec R5
                             
-   0c72   84                glo R4                              ;R6 (nextAddress) = address + 5 
-   0c73   fc 05             adi 5
-   0c75   a6                plo R6
-   0c76   94                ghi R4
-   0c77   7c 00             adci 0
-   0c79   b6                phi R6
+   0c93   84                glo R4                              ;R6 (nextAddress) = address + 5 
+   0c94   fc 05             adi 5
+   0c96   a6                plo R6
+   0c97   94                ghi R4
+   0c98   7c 00             adci 0
+   0c9a   b6                phi R6
                             
-   0c7a   86                glo R6                              ;R6 += size
-   0c7b   f4                add
-   0c7c   60                irx
-   0c7d   a6                plo R6
-   0c7e   96                ghi R6
-   0c7f   74                adc
-   0c80   b6                phi R6
+   0c9b   86                glo R6                              ;R6 += size
+   0c9c   f4                add
+   0c9d   60                irx
+   0c9e   a6                plo R6
+   0c9f   96                ghi R6
+   0ca0   74                adc
+   0ca1   b6                phi R6
                             
-   0c81                 DYN_MEMORY_FREE_MERGELOOP
-   0c81   86                glo R6
-   0c82   ff 00             smi HEAP_END.0
-   0c84   96                ghi R6
-   0c85   7f fc             smbi HEAP_END.1
+   0ca2                 DYN_MEMORY_FREE_MERGELOOP
+   0ca2   86                glo R6
+   0ca3   ff 00             smi HEAP_END.0
+   0ca5   96                ghi R6
+   0ca6   7f fc             smbi HEAP_END.1
                             
-   0c87   c3 0c c0          lbdf DYN_MEMORY_FREE_END            ;if nextAddress - HEAP_END >= 0
+   0ca8   c3 0c e1          lbdf DYN_MEMORY_FREE_END            ;if nextAddress - HEAP_END >= 0
                             
-   0c8a   86                glo R6                              ;set R5 to nextAddress used
-   0c8b   fc 04             adi 4
-   0c8d   a5                plo R5
-   0c8e   96                ghi R6
-   0c8f   7c 00             adci 0
-   0c91   b5                phi R5
+   0cab   86                glo R6                              ;set R5 to nextAddress used
+   0cac   fc 04             adi 4
+   0cae   a5                plo R5
+   0caf   96                ghi R6
+   0cb0   7c 00             adci 0
+   0cb2   b5                phi R5
                             
-   0c92   05                ldn R5
-   0c93   ca 0c b9          lbnz DYN_MEMORY_FREE_SETPREVIOUS    ;if used != 0
+   0cb3   05                ldn R5
+   0cb4   ca 0c da          lbnz DYN_MEMORY_FREE_SETPREVIOUS    ;if used != 0
                             
-   0c96   8f                glo STACK_REG                       ;set R5 pointer to nextSize
-   0c97   a5                plo R5
-   0c98   9f                ghi STACK_REG
-   0c99   b5                phi R5
-   0c9a   15                inc R5
+   0cb7   8f                glo STACK_REG                       ;set R5 pointer to nextSize
+   0cb8   a5                plo R5
+   0cb9   9f                ghi STACK_REG
+   0cba   b5                phi R5
+   0cbb   15                inc R5
                             
-   0c9b   46                lda R6                              ;load size + 5 to nextSize 
-   0c9c   fc 05             adi 5
-   0c9e   55                str R5
-   0c9f   60                irx
+   0cbc   46                lda R6                              ;load size + 5 to nextSize 
+   0cbd   fc 05             adi 5
+   0cbf   55                str R5
+   0cc0   60                irx
                             
-   0ca0   06                ldn R6
-   0ca1   7c 00             adci 0
-   0ca3   55                str R5
+   0cc1   06                ldn R6
+   0cc2   7c 00             adci 0
+   0cc4   55                str R5
                             
-   0ca4   25                dec R5                              ;set back R5 and R6
-   0ca5   26                dec R6
+   0cc5   25                dec R5                              ;set back R5 and R6
+   0cc6   26                dec R6
                             
-   0ca6   04                ldn R4                              ;current block size += nextSize
-   0ca7   f4                add
-   0ca8   54                str R4
-   0ca9   60                irx
-   0caa   14                inc R4
+   0cc7   04                ldn R4                              ;current block size += nextSize
+   0cc8   f4                add
+   0cc9   54                str R4
+   0cca   60                irx
+   0ccb   14                inc R4
                             
-   0cab   04                ldn R4
-   0cac   74                adc
-   0cad   54                str R4
+   0ccc   04                ldn R4
+   0ccd   74                adc
+   0cce   54                str R4
                             
-   0cae   25                dec R5                              ;set back R4 and R5
-   0caf   24                dec R4
+   0ccf   25                dec R5                              ;set back R4 and R5
+   0cd0   24                dec R4
                             
-   0cb0   86                glo R6                              ;R6 (nextAddress) += nextSize
-   0cb1   f4                add
-   0cb2   a6                plo R6
-   0cb3   60                irx
-   0cb4   96                ghi R6
-   0cb5   74                adc
-   0cb6   b6                phi R6
-                            
-   0cb7   30 81             br DYN_MEMORY_FREE_MERGELOOP
-                        
-   0cb9                 DYN_MEMORY_FREE_SETPREVIOUS    
-   0cb9   16                inc R6                              ;increment nextAddress to previous address section
-   0cba   16                inc R6
-                            
-   0cbb   84                glo R4                              ;set previous address to R4 value
-   0cbc   56                str R6
-   0cbd   16                inc R6
-   0cbe   94                ghi R4
-   0cbf   56                str R6
-                        
-   0cc0                 DYN_MEMORY_FREE_END
-   0cc0   8f                glo STACK_REG
-   0cc1   fc 09             adi 9
-   0cc3   af                plo STACK_REG
-   0cc4   9f                ghi STACK_REG
-   0cc5   7c 00             adci 0
-   0cc7   bf                phi STACK_REG
-                            
-   0cc8   ef                sex STACK_REG
-                            
-   0cc9   f8 00             ldi HEAP_LASTADDRESS.0
-   0ccb   a5                plo R5
-   0ccc   f8 21             ldi HEAP_LASTADDRESS.1
-   0cce   b5                phi R5
-                            
-   0ccf   84                glo R4
-   0cd0   55                str R5
-   0cd1   15                inc R5
-                            
-   0cd2   94                ghi R4
-   0cd3   55                str R5
-                            
-   0cd4   72                ldxa            ;restoring local registers
-   0cd5   a6                plo R6
-   0cd6   72                ldxa
+   0cd1   86                glo R6                              ;R6 (nextAddress) += nextSize
+   0cd2   f4                add
+   0cd3   a6                plo R6
+   0cd4   60                irx
+   0cd5   96                ghi R6
+   0cd6   74                adc
    0cd7   b6                phi R6
                             
-   0cd8   72                ldxa
-   0cd9   a5                plo R5
-   0cda   f0                ldx
-   0cdb   b5                phi R5
+   0cd8   30 a2             br DYN_MEMORY_FREE_MERGELOOP
+                        
+   0cda                 DYN_MEMORY_FREE_SETPREVIOUS    
+   0cda   16                inc R6                              ;increment nextAddress to previous address section
+   0cdb   16                inc R6
                             
-   0cdc   de                sep RETURN
+   0cdc   84                glo R4                              ;set previous address to R4 value
+   0cdd   56                str R6
+   0cde   16                inc R6
+   0cdf   94                ghi R4
+   0ce0   56                str R6
+                        
+   0ce1                 DYN_MEMORY_FREE_END
+   0ce1   8f                glo STACK_REG
+   0ce2   fc 09             adi 9
+   0ce4   af                plo STACK_REG
+   0ce5   9f                ghi STACK_REG
+   0ce6   7c 00             adci 0
+   0ce8   bf                phi STACK_REG
+                            
+   0ce9   ef                sex STACK_REG
+                            
+   0cea   f8 06             ldi HEAP_LASTADDRESS.0
+   0cec   a5                plo R5
+   0ced   f8 21             ldi HEAP_LASTADDRESS.1
+   0cef   b5                phi R5
+                            
+   0cf0   84                glo R4
+   0cf1   55                str R5
+   0cf2   15                inc R5
+                            
+   0cf3   94                ghi R4
+   0cf4   55                str R5
+                            
+   0cf5   72                ldxa            ;restoring local registers
+   0cf6   a6                plo R6
+   0cf7   72                ldxa
+   0cf8   b6                phi R6
+                            
+   0cf9   72                ldxa
+   0cfa   a5                plo R5
+   0cfb   f0                ldx
+   0cfc   b5                phi R5
+                            
+   0cfd   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-GET-STRING-----------------------------------
+                        ;-R4-Input string------------------------------
+                        ;-R10-New string address-----------------------
+                        ;-Local registers------------------------------
+                        ;-R5-R6----------------------------------------
+   0cfe                 GET_STRING
+   0cfe   ef                sex STACK_REG
+                            
+   0cff   95                ghi R5
+   0d00   73                stxd
+   0d01   85                glo R5
+   0d02   73                stxd
+                            
+   0d03   96                ghi R6
+   0d04   73                stxd
+   0d05   86                glo R6
+   0d06   73                stxd
+                            
+   0d07   94                ghi R4
+   0d08   73                stxd
+   0d09   84                glo R4
+   0d0a   73                stxd                    ;+1 startAddress
+                            
+   0d0b   f8 00             ldi 0                   ;set R5 and R10 to zero
+   0d0d   a5                plo R5
+   0d0e   b5                phi R5
+                            
+   0d0f   aa                plo R10
+   0d10   ba                phi R10
+                        
+   0d11                 GET_STRING_LEN
+   0d11   04                ldn R4                  
+   0d12   ff 30             smi 48
+   0d14   3b 35             bm GET_STRING_LEN_END   ;if *R4 < '0'
+   0d16   04                ldn R4
+   0d17   ff 3a             smi 58
+   0d19   3b 31             bm GET_STRING_ADDLEN    ;if *R4 <= '9'
+   0d1b   04                ldn R4
+   0d1c   ff 41             smi 65
+   0d1e   3b 35             bm GET_STRING_LEN_END   ;if *R4 < 'A'
+   0d20   04                ldn R4
+   0d21   ff 5b             smi 91
+   0d23   3b 31             bm GET_STRING_ADDLEN    ;if *R4 <= 'Z'
+   0d25   04                ldn R4
+   0d26   ff 61             smi 97
+   0d28   3b 35             bm GET_STRING_LEN_END   ;if *R4 < 'a'
+   0d2a   04                ldn R4
+   0d2b   ff 7b             smi 123
+   0d2d   3b 31             bm GET_STRING_ADDLEN    ;if *R4 <= 'z'
+                            
+   0d2f   30 35             br GET_STRING_LEN_END   ;length checking end
+                            
+   0d31                 GET_STRING_ADDLEN
+   0d31   15                inc R5                  ;increment R4 and R5
+   0d32   14                inc R4
+   0d33   30 11             br GET_STRING_LEN
+                                
+   0d35                 GET_STRING_LEN_END
+   0d35   85                glo R5
+   0d36   3a 3b             bnz GET_STRING_ALLOCATE_MEM
+   0d38   95                ghi R5
+   0d39   32 67             bz GET_STRING_END               ;if R5 == 0
+                            
+   0d3b                 GET_STRING_ALLOCATE_MEM
+   0d3b   85                glo R5
+   0d3c   a4                plo R4
+   0d3d   95                ghi R5
+   0d3e   b4                phi R4
+   0d3f   14                inc R4                          ;increment R4 because we need spacefor the termination char
+                            
+   0d40   f8 e7             ldi DYN_MEMORY_ALLOC.0         ;call DYN_MEMORY_ALLOC
+   0d42   ad                plo CALL_REG
+   0d43   f8 0a             ldi DYN_MEMORY_ALLOC.1
+   0d45   bd                phi CALL_REG
+                            
+   0d46   f8 00             ldi FCALL.0
+   0d48   ae                plo FCALL_REG
+   0d49   de                sep FCALL_REG
+                            
+   0d4a   8a                glo R10
+   0d4b   3a 50             bnz GET_STRING_COPY
+   0d4d   9a                ghi R10
+   0d4e   32 67             bz GET_STRING_END               ;if R10 == 0
+                            
+   0d50                 GET_STRING_COPY
+   0d50   8f                glo STACK_REG                   ;restore R4
+   0d51   a6                plo R6
+   0d52   9f                ghi STACK_REG
+   0d53   b6                phi R6
+   0d54   16                inc R6
+                            
+   0d55   46                lda R6
+   0d56   a4                plo R4
+   0d57   46                lda R6
+   0d58   b4                phi R4
+                            
+   0d59   8a                glo R10                         ;R6 = R10
+   0d5a   a6                plo R6
+   0d5b   9a                ghi R10
+   0d5c   b6                phi R6
+                            
+   0d5d                 GET_STRING_COPY_LOOP
+   0d5d   44                lda R4                          ;read data from R4 location
+   0d5e   56                str R6                          ;and store to R6 location
+   0d5f   16                inc R6
+                            
+   0d60   25                dec R5                          ;decrement R5
+   0d61   85                glo R5
+   0d62   3a 5d             bnz GET_STRING_COPY_LOOP        ;if R5 != 0
+                            
+   0d64   f8 00             ldi 0
+   0d66   56                str R6                          ;terminate the string
+                        
+   0d67                 GET_STRING_END
+   0d67   60                irx
+   0d68   60                irx
+   0d69   60                irx
+                            
+   0d6a   72                ldxa                            ;restore local registers
+   0d6b   a6                plo R6
+   0d6c   72                ldxa
+   0d6d   b6                phi R6
+                            
+   0d6e   72                ldxa
+   0d6f   a5                plo R5
+   0d70   f0                ldx
+   0d71   b5                phi R5
+                            
+   0d72   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-LET-STATEMENT--------------------------------
+                        ;-R4-Input string------------------------------
+                        ;-Local registres------------------------------
+                        ;-R5-R6-R7-------------------------------------
+   0d73                 LET_STATEMENT
+   0d73   ef                sex STACK_REG
+                            
+   0d74   95                ghi R5
+   0d75   73                stxd
+   0d76   85                glo R5
+   0d77   73                stxd
+                            
+   0d78   96                ghi R6
+   0d79   73                stxd
+   0d7a   86                glo R6
+   0d7b   73                stxd
+                            
+   0d7c   97                ghi R7
+   0d7d   73                stxd
+   0d7e   87                glo R7
+   0d7f   73                stxd
+                            
+   0d80   94                ghi R4          ;saving R4 value
+   0d81   73                stxd
+   0d82   84                glo R4
+   0d83   73                stxd            ;+3 inputString
+                            
+   0d84   f8 00             ldi 0
+   0d86   73                stxd
+   0d87   73                stxd            ;+1 variableNode address
+                            
+   0d88   b4                phi R4          ;R4 = 8
+   0d89   f8 08             ldi 8
+   0d8b   a4                plo R4
+                            
+   0d8c   f8 e7             ldi DYN_MEMORY_ALLOC.0          ;call DYN_MEMORY_ALLOC
+   0d8e   ad                plo CALL_REG                    ;Allocating memory for the variable node
+   0d8f   f8 0a             ldi DYN_MEMORY_ALLOC.1
+   0d91   bd                phi CALL_REG
+                            
+   0d92   f8 00             ldi FCALL.0
+   0d94   ae                plo FCALL_REG
+   0d95   de                sep FCALL_REG
+                            
+   0d96   8a                glo R10
+   0d97   3a 9d             bnz LET_STATEMENT_CONTINUE1
+   0d99   9a                ghi R10
+   0d9a   c2 0e 4d          lbz LET_STATEMENT_END            ;if R10 == 0
+                            
+   0d9d                 LET_STATEMENT_CONTINUE1
+   0d9d   8f                glo STACK_REG                   ;set R5 pointer to variableNode address
+   0d9e   a5                plo R5
+   0d9f   9f                ghi STACK_REG
+   0da0   b5                phi R5
+   0da1   15                inc R5
+                            
+   0da2   8a                glo R10                         ;store R10 to variableNode address
+   0da3   55                str R5
+   0da4   15                inc R5
+                            
+   0da5   9a                ghi R10
+   0da6   55                str R5
+   0da7   15                inc R5
+                        
+   0da8   45                lda R5                          ;restore R4 inputString
+   0da9   a4                plo R4
+   0daa   45                lda R5
+   0dab   b4                phi R4
+                            
+   0dac                 LET_STATEMENT_SKIPSPACES            ;skipping spaces
+   0dac   44                lda R4
+   0dad   fb 20             xri 32
+   0daf   32 ac             bz LET_STATEMENT_SKIPSPACES
+                            
+   0db1   24                dec R4
+                            
+   0db2   f8 fe             ldi GET_STRING.0                ;call GET_STRING
+   0db4   ad                plo CALL_REG
+   0db5   f8 0c             ldi GET_STRING.1
+   0db7   bd                phi CALL_REG
+                            
+   0db8   f8 00             ldi FCALL.0
+   0dba   ae                plo FCALL_REG
+   0dbb   de                sep FCALL_REG
+                            
+   0dbc   8a                glo R10
+   0dbd   3a c3             bnz LET_STATEMENT_CONTINUE2
+   0dbf   9a                ghi R10
+   0dc0   c2 0e 3d          lbz LET_STATEMENT_FREENODE       ;if allocating failed
+                        
+   0dc3                 LET_STATEMENT_CONTINUE2
+   0dc3   8f                glo STACK_REG
+   0dc4   a6                plo R6
+   0dc5   9f                ghi STACK_REG
+   0dc6   b6                phi R6
+   0dc7   16                inc R6
+                            
+   0dc8   46                lda R6                          ;set R6 to variableNode address
+   0dc9   a5                plo R5
+   0dca   46                lda R6
+   0dcb   b5                phi R5
+                            
+   0dcc   f8 00             ldi 0                           ;set variableNode->nextNode to 0
+   0dce   55                str R5
+   0dcf   15                inc R5
+                            
+   0dd0   55                str R5
+   0dd1   15                inc R5
+                            
+   0dd2   8a                glo R10                         ;store R10 to variableNode->name
+   0dd3   55                str R5
+   0dd4   15                inc R5
+                            
+   0dd5   9a                ghi R10
+   0dd6   55                str R5
+   0dd7   15                inc R5
+                            
+   0dd8                 LET_STATEMENT_MAINLOOP
+   0dd8   04                ldn R4
+   0dd9   fb 20             xri 32
+   0ddb   32 e5             bz LET_STATEMENT_NEXTCHARACTER      ;if ' '
+   0ddd   04                ldn R4
+   0dde   fb 3d             xri 61
+   0de0   32 e8             bz LET_STATEMENT_EXPRESSION         ;if '='
+                            
+   0de2   c0 0e 4d          lbr LET_STATEMENT_END
+                        
+   0de5                 LET_STATEMENT_NEXTCHARACTER
+   0de5   14                inc R4
+   0de6   30 d8             br LET_STATEMENT_MAINLOOP
+                        
+   0de8                 LET_STATEMENT_EXPRESSION
+   0de8   14                inc R4
+                            
+   0de9   f8 55             ldi EXPRESSION.0         ;call EXPRESSION
+   0deb   ad                plo CALL_REG
+   0dec   f8 08             ldi EXPRESSION.1
+   0dee   bd                phi CALL_REG
+                            
+   0def   f8 00             ldi FCALL.0
+   0df1   ae                plo FCALL_REG
+   0df2   de                sep FCALL_REG
+                            
+   0df3                 LET_STATEMENT_ADDVAR
+   0df3   f8 00             ldi VARLIST_COUNT.0
+   0df5   a5                plo R5
+   0df6   f8 21             ldi VARLIST_COUNT.1
+   0df8   b5                phi R5
+                            
+   0df9   e5                sex R5
+                            
+   0dfa   45                lda R5
+   0dfb   ca 0e 02          lbnz LET_STATEMENT_ADDNODE
+   0dfe   05                ldn R5
+   0dff   c2 0e 22          lbz LET_STATEMENT_FIRSTNODE
+                            
+   0e02                 LET_STATEMENT_ADDNODE
+   0e02   25                dec R5                          ;reset R5 to the VARLIST header
+                            
+   0e03   f8 01             ldi 1                           ;increment the VARLIST_COUNT by one
+   0e05   f4                add
+   0e06   55                str R5
+   0e07   15                inc R5
+                            
+   0e08   f8 00             ldi 0
+   0e0a   74                adc
+   0e0b   55                str R5
+   0e0c   15                inc R5
+                            
+   0e0d   15                inc R5                          ;skip VARLIST_FIRSTNODE
+   0e0e   15                inc R5
+                            
+   0e0f   45                lda R5                          ;read VARLIST_LASTNODE
+   0e10   a7                plo R7                          ;and place the address to R7
+   0e11   05                ldn R5
+   0e12   b7                phi R7
+                            
+   0e13   25                dec R5                          ;set R5 back to VARLIST_LASTNODE
+                            
+   0e14   26                dec R6                          ;reset R6 to variableNode
+   0e15   26                dec R6
+                            
+   0e16   46                lda R6                          ;load address and store it to address R7 and R5
+   0e17   57                str R7
+   0e18   55                str R5
+   0e19   17                inc R7
+   0e1a   15                inc R5
+                            
+   0e1b   46                lda R6
+   0e1c   57                str R7
+   0e1d   55                str R5
+   0e1e   17                inc R7
+   0e1f   15                inc R5
+                            
+   0e20   30 4d             br LET_STATEMENT_END
+                        
+   0e22                 LET_STATEMENT_FIRSTNODE
+   0e22   25                dec R5                          ;reset R5 to the VARLIST header
+                            
+   0e23   f8 01             ldi 1                           ;set VARLIST_COUNT to one
+   0e25   55                str R5
+   0e26   15                inc R5
+                            
+   0e27   f8 00             ldi 0
+   0e29   55                str R5
+   0e2a   15                inc R5
+                            
+   0e2b   26                dec R6                          ;reset R6 to variableNode
+   0e2c   26                dec R6
+                            
+   0e2d   46                lda R6                          ;load address and store it to VARLIST_FIRSTNODE
+   0e2e   55                str R5
+   0e2f   15                inc R5
+                            
+   0e30   46                lda R6
+   0e31   55                str R5
+   0e32   15                inc R5
+                            
+   0e33   26                dec R6                          ;reset R6 to variableNode
+   0e34   26                dec R6
+                            
+   0e35   46                lda R6                          ;load address and store it to VARLIST_LASTNODE
+   0e36   55                str R5
+   0e37   15                inc R5
+                            
+   0e38   46                lda R6
+   0e39   55                str R5
+   0e3a   15                inc R5
+                            
+   0e3b   30 4d             br LET_STATEMENT_END
+                        
+   0e3d                 LET_STATEMENT_FREENODE
+   0e3d   25                dec R5
+   0e3e   25                dec R5
+                            
+   0e3f   45                lda R5
+   0e40   a4                plo R4
+   0e41   45                lda R5
+   0e42   b4                phi R4
+                            
+   0e43   f8 4a             ldi DYN_MEMORY_FREE.0         ;call DYN_MEMORY_FREE
+   0e45   ad                plo CALL_REG
+   0e46   f8 0c             ldi DYN_MEMORY_FREE.1
+   0e48   bd                phi CALL_REG
+                            
+   0e49   f8 00             ldi FCALL.0
+   0e4b   ae                plo FCALL_REG
+   0e4c   de                sep FCALL_REG
+                            
+   0e4d                 LET_STATEMENT_END
+   0e4d   8f                glo STACK_REG
+   0e4e   fc 05             adi 5
+   0e50   af                plo STACK_REG
+   0e51   9f                ghi STACK_REG
+   0e52   7c 00             adci 0
+   0e54   bf                phi STACK_REG
+                            
+   0e55   ef                sex STACK_REG
+                            
+   0e56   72                ldxa
+   0e57   a7                plo R7
+   0e58   72                ldxa
+   0e59   b7                phi R7
+                            
+   0e5a   72                ldxa
+   0e5b   a6                plo R6
+   0e5c   72                ldxa
+   0e5d   b6                phi R6
+                            
+   0e5e   72                ldxa
+   0e5f   a5                plo R5
+   0e60   f0                ldx
+   0e61   b5                phi R5
+                            
+   0e62   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-HEXVIEWER------------------------------------
                         ;-R4-Start address-----------------------------
                         ;-R5-Count-------------------------------------
-   0cdd                 HEX_BASE_SRT
-   0cdd   0d 0a 42 61       db "\r\nBase address: 0x",0
-   0ce1   73 65 20 61   
-   0ce5   64 64 72 65   
-   0ce9   73 73 3a 20   
-   0ced   30 78 00      
-   0cf0                 HEX_HEADER_STR
-   0cf0   0d 0a 0d 0a       db "\r\n\r\nOffset  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  String\r\n"
-   0cf4   4f 66 66 73   
-   0cf8   65 74 20 20   
-   0cfc   30 30 20 30   
-   0d00   31 20 30 32   
-   0d04   20 30 33 20   
-   0d08   30 34 20 30   
-   0d0c   35 20 30 36   
-   0d10   20 30 37 20   
-   0d14   30 38 20 30   
-   0d18   39 20 30 41   
-   0d1c   20 30 42 20   
-   0d20   30 43 20 30   
-   0d24   44 20 30 45   
-   0d28   20 30 46 20   
-   0d2c   20 53 74 72   
-   0d30   69 6e 67 0d   
-   0d34   0a            
-   0d35   2d 2d 2d 2d       db         "-------------------------------------------------------------------------\r\n",0
-   0d39   2d 2d 2d 2d   
-   0d3d   2d 2d 2d 2d   
-   0d41   2d 2d 2d 2d   
-   0d45   2d 2d 2d 2d   
-   0d49   2d 2d 2d 2d   
-   0d4d   2d 2d 2d 2d   
-   0d51   2d 2d 2d 2d   
-   0d55   2d 2d 2d 2d   
-   0d59   2d 2d 2d 2d   
-   0d5d   2d 2d 2d 2d   
-   0d61   2d 2d 2d 2d   
-   0d65   2d 2d 2d 2d   
-   0d69   2d 2d 2d 2d   
-   0d6d   2d 2d 2d 2d   
-   0d71   2d 2d 2d 2d   
-   0d75   2d 2d 2d 2d   
-   0d79   2d 2d 2d 2d   
-   0d7d   2d 0d 0a 00   
+   0e63                 HEX_BASE_SRT
+   0e63   0d 0a 42 61       db "\r\nBase address: 0x",0
+   0e67   73 65 20 61   
+   0e6b   64 64 72 65   
+   0e6f   73 73 3a 20   
+   0e73   30 78 00      
+   0e76                 HEX_HEADER_STR
+   0e76   0d 0a 0d 0a       db "\r\n\r\nOffset  00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F  String\r\n"
+   0e7a   4f 66 66 73   
+   0e7e   65 74 20 20   
+   0e82   30 30 20 30   
+   0e86   31 20 30 32   
+   0e8a   20 30 33 20   
+   0e8e   30 34 20 30   
+   0e92   35 20 30 36   
+   0e96   20 30 37 20   
+   0e9a   30 38 20 30   
+   0e9e   39 20 30 41   
+   0ea2   20 30 42 20   
+   0ea6   30 43 20 30   
+   0eaa   44 20 30 45   
+   0eae   20 30 46 20   
+   0eb2   20 53 74 72   
+   0eb6   69 6e 67 0d   
+   0eba   0a            
+   0ebb   2d 2d 2d 2d       db         "-------------------------------------------------------------------------\r\n",0
+   0ebf   2d 2d 2d 2d   
+   0ec3   2d 2d 2d 2d   
+   0ec7   2d 2d 2d 2d   
+   0ecb   2d 2d 2d 2d   
+   0ecf   2d 2d 2d 2d   
+   0ed3   2d 2d 2d 2d   
+   0ed7   2d 2d 2d 2d   
+   0edb   2d 2d 2d 2d   
+   0edf   2d 2d 2d 2d   
+   0ee3   2d 2d 2d 2d   
+   0ee7   2d 2d 2d 2d   
+   0eeb   2d 2d 2d 2d   
+   0eef   2d 2d 2d 2d   
+   0ef3   2d 2d 2d 2d   
+   0ef7   2d 2d 2d 2d   
+   0efb   2d 2d 2d 2d   
+   0eff   2d 2d 2d 2d   
+   0f03   2d 0d 0a 00   
                         ;              "0000:   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................"
-   0d81                 HEX_LINECNT_SEPARATOR
-   0d81   3a 20 20 20       db ":   ",0
-   0d85   00            
+   0f07                 HEX_LINECNT_SEPARATOR
+   0f07   3a 20 20 20       db ":   ",0
+   0f0b   00            
                             
-   0d86                 HEXVIEWER
-   0d86   ef                sex STACK_REG
+   0f0c                 HEXVIEWER
+   0f0c   ef                sex STACK_REG
                             
-   0d87   f8 00             ldi 0
-   0d89   73                stxd
-   0d8a   73                stxd
-   0d8b   94                ghi R4
-   0d8c   73                stxd
-   0d8d   84                glo R4
-   0d8e   73                stxd    ;+17 current address
+   0f0d   f8 00             ldi 0
+   0f0f   73                stxd
+   0f10   73                stxd
+   0f11   94                ghi R4
+   0f12   73                stxd
+   0f13   84                glo R4
+   0f14   73                stxd    ;+17 current address
                             
-   0d8f   f8 00             ldi 0
-   0d91   73                stxd
-   0d92   73                stxd
-   0d93   94                ghi R4
-   0d94   73                stxd
-   0d95   84                glo R4
-   0d96   73                stxd    ;+13 start address
+   0f15   f8 00             ldi 0
+   0f17   73                stxd
+   0f18   73                stxd
+   0f19   94                ghi R4
+   0f1a   73                stxd
+   0f1b   84                glo R4
+   0f1c   73                stxd    ;+13 start address
                             
-   0d97   f8 00             ldi 0
-   0d99   73                stxd
-   0d9a   73                stxd
-   0d9b   95                ghi R5
-   0d9c   73                stxd
-   0d9d   85                glo R5
-   0d9e   73                stxd    ;+9 last address
+   0f1d   f8 00             ldi 0
+   0f1f   73                stxd
+   0f20   73                stxd
+   0f21   95                ghi R5
+   0f22   73                stxd
+   0f23   85                glo R5
+   0f24   73                stxd    ;+9 last address
                             
-   0d9f   f8 00             ldi 0
-   0da1   73                stxd
-   0da2   73                stxd
-   0da3   73                stxd
-   0da4   73                stxd    ;+5 line counter
+   0f25   f8 00             ldi 0
+   0f27   73                stxd
+   0f28   73                stxd
+   0f29   73                stxd
+   0f2a   73                stxd    ;+5 line counter
                             
-   0da5   73                stxd
-   0da6   73                stxd
-   0da7   73                stxd
-   0da8   73                stxd    ;+1 temp for hex digits
+   0f2b   73                stxd
+   0f2c   73                stxd
+   0f2d   73                stxd
+   0f2e   73                stxd    ;+1 temp for hex digits
                             
-   0da9   8f                glo STACK_REG
-   0daa   fc 0d             adi 13
-   0dac   a4                plo R4
-   0dad   9f                ghi STACK_REG
-   0dae   7c 00             adci 0
-   0db0   b4                phi R4
+   0f2f   8f                glo STACK_REG
+   0f30   fc 0d             adi 13
+   0f32   a4                plo R4
+   0f33   9f                ghi STACK_REG
+   0f34   7c 00             adci 0
+   0f36   b4                phi R4
                             
-   0db1   8f                glo STACK_REG
-   0db2   fc 09             adi 9
-   0db4   a6                plo R6
-   0db5   9f                ghi STACK_REG
-   0db6   7c 00             adci 0
-   0db8   b6                phi R6
+   0f37   8f                glo STACK_REG
+   0f38   fc 09             adi 9
+   0f3a   a6                plo R6
+   0f3b   9f                ghi STACK_REG
+   0f3c   7c 00             adci 0
+   0f3e   b6                phi R6
                             
-   0db9   e4                sex R4
+   0f3f   e4                sex R4
                             
-   0dba   85                glo R5      ;adding R5 value to start address and store it to last address
-   0dbb   f4                add
-   0dbc   56                str R6
-   0dbd   60                irx
-   0dbe   16                inc R6
-   0dbf   95                ghi R5
-   0dc0   74                adc
-   0dc1   56                str R6
-   0dc2   60                irx
-   0dc3   16                inc R6
-   0dc4   f8 00             ldi 0
-   0dc6   74                adc
-   0dc7   56                str R6
+   0f40   85                glo R5      ;adding R5 value to start address and store it to last address
+   0f41   f4                add
+   0f42   56                str R6
+   0f43   60                irx
+   0f44   16                inc R6
+   0f45   95                ghi R5
+   0f46   74                adc
+   0f47   56                str R6
+   0f48   60                irx
+   0f49   16                inc R6
+   0f4a   f8 00             ldi 0
+   0f4c   74                adc
+   0f4d   56                str R6
                             
-   0dc8   f8 dd             ldi HEX_BASE_SRT.0     ;prepare to print base address
-   0dca   a6                plo R6
-   0dcb   f8 0c             ldi HEX_BASE_SRT.1
-   0dcd   b6                phi R6
+   0f4e   f8 63             ldi HEX_BASE_SRT.0     ;prepare to print base address
+   0f50   a6                plo R6
+   0f51   f8 0e             ldi HEX_BASE_SRT.1
+   0f53   b6                phi R6
                         	
-   0dce   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0dd0   ad                plo CALL_REG
-   0dd1   f8 01             ldi PRINT.1
-   0dd3   bd                phi CALL_REG
+   0f54   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0f56   ad                plo CALL_REG
+   0f57   f8 01             ldi PRINT.1
+   0f59   bd                phi CALL_REG
                             
-   0dd4   f8 00             ldi FCALL.0
-   0dd6   ae                plo FCALL_REG
-   0dd7   de                sep FCALL_REG
+   0f5a   f8 00             ldi FCALL.0
+   0f5c   ae                plo FCALL_REG
+   0f5d   de                sep FCALL_REG
                             
-   0dd8   8f                glo STACK_REG       ;prepare to print the address in hex
-   0dd9   fc 0d             adi 13
-   0ddb   a4                plo R4
-   0ddc   9f                ghi STACK_REG
-   0ddd   7c 00             adci 0
-   0ddf   b4                phi R4
+   0f5e   8f                glo STACK_REG       ;prepare to print the address in hex
+   0f5f   fc 0d             adi 13
+   0f61   a4                plo R4
+   0f62   9f                ghi STACK_REG
+   0f63   7c 00             adci 0
+   0f65   b4                phi R4
                             
-   0de0   f8 04             ldi 4               ;with 4 digits
-   0de2   a5                plo R5
+   0f66   f8 04             ldi 4               ;with 4 digits
+   0f68   a5                plo R5
                             
-   0de3   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   0de5   ad                plo CALL_REG
-   0de6   f8 04             ldi PRINT_HEX.1
-   0de8   bd                phi CALL_REG
+   0f69   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0f6b   ad                plo CALL_REG
+   0f6c   f8 04             ldi PRINT_HEX.1
+   0f6e   bd                phi CALL_REG
                             
-   0de9   f8 00             ldi FCALL.0
-   0deb   ae                plo FCALL_REG
-   0dec   de                sep FCALL_REG
+   0f6f   f8 00             ldi FCALL.0
+   0f71   ae                plo FCALL_REG
+   0f72   de                sep FCALL_REG
                             
-   0ded   f8 f0             ldi HEX_HEADER_STR.0     ;prepare to print the header
-   0def   a6                plo R6
-   0df0   f8 0c             ldi HEX_HEADER_STR.1
-   0df2   b6                phi R6
+   0f73   f8 76             ldi HEX_HEADER_STR.0     ;prepare to print the header
+   0f75   a6                plo R6
+   0f76   f8 0e             ldi HEX_HEADER_STR.1
+   0f78   b6                phi R6
                         	
-   0df3   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0df5   ad                plo CALL_REG
-   0df6   f8 01             ldi PRINT.1
-   0df8   bd                phi CALL_REG
+   0f79   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0f7b   ad                plo CALL_REG
+   0f7c   f8 01             ldi PRINT.1
+   0f7e   bd                phi CALL_REG
                             
-   0df9   f8 00             ldi FCALL.0
-   0dfb   ae                plo FCALL_REG
-   0dfc   de                sep FCALL_REG
+   0f7f   f8 00             ldi FCALL.0
+   0f81   ae                plo FCALL_REG
+   0f82   de                sep FCALL_REG
                         
-   0dfd                 HEXVIEWER_MAINLOOP
-   0dfd   8f                glo STACK_REG       ;prepare to print the first address in hex
-   0dfe   fc 05             adi 5
-   0e00   a4                plo R4
-   0e01   9f                ghi STACK_REG
-   0e02   7c 00             adci 0
-   0e04   b4                phi R4
+   0f83                 HEXVIEWER_MAINLOOP
+   0f83   8f                glo STACK_REG       ;prepare to print the first address in hex
+   0f84   fc 05             adi 5
+   0f86   a4                plo R4
+   0f87   9f                ghi STACK_REG
+   0f88   7c 00             adci 0
+   0f8a   b4                phi R4
                             
-   0e05   f8 04             ldi 4               ;with 4 digits
-   0e07   a5                plo R5
+   0f8b   f8 04             ldi 4               ;with 4 digits
+   0f8d   a5                plo R5
                             
-   0e08   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   0e0a   ad                plo CALL_REG
-   0e0b   f8 04             ldi PRINT_HEX.1
-   0e0d   bd                phi CALL_REG
+   0f8e   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0f90   ad                plo CALL_REG
+   0f91   f8 04             ldi PRINT_HEX.1
+   0f93   bd                phi CALL_REG
                             
-   0e0e   f8 00             ldi FCALL.0
-   0e10   ae                plo FCALL_REG
-   0e11   de                sep FCALL_REG
+   0f94   f8 00             ldi FCALL.0
+   0f96   ae                plo FCALL_REG
+   0f97   de                sep FCALL_REG
                             
-   0e12   f8 81             ldi HEX_LINECNT_SEPARATOR.0     ;prepare to print address separator
-   0e14   a6                plo R6
-   0e15   f8 0d             ldi HEX_LINECNT_SEPARATOR.1
-   0e17   b6                phi R6
+   0f98   f8 07             ldi HEX_LINECNT_SEPARATOR.0     ;prepare to print address separator
+   0f9a   a6                plo R6
+   0f9b   f8 0f             ldi HEX_LINECNT_SEPARATOR.1
+   0f9d   b6                phi R6
                         	
-   0e18   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0e1a   ad                plo CALL_REG
-   0e1b   f8 01             ldi PRINT.1
-   0e1d   bd                phi CALL_REG
+   0f9e   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0fa0   ad                plo CALL_REG
+   0fa1   f8 01             ldi PRINT.1
+   0fa3   bd                phi CALL_REG
                             
-   0e1e   f8 00             ldi FCALL.0
-   0e20   ae                plo FCALL_REG
-   0e21   de                sep FCALL_REG
+   0fa4   f8 00             ldi FCALL.0
+   0fa6   ae                plo FCALL_REG
+   0fa7   de                sep FCALL_REG
                             
-   0e22   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
-   0e24   a8                plo R8
+   0fa8   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
+   0faa   a8                plo R8
                            
-   0e25                 HEXVIEWER_PRINT_HEX_LOOP
-   0e25   8f                glo STACK_REG       ;set R4 pointer to current address
-   0e26   fc 11             adi 17
-   0e28   a4                plo R4
-   0e29   9f                ghi STACK_REG
-   0e2a   7c 00             adci 0
-   0e2c   b4                phi R4
+   0fab                 HEXVIEWER_PRINT_HEX_LOOP
+   0fab   8f                glo STACK_REG       ;set R4 pointer to current address
+   0fac   fc 11             adi 17
+   0fae   a4                plo R4
+   0faf   9f                ghi STACK_REG
+   0fb0   7c 00             adci 0
+   0fb2   b4                phi R4
                             
-   0e2d   8f                glo STACK_REG       ;set R5 pointer to last address
-   0e2e   fc 09             adi 9
-   0e30   a5                plo R5
-   0e31   9f                ghi STACK_REG
-   0e32   7c 00             adci 0
-   0e34   b5                phi R5
+   0fb3   8f                glo STACK_REG       ;set R5 pointer to last address
+   0fb4   fc 09             adi 9
+   0fb6   a5                plo R5
+   0fb7   9f                ghi STACK_REG
+   0fb8   7c 00             adci 0
+   0fba   b5                phi R5
                         
-   0e35   e4                sex R4          ;check if current address is >= last address
+   0fbb   e4                sex R4          ;check if current address is >= last address
                             
-   0e36   45                lda R5
-   0e37   f5                sd
-   0e38   60                irx
+   0fbc   45                lda R5
+   0fbd   f5                sd
+   0fbe   60                irx
                             
-   0e39   45                lda R5
-   0e3a   75                sdb
-   0e3b   60                irx
+   0fbf   45                lda R5
+   0fc0   75                sdb
+   0fc1   60                irx
                             
-   0e3c   45                lda R5
-   0e3d   75                sdb
-   0e3e   60                irx
+   0fc2   45                lda R5
+   0fc3   75                sdb
+   0fc4   60                irx
                             
-   0e3f   05                ldn R5
-   0e40   75                sdb
+   0fc5   05                ldn R5
+   0fc6   75                sdb
                             
-   0e41   c3 0e 69          lbdf HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
+   0fc7   c3 0f ef          lbdf HEXVIEWER_PRINT_HEX_SPACES   ;if current address >= last address then 
                         
-   0e44   8f                glo STACK_REG       ;set R4 pointer to current address
-   0e45   fc 11             adi 17
-   0e47   a4                plo R4
-   0e48   9f                ghi STACK_REG
-   0e49   7c 00             adci 0
-   0e4b   b4                phi R4
+   0fca   8f                glo STACK_REG       ;set R4 pointer to current address
+   0fcb   fc 11             adi 17
+   0fcd   a4                plo R4
+   0fce   9f                ghi STACK_REG
+   0fcf   7c 00             adci 0
+   0fd1   b4                phi R4
                             
-   0e4c   44                lda R4              ;get current address and load it in R5
-   0e4d   a5                plo R5
-   0e4e   44                lda R4
-   0e4f   b5                phi R5
+   0fd2   44                lda R4              ;get current address and load it in R5
+   0fd3   a5                plo R5
+   0fd4   44                lda R4
+   0fd5   b5                phi R5
                             
-   0e50   05                ldn R5              ;get data from R5 address
-   0e51   a5                plo R5              ;store data in R5 low
+   0fd6   05                ldn R5              ;get data from R5 address
+   0fd7   a5                plo R5              ;store data in R5 low
                             
-   0e52   8f                glo STACK_REG       ;set R4 pointer to temp
-   0e53   a4                plo R4
-   0e54   9f                ghi STACK_REG
-   0e55   b4                phi R4
-   0e56   14                inc R4
+   0fd8   8f                glo STACK_REG       ;set R4 pointer to temp
+   0fd9   a4                plo R4
+   0fda   9f                ghi STACK_REG
+   0fdb   b4                phi R4
+   0fdc   14                inc R4
                             
-   0e57   85                glo R5              ;get data from R5 low
-   0e58   54                str R4              ;store data to temp
+   0fdd   85                glo R5              ;get data from R5 low
+   0fde   54                str R4              ;store data to temp
                            
-   0e59   f8 02             ldi 2
-   0e5b   a5                plo R5              ;set R5 low to 2 digits
+   0fdf   f8 02             ldi 2
+   0fe1   a5                plo R5              ;set R5 low to 2 digits
                             
-   0e5c   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
-   0e5e   ad                plo CALL_REG
-   0e5f   f8 04             ldi PRINT_HEX.1
-   0e61   bd                phi CALL_REG
+   0fe2   f8 22             ldi PRINT_HEX.0     ;prepare to call PRINT_HEX
+   0fe4   ad                plo CALL_REG
+   0fe5   f8 04             ldi PRINT_HEX.1
+   0fe7   bd                phi CALL_REG
                             
-   0e62   f8 00             ldi FCALL.0
-   0e64   ae                plo FCALL_REG
-   0e65   de                sep FCALL_REG
+   0fe8   f8 00             ldi FCALL.0
+   0fea   ae                plo FCALL_REG
+   0feb   de                sep FCALL_REG
                             
-   0e66   c0 0e 79          lbr HEXVIEWER_NEXT_HEX
+   0fec   c0 0f ff          lbr HEXVIEWER_NEXT_HEX
                             
-   0e69                 HEXVIEWER_PRINT_HEX_SPACES
-   0e69   f8 83             ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
-   0e6b   a6                plo R6
-   0e6c   f8 0d             ldi HEX_LINECNT_SEPARATOR+2.1
-   0e6e   b6                phi R6
+   0fef                 HEXVIEWER_PRINT_HEX_SPACES
+   0fef   f8 09             ldi HEX_LINECNT_SEPARATOR+2.0     ;prepare to print two space
+   0ff1   a6                plo R6
+   0ff2   f8 0f             ldi HEX_LINECNT_SEPARATOR+2.1
+   0ff4   b6                phi R6
                         	
-   0e6f   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0e71   ad                plo CALL_REG
-   0e72   f8 01             ldi PRINT.1
-   0e74   bd                phi CALL_REG
+   0ff5   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   0ff7   ad                plo CALL_REG
+   0ff8   f8 01             ldi PRINT.1
+   0ffa   bd                phi CALL_REG
                             
-   0e75   f8 00             ldi FCALL.0
-   0e77   ae                plo FCALL_REG
-   0e78   de                sep FCALL_REG
+   0ffb   f8 00             ldi FCALL.0
+   0ffd   ae                plo FCALL_REG
+   0ffe   de                sep FCALL_REG
                         
-   0e79                 HEXVIEWER_NEXT_HEX
-   0e79   f8 84             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
-   0e7b   a6                plo R6
-   0e7c   f8 0d             ldi HEX_LINECNT_SEPARATOR+3.1
-   0e7e   b6                phi R6
+   0fff                 HEXVIEWER_NEXT_HEX
+   0fff   f8 0a             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+   1001   a6                plo R6
+   1002   f8 0f             ldi HEX_LINECNT_SEPARATOR+3.1
+   1004   b6                phi R6
                         	
-   0e7f   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0e81   ad                plo CALL_REG
-   0e82   f8 01             ldi PRINT.1
-   0e84   bd                phi CALL_REG
+   1005   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   1007   ad                plo CALL_REG
+   1008   f8 01             ldi PRINT.1
+   100a   bd                phi CALL_REG
                             
-   0e85   f8 00             ldi FCALL.0
-   0e87   ae                plo FCALL_REG
-   0e88   de                sep FCALL_REG
+   100b   f8 00             ldi FCALL.0
+   100d   ae                plo FCALL_REG
+   100e   de                sep FCALL_REG
                             
-   0e89   8f                glo STACK_REG       ;set R4 pointer to current address
-   0e8a   fc 11             adi 17
-   0e8c   a4                plo R4
-   0e8d   9f                ghi STACK_REG
-   0e8e   7c 00             adci 0
-   0e90   b4                phi R4
+   100f   8f                glo STACK_REG       ;set R4 pointer to current address
+   1010   fc 11             adi 17
+   1012   a4                plo R4
+   1013   9f                ghi STACK_REG
+   1014   7c 00             adci 0
+   1016   b4                phi R4
                             
-   0e91   e4                sex R4
-   0e92   f8 01             ldi 1
-   0e94   f4                add
-   0e95   54                str R4
-   0e96   60                irx
+   1017   e4                sex R4
+   1018   f8 01             ldi 1
+   101a   f4                add
+   101b   54                str R4
+   101c   60                irx
                             
-   0e97   f8 00             ldi 0
-   0e99   74                adc
-   0e9a   54                str R4
-   0e9b   60                irx
+   101d   f8 00             ldi 0
+   101f   74                adc
+   1020   54                str R4
+   1021   60                irx
                             
-   0e9c   f8 00             ldi 0
-   0e9e   74                adc
-   0e9f   54                str R4
-   0ea0   60                irx
+   1022   f8 00             ldi 0
+   1024   74                adc
+   1025   54                str R4
+   1026   60                irx
                             
-   0ea1   f8 00             ldi 0
-   0ea3   74                adc
-   0ea4   54                str R4
+   1027   f8 00             ldi 0
+   1029   74                adc
+   102a   54                str R4
                             
-   0ea5   28                dec R8
-   0ea6   88                glo R8
-   0ea7   ca 0e 25          lbnz HEXVIEWER_PRINT_HEX_LOOP
+   102b   28                dec R8
+   102c   88                glo R8
+   102d   ca 0f ab          lbnz HEXVIEWER_PRINT_HEX_LOOP
                             
-   0eaa   f8 84             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
-   0eac   a6                plo R6
-   0ead   f8 0d             ldi HEX_LINECNT_SEPARATOR+3.1
-   0eaf   b6                phi R6
+   1030   f8 0a             ldi HEX_LINECNT_SEPARATOR+3.0     ;prepare to print a space
+   1032   a6                plo R6
+   1033   f8 0f             ldi HEX_LINECNT_SEPARATOR+3.1
+   1035   b6                phi R6
                         	
-   0eb0   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0eb2   ad                plo CALL_REG
-   0eb3   f8 01             ldi PRINT.1
-   0eb5   bd                phi CALL_REG
+   1036   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   1038   ad                plo CALL_REG
+   1039   f8 01             ldi PRINT.1
+   103b   bd                phi CALL_REG
                             
-   0eb6   f8 00             ldi FCALL.0
-   0eb8   ae                plo FCALL_REG
-   0eb9   de                sep FCALL_REG
+   103c   f8 00             ldi FCALL.0
+   103e   ae                plo FCALL_REG
+   103f   de                sep FCALL_REG
                             
-   0eba   8f                glo STACK_REG       ;set R4 pointer to current address
-   0ebb   fc 11             adi 17
-   0ebd   a4                plo R4
-   0ebe   9f                ghi STACK_REG
-   0ebf   7c 00             adci 0
-   0ec1   b4                phi R4
+   1040   8f                glo STACK_REG       ;set R4 pointer to current address
+   1041   fc 11             adi 17
+   1043   a4                plo R4
+   1044   9f                ghi STACK_REG
+   1045   7c 00             adci 0
+   1047   b4                phi R4
                             
-   0ec2   8f                glo STACK_REG       ;set R5 pointer to start address
-   0ec3   fc 0d             adi 13
-   0ec5   a5                plo R5
-   0ec6   9f                ghi STACK_REG
-   0ec7   7c 00             adci 0
-   0ec9   b5                phi R5
+   1048   8f                glo STACK_REG       ;set R5 pointer to start address
+   1049   fc 0d             adi 13
+   104b   a5                plo R5
+   104c   9f                ghi STACK_REG
+   104d   7c 00             adci 0
+   104f   b5                phi R5
                             
-   0eca   e5                sex R5
+   1050   e5                sex R5
                             
-   0ecb   72                ldxa
-   0ecc   54                str R4
-   0ecd   14                inc R4
+   1051   72                ldxa
+   1052   54                str R4
+   1053   14                inc R4
                             
-   0ece   72                ldxa
-   0ecf   54                str R4
-   0ed0   14                inc R4
+   1054   72                ldxa
+   1055   54                str R4
+   1056   14                inc R4
                             
-   0ed1   72                ldxa
-   0ed2   54                str R4
-   0ed3   14                inc R4
+   1057   72                ldxa
+   1058   54                str R4
+   1059   14                inc R4
                             
-   0ed4   72                ldxa
-   0ed5   54                str R4
+   105a   72                ldxa
+   105b   54                str R4
                             
-   0ed6   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
-   0ed8   a8                plo R8
+   105c   f8 10             ldi 16      ;set R8 low to 16 for counting the bytes
+   105e   a8                plo R8
                         
-   0ed9                 HEXVIEWER_PRINT_STR_LOOP
-   0ed9   8f                glo STACK_REG       ;set R4 pointer to current address
-   0eda   fc 11             adi 17
-   0edc   a4                plo R4
-   0edd   9f                ghi STACK_REG
-   0ede   7c 00             adci 0
-   0ee0   b4                phi R4
+   105f                 HEXVIEWER_PRINT_STR_LOOP
+   105f   8f                glo STACK_REG       ;set R4 pointer to current address
+   1060   fc 11             adi 17
+   1062   a4                plo R4
+   1063   9f                ghi STACK_REG
+   1064   7c 00             adci 0
+   1066   b4                phi R4
                             
-   0ee1   8f                glo STACK_REG       ;set R5 pointer to last address
-   0ee2   fc 09             adi 9
-   0ee4   a5                plo R5
-   0ee5   9f                ghi STACK_REG
-   0ee6   7c 00             adci 0
-   0ee8   b5                phi R5
+   1067   8f                glo STACK_REG       ;set R5 pointer to last address
+   1068   fc 09             adi 9
+   106a   a5                plo R5
+   106b   9f                ghi STACK_REG
+   106c   7c 00             adci 0
+   106e   b5                phi R5
                         
-   0ee9   e4                sex R4          ;check if current address is <= last address
+   106f   e4                sex R4          ;check if current address is <= last address
                             
-   0eea   45                lda R5
-   0eeb   f5                sd
-   0eec   60                irx
+   1070   45                lda R5
+   1071   f5                sd
+   1072   60                irx
                             
-   0eed   45                lda R5
-   0eee   75                sdb
-   0eef   60                irx
+   1073   45                lda R5
+   1074   75                sdb
+   1075   60                irx
                             
-   0ef0   45                lda R5
-   0ef1   75                sdb
-   0ef2   60                irx
+   1076   45                lda R5
+   1077   75                sdb
+   1078   60                irx
                             
-   0ef3   05                ldn R5
-   0ef4   75                sdb
+   1079   05                ldn R5
+   107a   75                sdb
                             
-   0ef5   c3 0f 2b          lbdf HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
+   107b   c3 10 b1          lbdf HEXVIEWER_PRINT_STR_SPACE   ;if current address >= last address then 
                             
-   0ef8   8f                glo STACK_REG       ;set R4 pointer to current address
-   0ef9   fc 11             adi 17
-   0efb   a4                plo R4
-   0efc   9f                ghi STACK_REG
-   0efd   7c 00             adci 0
-   0eff   b4                phi R4
+   107e   8f                glo STACK_REG       ;set R4 pointer to current address
+   107f   fc 11             adi 17
+   1081   a4                plo R4
+   1082   9f                ghi STACK_REG
+   1083   7c 00             adci 0
+   1085   b4                phi R4
                             
-   0f00   44                lda R4              ;get current address and load it in R5
-   0f01   a5                plo R5
-   0f02   44                lda R4
-   0f03   b5                phi R5
+   1086   44                lda R4              ;get current address and load it in R5
+   1087   a5                plo R5
+   1088   44                lda R4
+   1089   b5                phi R5
                             
-   0f04   05                ldn R5              ;get data from R5 address
-   0f05   a5                plo R5              ;store data in R5 low
+   108a   05                ldn R5              ;get data from R5 address
+   108b   a5                plo R5              ;store data in R5 low
                             
-   0f06   ff 20             smi 32
-   0f08   3b 1c             bm HEXVIEWER_PRINT_STR_DOT
-   0f0a   ff 5f             smi 95
-   0f0c   33 1c             bpz HEXVIEWER_PRINT_STR_DOT
+   108c   ff 20             smi 32
+   108e   3b a2             bm HEXVIEWER_PRINT_STR_DOT
+   1090   ff 5f             smi 95
+   1092   33 a2             bpz HEXVIEWER_PRINT_STR_DOT
                             
-   0f0e   85                glo R5
-   0f0f   b4                phi R4
+   1094   85                glo R5
+   1095   b4                phi R4
                             
-   0f10   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0f12   ad                plo CALL_REG
-   0f13   f8 01             ldi SERIAL_SEND_START.1
-   0f15   bd                phi CALL_REG
+   1096   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   1098   ad                plo CALL_REG
+   1099   f8 01             ldi SERIAL_SEND_START.1
+   109b   bd                phi CALL_REG
                             
-   0f16   f8 00             ldi FCALL.0
-   0f18   ae                plo FCALL_REG
-   0f19   de                sep FCALL_REG
+   109c   f8 00             ldi FCALL.0
+   109e   ae                plo FCALL_REG
+   109f   de                sep FCALL_REG
                             
-   0f1a   30 38             br HEXVIEWER_NEXT_STR
+   10a0   30 be             br HEXVIEWER_NEXT_STR
                             
-   0f1c                 HEXVIEWER_PRINT_STR_DOT
-   0f1c   f8 2e             ldi 46
-   0f1e   b4                phi R4
+   10a2                 HEXVIEWER_PRINT_STR_DOT
+   10a2   f8 2e             ldi 46
+   10a4   b4                phi R4
                             
-   0f1f   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0f21   ad                plo CALL_REG
-   0f22   f8 01             ldi SERIAL_SEND_START.1
-   0f24   bd                phi CALL_REG
+   10a5   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   10a7   ad                plo CALL_REG
+   10a8   f8 01             ldi SERIAL_SEND_START.1
+   10aa   bd                phi CALL_REG
                             
-   0f25   f8 00             ldi FCALL.0
-   0f27   ae                plo FCALL_REG
-   0f28   de                sep FCALL_REG
+   10ab   f8 00             ldi FCALL.0
+   10ad   ae                plo FCALL_REG
+   10ae   de                sep FCALL_REG
                             
-   0f29   30 38             br HEXVIEWER_NEXT_STR
+   10af   30 be             br HEXVIEWER_NEXT_STR
                         
-   0f2b                 HEXVIEWER_PRINT_STR_SPACE
-   0f2b   f8 20             ldi 32
-   0f2d   b4                phi R4
+   10b1                 HEXVIEWER_PRINT_STR_SPACE
+   10b1   f8 20             ldi 32
+   10b3   b4                phi R4
                             
-   0f2e   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
-   0f30   ad                plo CALL_REG
-   0f31   f8 01             ldi SERIAL_SEND_START.1
-   0f33   bd                phi CALL_REG
+   10b4   f8 13             ldi SERIAL_SEND_START.0         ;prepare to call SERIAL_SEND_START to send one char
+   10b6   ad                plo CALL_REG
+   10b7   f8 01             ldi SERIAL_SEND_START.1
+   10b9   bd                phi CALL_REG
                             
-   0f34   f8 00             ldi FCALL.0
-   0f36   ae                plo FCALL_REG
-   0f37   de                sep FCALL_REG
+   10ba   f8 00             ldi FCALL.0
+   10bc   ae                plo FCALL_REG
+   10bd   de                sep FCALL_REG
                             
-   0f38                 HEXVIEWER_NEXT_STR
-   0f38   8f                glo STACK_REG       ;set R4 pointer to current address
-   0f39   fc 11             adi 17
-   0f3b   a4                plo R4
-   0f3c   9f                ghi STACK_REG
-   0f3d   7c 00             adci 0
-   0f3f   b4                phi R4
+   10be                 HEXVIEWER_NEXT_STR
+   10be   8f                glo STACK_REG       ;set R4 pointer to current address
+   10bf   fc 11             adi 17
+   10c1   a4                plo R4
+   10c2   9f                ghi STACK_REG
+   10c3   7c 00             adci 0
+   10c5   b4                phi R4
                             
-   0f40   e4                sex R4
-   0f41   f8 01             ldi 1
-   0f43   f4                add
-   0f44   54                str R4
-   0f45   60                irx
+   10c6   e4                sex R4
+   10c7   f8 01             ldi 1
+   10c9   f4                add
+   10ca   54                str R4
+   10cb   60                irx
                             
-   0f46   f8 00             ldi 0
-   0f48   74                adc
-   0f49   54                str R4
-   0f4a   60                irx
+   10cc   f8 00             ldi 0
+   10ce   74                adc
+   10cf   54                str R4
+   10d0   60                irx
                             
-   0f4b   f8 00             ldi 0
-   0f4d   74                adc
-   0f4e   54                str R4
-   0f4f   60                irx
+   10d1   f8 00             ldi 0
+   10d3   74                adc
+   10d4   54                str R4
+   10d5   60                irx
                             
-   0f50   f8 00             ldi 0
-   0f52   74                adc
-   0f53   54                str R4
+   10d6   f8 00             ldi 0
+   10d8   74                adc
+   10d9   54                str R4
                             
-   0f54   28                dec R8
-   0f55   88                glo R8
-   0f56   ca 0e d9          lbnz HEXVIEWER_PRINT_STR_LOOP
+   10da   28                dec R8
+   10db   88                glo R8
+   10dc   ca 10 5f          lbnz HEXVIEWER_PRINT_STR_LOOP
                             
-   0f59   f8 5b             ldi NEW_LINE.0     ;prepare to print a space
-   0f5b   a6                plo R6
-   0f5c   f8 13             ldi NEW_LINE.1
-   0f5e   b6                phi R6
+   10df   f8 e5             ldi NEW_LINE.0     ;prepare to print a space
+   10e1   a6                plo R6
+   10e2   f8 14             ldi NEW_LINE.1
+   10e4   b6                phi R6
                         	
-   0f5f   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   0f61   ad                plo CALL_REG
-   0f62   f8 01             ldi PRINT.1
-   0f64   bd                phi CALL_REG
+   10e5   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   10e7   ad                plo CALL_REG
+   10e8   f8 01             ldi PRINT.1
+   10ea   bd                phi CALL_REG
                             
-   0f65   f8 00             ldi FCALL.0
-   0f67   ae                plo FCALL_REG
-   0f68   de                sep FCALL_REG
+   10eb   f8 00             ldi FCALL.0
+   10ed   ae                plo FCALL_REG
+   10ee   de                sep FCALL_REG
                             
-   0f69   8f                glo STACK_REG       ;set R4 pointer to current address
-   0f6a   fc 11             adi 17
-   0f6c   a4                plo R4
-   0f6d   9f                ghi STACK_REG
-   0f6e   7c 00             adci 0
-   0f70   b4                phi R4
+   10ef   8f                glo STACK_REG       ;set R4 pointer to current address
+   10f0   fc 11             adi 17
+   10f2   a4                plo R4
+   10f3   9f                ghi STACK_REG
+   10f4   7c 00             adci 0
+   10f6   b4                phi R4
                             
-   0f71   8f                glo STACK_REG       ;set R5 pointer to last address
-   0f72   fc 09             adi 9
-   0f74   a5                plo R5
-   0f75   9f                ghi STACK_REG
-   0f76   7c 00             adci 0
-   0f78   b5                phi R5
+   10f7   8f                glo STACK_REG       ;set R5 pointer to last address
+   10f8   fc 09             adi 9
+   10fa   a5                plo R5
+   10fb   9f                ghi STACK_REG
+   10fc   7c 00             adci 0
+   10fe   b5                phi R5
                         
-   0f79   e4                sex R4          ;check if current address is >= last address
+   10ff   e4                sex R4          ;check if current address is >= last address
                             
-   0f7a   45                lda R5
-   0f7b   f5                sd
-   0f7c   60                irx
+   1100   45                lda R5
+   1101   f5                sd
+   1102   60                irx
                             
-   0f7d   45                lda R5
-   0f7e   75                sdb
-   0f7f   60                irx
+   1103   45                lda R5
+   1104   75                sdb
+   1105   60                irx
                             
-   0f80   45                lda R5
-   0f81   75                sdb
-   0f82   60                irx
+   1106   45                lda R5
+   1107   75                sdb
+   1108   60                irx
                             
-   0f83   05                ldn R5
-   0f84   75                sdb
+   1109   05                ldn R5
+   110a   75                sdb
                             
-   0f85   c3 0f c3          lbdf HEXVIEWER_END
+   110b   c3 11 49          lbdf HEXVIEWER_END
                             
-   0f88   8f                glo STACK_REG       ;set R4 pointer to line counter
-   0f89   fc 05             adi 5
-   0f8b   a4                plo R4
-   0f8c   9f                ghi STACK_REG
-   0f8d   7c 00             adci 0
-   0f8f   b4                phi R4
+   110e   8f                glo STACK_REG       ;set R4 pointer to line counter
+   110f   fc 05             adi 5
+   1111   a4                plo R4
+   1112   9f                ghi STACK_REG
+   1113   7c 00             adci 0
+   1115   b4                phi R4
                             
-   0f90   e4                sex R4
+   1116   e4                sex R4
                             
-   0f91   f8 10             ldi 16
-   0f93   f4                add
-   0f94   54                str R4
-   0f95   60                irx
+   1117   f8 10             ldi 16
+   1119   f4                add
+   111a   54                str R4
+   111b   60                irx
                             
-   0f96   f8 00             ldi 0
-   0f98   74                adc
-   0f99   54                str R4
-   0f9a   60                irx
+   111c   f8 00             ldi 0
+   111e   74                adc
+   111f   54                str R4
+   1120   60                irx
                             
-   0f9b   f8 00             ldi 0
-   0f9d   74                adc
-   0f9e   54                str R4
-   0f9f   60                irx
+   1121   f8 00             ldi 0
+   1123   74                adc
+   1124   54                str R4
+   1125   60                irx
                             
-   0fa0   f8 00             ldi 0
-   0fa2   74                adc
-   0fa3   54                str R4
+   1126   f8 00             ldi 0
+   1128   74                adc
+   1129   54                str R4
                             
-   0fa4   8f                glo STACK_REG       ;set R4 pointer to current address
-   0fa5   fc 11             adi 17
-   0fa7   a4                plo R4
-   0fa8   9f                ghi STACK_REG
-   0fa9   7c 00             adci 0
-   0fab   b4                phi R4
+   112a   8f                glo STACK_REG       ;set R4 pointer to current address
+   112b   fc 11             adi 17
+   112d   a4                plo R4
+   112e   9f                ghi STACK_REG
+   112f   7c 00             adci 0
+   1131   b4                phi R4
                             
-   0fac   8f                glo STACK_REG       ;set R5 pointer to start address
-   0fad   fc 0d             adi 13
-   0faf   a5                plo R5
-   0fb0   9f                ghi STACK_REG
-   0fb1   7c 00             adci 0
-   0fb3   b5                phi R5
+   1132   8f                glo STACK_REG       ;set R5 pointer to start address
+   1133   fc 0d             adi 13
+   1135   a5                plo R5
+   1136   9f                ghi STACK_REG
+   1137   7c 00             adci 0
+   1139   b5                phi R5
                             
-   0fb4   e4                sex R4
+   113a   e4                sex R4
                             
-   0fb5   72                ldxa
-   0fb6   55                str R5
-   0fb7   15                inc R5
+   113b   72                ldxa
+   113c   55                str R5
+   113d   15                inc R5
                             
-   0fb8   72                ldxa
-   0fb9   55                str R5
-   0fba   15                inc R5
+   113e   72                ldxa
+   113f   55                str R5
+   1140   15                inc R5
                             
-   0fbb   72                ldxa
-   0fbc   55                str R5
-   0fbd   15                inc R5
+   1141   72                ldxa
+   1142   55                str R5
+   1143   15                inc R5
                             
-   0fbe   72                ldxa
-   0fbf   55                str R5
+   1144   72                ldxa
+   1145   55                str R5
                             
-   0fc0   c0 0d fd          lbr HEXVIEWER_MAINLOOP
+   1146   c0 0f 83          lbr HEXVIEWER_MAINLOOP
                         
-   0fc3                 HEXVIEWER_END
-   0fc3   8f                glo STACK_REG
-   0fc4   fc 14             adi 20
-   0fc6   af                plo STACK_REG
-   0fc7   9f                ghi STACK_REG
-   0fc8   7c 00             adci 0
-   0fca   bf                phi STACK_REG
+   1149                 HEXVIEWER_END
+   1149   8f                glo STACK_REG
+   114a   fc 14             adi 20
+   114c   af                plo STACK_REG
+   114d   9f                ghi STACK_REG
+   114e   7c 00             adci 0
+   1150   bf                phi STACK_REG
                             
-   0fcb   de                sep RETURN
+   1151   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-DYN MEMORY ALLOC CALLER----------------------
-   0fcc                 DYN_MEMORY_ALLOC_CALLER_STR1
-   0fcc   20 62 79 74       db " bytes of memory allocated at memory address ",0," (0x",0,")\r\n",0
-   0fd0   65 73 20 6f   
-   0fd4   66 20 6d 65   
-   0fd8   6d 6f 72 79   
-   0fdc   20 61 6c 6c   
-   0fe0   6f 63 61 74   
-   0fe4   65 64 20 61   
-   0fe8   74 20 6d 65   
-   0fec   6d 6f 72 79   
-   0ff0   20 61 64 64   
-   0ff4   72 65 73 73   
-   0ff8   20 00 20 28   
-   0ffc   30 78 00 29   
-   1000   0d 0a 00      
-   1003                 DYN_MEMORY_ALLOC_CALLER_STR2
-   1003   4f 75 74 20       db "Out of memory!\r\n",0
-   1007   6f 66 20 6d   
-   100b   65 6d 6f 72   
-   100f   79 21 0d 0a   
-   1013   00            
+   1152                 DYN_MEMORY_ALLOC_CALLER_STR1
+   1152   20 62 79 74       db " bytes of memory allocated at memory address ",0," (0x",0,")\r\n",0
+   1156   65 73 20 6f   
+   115a   66 20 6d 65   
+   115e   6d 6f 72 79   
+   1162   20 61 6c 6c   
+   1166   6f 63 61 74   
+   116a   65 64 20 61   
+   116e   74 20 6d 65   
+   1172   6d 6f 72 79   
+   1176   20 61 64 64   
+   117a   72 65 73 73   
+   117e   20 00 20 28   
+   1182   30 78 00 29   
+   1186   0d 0a 00      
+   1189                 DYN_MEMORY_ALLOC_CALLER_STR2
+   1189   4f 75 74 20       db "Out of memory!\r\n",0
+   118d   6f 66 20 6d   
+   1191   65 6d 6f 72   
+   1195   79 21 0d 0a   
+   1199   00            
                         
-   1014                 DYN_MEMORY_ALLOC_CALLER
-   1014   ef                sex STACK_REG
+   119a                 DYN_MEMORY_ALLOC_CALLER
+   119a   ef                sex STACK_REG
                             
-   1015   f8 00             ldi 0
-   1017   73                stxd
-   1018   73                stxd
-   1019   73                stxd
-   101a   73                stxd                        ;+5 address
+   119b   f8 00             ldi 0
+   119d   73                stxd
+   119e   73                stxd
+   119f   73                stxd
+   11a0   73                stxd                        ;+5 address
                             
-   101b   73                stxd
-   101c   73                stxd
-   101d   73                stxd
-   101e   73                stxd                        ;+1 size
+   11a1   73                stxd
+   11a2   73                stxd
+   11a3   73                stxd
+   11a4   73                stxd                        ;+1 size
                             
-   101f   8f                glo STACK_REG               ;set R5 pointer to size
-   1020   a5                plo R5
-   1021   9f                ghi STACK_REG
-   1022   b5                phi R5
-   1023   15                inc R5
+   11a5   8f                glo STACK_REG               ;set R5 pointer to size
+   11a6   a5                plo R5
+   11a7   9f                ghi STACK_REG
+   11a8   b5                phi R5
+   11a9   15                inc R5
                             
-   1024   f8 55             ldi EXPRESSION.0            ;evaluate expression
-   1026   ad                plo CALL_REG
-   1027   f8 08             ldi EXPRESSION.1
-   1029   bd                phi CALL_REG
+   11aa   f8 55             ldi EXPRESSION.0            ;evaluate expression
+   11ac   ad                plo CALL_REG
+   11ad   f8 08             ldi EXPRESSION.1
+   11af   bd                phi CALL_REG
                             
-   102a   f8 00             ldi FCALL.0
-   102c   ae                plo FCALL_REG
-   102d   de                sep FCALL_REG
+   11b0   f8 00             ldi FCALL.0
+   11b2   ae                plo FCALL_REG
+   11b3   de                sep FCALL_REG
                             
-   102e   8f                glo STACK_REG               ;set R5 pointer to size
-   102f   a5                plo R5
-   1030   9f                ghi STACK_REG
-   1031   b5                phi R5
-   1032   15                inc R5
+   11b4   8f                glo STACK_REG               ;set R5 pointer to size
+   11b5   a5                plo R5
+   11b6   9f                ghi STACK_REG
+   11b7   b5                phi R5
+   11b8   15                inc R5
                             
-   1033   45                lda R5                      ;R4 = size
-   1034   a4                plo R4
-   1035   45                lda R5
-   1036   b4                phi R4
+   11b9   45                lda R5                      ;R4 = size
+   11ba   a4                plo R4
+   11bb   45                lda R5
+   11bc   b4                phi R4
                             
-   1037   f8 e7             ldi DYN_MEMORY_ALLOC.0      ;call memory allocation
-   1039   ad                plo CALL_REG
-   103a   f8 0a             ldi DYN_MEMORY_ALLOC.1
-   103c   bd                phi CALL_REG
+   11bd   f8 e7             ldi DYN_MEMORY_ALLOC.0      ;call memory allocation
+   11bf   ad                plo CALL_REG
+   11c0   f8 0a             ldi DYN_MEMORY_ALLOC.1
+   11c2   bd                phi CALL_REG
                             
-   103d   f8 00             ldi FCALL.0
-   103f   ae                plo FCALL_REG
-   1040   de                sep FCALL_REG
+   11c3   f8 00             ldi FCALL.0
+   11c5   ae                plo FCALL_REG
+   11c6   de                sep FCALL_REG
                             
-   1041   8a                glo R10                                 ;check if R10 has a value, if it is 0 then it failed
-   1042   3a 5a             bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
-   1044   9a                ghi R10
-   1045   3a 5a             bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+   11c7   8a                glo R10                                 ;check if R10 has a value, if it is 0 then it failed
+   11c8   ca 11 e2          lbnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+   11cb   9a                ghi R10
+   11cc   ca 11 e2          lbnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
                             
-   1047                 DYN_MEMORY_ALLOC_CALLER_FAIL
-   1047   f8 03             ldi DYN_MEMORY_ALLOC_CALLER_STR2.0      ;print out of memory
-   1049   a6                plo R6
-   104a   f8 10             ldi DYN_MEMORY_ALLOC_CALLER_STR2.1
-   104c   b6                phi R6
+   11cf                 DYN_MEMORY_ALLOC_CALLER_FAIL
+   11cf   f8 89             ldi DYN_MEMORY_ALLOC_CALLER_STR2.0      ;print out of memory
+   11d1   a6                plo R6
+   11d2   f8 11             ldi DYN_MEMORY_ALLOC_CALLER_STR2.1
+   11d4   b6                phi R6
                             
-   104d   f8 52             ldi PRINT.0                             ;prepare to call PRINT
-   104f   ad                plo CALL_REG
-   1050   f8 01             ldi PRINT.1
-   1052   bd                phi CALL_REG
+   11d5   f8 52             ldi PRINT.0                             ;prepare to call PRINT
+   11d7   ad                plo CALL_REG
+   11d8   f8 01             ldi PRINT.1
+   11da   bd                phi CALL_REG
                             
-   1053   f8 00             ldi FCALL.0
-   1055   ae                plo FCALL_REG
-   1056   de                sep FCALL_REG                           ;call PRINT
+   11db   f8 00             ldi FCALL.0
+   11dd   ae                plo FCALL_REG
+   11de   de                sep FCALL_REG                           ;call PRINT
                         	
-   1057   c0 10 c4          lbr DYN_MEMORY_ALLOC_CALLER_END         ;return
+   11df   c0 12 4c          lbr DYN_MEMORY_ALLOC_CALLER_END         ;return
                         
-   105a                 DYN_MEMORY_ALLOC_CALLER_SUCCESS
-   105a   8f                glo STACK_REG                           ;set R5 pointer to address
-   105b   fc 05             adi 5
-   105d   a4                plo R4
-   105e   9f                ghi STACK_REG
-   105f   7c 00             adci 0
-   1061   b4                phi R4
+   11e2                 DYN_MEMORY_ALLOC_CALLER_SUCCESS
+   11e2   8f                glo STACK_REG                           ;set R5 pointer to address
+   11e3   fc 05             adi 5
+   11e5   a4                plo R4
+   11e6   9f                ghi STACK_REG
+   11e7   7c 00             adci 0
+   11e9   b4                phi R4
                             
-   1062   8a                glo R10                                 ;copy R10 value to address
-   1063   54                str R4
-   1064   14                inc R4
+   11ea   8a                glo R10                                 ;copy R10 value to address
+   11eb   54                str R4
+   11ec   14                inc R4
                             
-   1065   9a                ghi R10
-   1066   54                str R4
+   11ed   9a                ghi R10
+   11ee   54                str R4
                             
-   1067   8f                glo STACK_REG                           ;set R4 pointor to size
-   1068   a4                plo R4
-   1069   9f                ghi STACK_REG
-   106a   b4                phi R4
-   106b   14                inc R4
+   11ef   8f                glo STACK_REG                           ;set R4 pointor to size
+   11f0   a4                plo R4
+   11f1   9f                ghi STACK_REG
+   11f2   b4                phi R4
+   11f3   14                inc R4
                             
-   106c   f8 ae             ldi PRINT_DEC.0                         ;print size in decimal
-   106e   ad                plo CALL_REG
-   106f   f8 04             ldi PRINT_DEC.1
-   1071   bd                phi CALL_REG
+   11f4   f8 ae             ldi PRINT_DEC.0                         ;print size in decimal
+   11f6   ad                plo CALL_REG
+   11f7   f8 04             ldi PRINT_DEC.1
+   11f9   bd                phi CALL_REG
                             
-   1072   f8 00             ldi FCALL.0
-   1074   ae                plo FCALL_REG
-   1075   de                sep FCALL_REG
+   11fa   f8 00             ldi FCALL.0
+   11fc   ae                plo FCALL_REG
+   11fd   de                sep FCALL_REG
                             
-   1076   f8 cc             ldi DYN_MEMORY_ALLOC_CALLER_STR1.0      ;print the first part of the allocation message
-   1078   a6                plo R6
-   1079   f8 0f             ldi DYN_MEMORY_ALLOC_CALLER_STR1.1
-   107b   b6                phi R6
+   11fe   f8 52             ldi DYN_MEMORY_ALLOC_CALLER_STR1.0      ;print the first part of the allocation message
+   1200   a6                plo R6
+   1201   f8 11             ldi DYN_MEMORY_ALLOC_CALLER_STR1.1
+   1203   b6                phi R6
                             
-   107c   f8 52             ldi PRINT.0                             ;prepare to call PRINT
-   107e   ad                plo CALL_REG    
-   107f   f8 01             ldi PRINT.1
-   1081   bd                phi CALL_REG
+   1204   f8 52             ldi PRINT.0                             ;prepare to call PRINT
+   1206   ad                plo CALL_REG    
+   1207   f8 01             ldi PRINT.1
+   1209   bd                phi CALL_REG
                             
-   1082   f8 00             ldi FCALL.0
-   1084   ae                plo FCALL_REG
-   1085   de                sep FCALL_REG                           ;call PRINT
+   120a   f8 00             ldi FCALL.0
+   120c   ae                plo FCALL_REG
+   120d   de                sep FCALL_REG                           ;call PRINT
                             
-   1086   8f                glo STACK_REG                           ;set R4 pointer to address
-   1087   fc 05             adi 5
-   1089   a4                plo R4
-   108a   9f                ghi STACK_REG
-   108b   7c 00             adci 0
-   108d   b4                phi R4
+   120e   8f                glo STACK_REG                           ;set R4 pointer to address
+   120f   fc 05             adi 5
+   1211   a4                plo R4
+   1212   9f                ghi STACK_REG
+   1213   7c 00             adci 0
+   1215   b4                phi R4
                             
-   108e   f8 ae             ldi PRINT_DEC.0                         ;print address in decimal
-   1090   ad                plo CALL_REG
-   1091   f8 04             ldi PRINT_DEC.1
-   1093   bd                phi CALL_REG
+   1216   f8 ae             ldi PRINT_DEC.0                         ;print address in decimal
+   1218   ad                plo CALL_REG
+   1219   f8 04             ldi PRINT_DEC.1
+   121b   bd                phi CALL_REG
                             
-   1094   f8 00             ldi FCALL.0
-   1096   ae                plo FCALL_REG
-   1097   de                sep FCALL_REG
+   121c   f8 00             ldi FCALL.0
+   121e   ae                plo FCALL_REG
+   121f   de                sep FCALL_REG
                             
-   1098   f8 52             ldi PRINT.0                             ;print the second part of the allocation message
-   109a   ad                plo CALL_REG
-   109b   f8 01             ldi PRINT.1
-   109d   bd                phi CALL_REG
+   1220   f8 52             ldi PRINT.0                             ;print the second part of the allocation message
+   1222   ad                plo CALL_REG
+   1223   f8 01             ldi PRINT.1
+   1225   bd                phi CALL_REG
                             
-   109e   f8 00             ldi FCALL.0
-   10a0   ae                plo FCALL_REG
-   10a1   de                sep FCALL_REG                           ;call PRINT
+   1226   f8 00             ldi FCALL.0
+   1228   ae                plo FCALL_REG
+   1229   de                sep FCALL_REG                           ;call PRINT
                             
-   10a2   8f                glo STACK_REG                           ;reset R4 pointer to address
-   10a3   fc 05             adi 5
-   10a5   a4                plo R4
-   10a6   9f                ghi STACK_REG
-   10a7   7c 00             adci 0
-   10a9   b4                phi R4
+   122a   8f                glo STACK_REG                           ;reset R4 pointer to address
+   122b   fc 05             adi 5
+   122d   a4                plo R4
+   122e   9f                ghi STACK_REG
+   122f   7c 00             adci 0
+   1231   b4                phi R4
                             
-   10aa   f8 04             ldi 4                                   ;set number of digits to 4
-   10ac   a5                plo R5
-   10ad   f8 00             ldi 0
-   10af   b5                phi R5
+   1232   f8 04             ldi 4                                   ;set number of digits to 4
+   1234   a5                plo R5
+   1235   f8 00             ldi 0
+   1237   b5                phi R5
                             
-   10b0   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
-   10b2   ad                plo CALL_REG
-   10b3   f8 04             ldi PRINT_HEX.1
-   10b5   bd                phi CALL_REG
+   1238   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
+   123a   ad                plo CALL_REG
+   123b   f8 04             ldi PRINT_HEX.1
+   123d   bd                phi CALL_REG
                             
-   10b6   f8 00             ldi FCALL.0
-   10b8   ae                plo FCALL_REG
-   10b9   de                sep FCALL_REG
+   123e   f8 00             ldi FCALL.0
+   1240   ae                plo FCALL_REG
+   1241   de                sep FCALL_REG
                             
-   10ba   f8 52             ldi PRINT.0                             ;print the last part of the allocation message
-   10bc   ad                plo CALL_REG
-   10bd   f8 01             ldi PRINT.1
-   10bf   bd                phi CALL_REG
+   1242   f8 52             ldi PRINT.0                             ;print the last part of the allocation message
+   1244   ad                plo CALL_REG
+   1245   f8 01             ldi PRINT.1
+   1247   bd                phi CALL_REG
                             
-   10c0   f8 00             ldi FCALL.0
-   10c2   ae                plo FCALL_REG
-   10c3   de                sep FCALL_REG                           ;call PRINT
+   1248   f8 00             ldi FCALL.0
+   124a   ae                plo FCALL_REG
+   124b   de                sep FCALL_REG                           ;call PRINT
                         
-   10c4                 DYN_MEMORY_ALLOC_CALLER_END
-   10c4   8f                glo STACK_REG
-   10c5   fc 08             adi 8
-   10c7   af                plo STACK_REG
-   10c8   9f                ghi STACK_REG
-   10c9   7c 00             adci 0
-   10cb   bf                phi STACK_REG
+   124c                 DYN_MEMORY_ALLOC_CALLER_END
+   124c   8f                glo STACK_REG
+   124d   fc 08             adi 8
+   124f   af                plo STACK_REG
+   1250   9f                ghi STACK_REG
+   1251   7c 00             adci 0
+   1253   bf                phi STACK_REG
                             
-   10cc   de                sep RETURN
+   1254   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-DYN MEMORY FREE CALLER-----------------------
-   10cd                 DYN_MEMORY_FREE_CALLER_STR1
-   10cd   41 6c 6c 6f       db "Allocated memory has been freed at address ",0," (0x",0,")\r\n",0
-   10d1   63 61 74 65   
-   10d5   64 20 6d 65   
-   10d9   6d 6f 72 79   
-   10dd   20 68 61 73   
-   10e1   20 62 65 65   
-   10e5   6e 20 66 72   
-   10e9   65 65 64 20   
-   10ed   61 74 20 61   
-   10f1   64 64 72 65   
-   10f5   73 73 20 00   
-   10f9   20 28 30 78   
-   10fd   00 29 0d 0a   
-   1101   00            
-   1102                 DYN_MEMORY_FREE_CALLER_STR2
-   1102   4d 65 6d 6f       db "Memory address is out of the heap range!\r\n",0
-   1106   72 79 20 61   
-   110a   64 64 72 65   
-   110e   73 73 20 69   
-   1112   73 20 6f 75   
-   1116   74 20 6f 66   
-   111a   20 74 68 65   
-   111e   20 68 65 61   
-   1122   70 20 72 61   
-   1126   6e 67 65 21   
-   112a   0d 0a 00      
+   1255                 DYN_MEMORY_FREE_CALLER_STR1
+   1255   41 6c 6c 6f       db "Allocated memory has been freed at address ",0," (0x",0,")\r\n",0
+   1259   63 61 74 65   
+   125d   64 20 6d 65   
+   1261   6d 6f 72 79   
+   1265   20 68 61 73   
+   1269   20 62 65 65   
+   126d   6e 20 66 72   
+   1271   65 65 64 20   
+   1275   61 74 20 61   
+   1279   64 64 72 65   
+   127d   73 73 20 00   
+   1281   20 28 30 78   
+   1285   00 29 0d 0a   
+   1289   00            
+   128a                 DYN_MEMORY_FREE_CALLER_STR2
+   128a   4d 65 6d 6f       db "Memory address is out of the heap range!\r\n",0
+   128e   72 79 20 61   
+   1292   64 64 72 65   
+   1296   73 73 20 69   
+   129a   73 20 6f 75   
+   129e   74 20 6f 66   
+   12a2   20 74 68 65   
+   12a6   20 68 65 61   
+   12aa   70 20 72 61   
+   12ae   6e 67 65 21   
+   12b2   0d 0a 00      
                             
-   112d                 DYN_MEMORY_FREE_CALLER
-   112d   ef                sex STACK_REG
+   12b5                 DYN_MEMORY_FREE_CALLER
+   12b5   ef                sex STACK_REG
                             
-   112e   f8 00             ldi 0
-   1130   73                stxd
-   1131   73                stxd
-   1132   73                stxd
-   1133   73                stxd                    ;+1 address
+   12b6   f8 00             ldi 0
+   12b8   73                stxd
+   12b9   73                stxd
+   12ba   73                stxd
+   12bb   73                stxd                    ;+1 address
                             
-   1134   8f                glo STACK_REG
-   1135   a5                plo R5
-   1136   9f                ghi STACK_REG
-   1137   b5                phi R5
-   1138   15                inc R5
+   12bc   8f                glo STACK_REG
+   12bd   a5                plo R5
+   12be   9f                ghi STACK_REG
+   12bf   b5                phi R5
+   12c0   15                inc R5
                             
-   1139   f8 55             ldi EXPRESSION.0
-   113b   ad                plo CALL_REG
-   113c   f8 08             ldi EXPRESSION.1
-   113e   bd                phi CALL_REG
+   12c1   f8 55             ldi EXPRESSION.0
+   12c3   ad                plo CALL_REG
+   12c4   f8 08             ldi EXPRESSION.1
+   12c6   bd                phi CALL_REG
                             
-   113f   f8 00             ldi FCALL.0
-   1141   ae                plo FCALL_REG
-   1142   de                sep FCALL_REG
+   12c7   f8 00             ldi FCALL.0
+   12c9   ae                plo FCALL_REG
+   12ca   de                sep FCALL_REG
                             
-   1143   8f                glo STACK_REG
-   1144   a5                plo R5
-   1145   9f                ghi STACK_REG
-   1146   b5                phi R5
-   1147   15                inc R5
+   12cb   8f                glo STACK_REG
+   12cc   a5                plo R5
+   12cd   9f                ghi STACK_REG
+   12ce   b5                phi R5
+   12cf   15                inc R5
                             
-   1148   e5                sex R5
+   12d0   e5                sex R5
                             
-   1149   f8 10             ldi HEAP_START.0
-   114b   f5                sd
-   114c   60                irx
-   114d   f8 21             ldi HEAP_START.1
-   114f   75                sdb
+   12d1   f8 10             ldi HEAP_START.0
+   12d3   f5                sd
+   12d4   60                irx
+   12d5   f8 21             ldi HEAP_START.1
+   12d7   75                sdb
                             
-   1150   25                dec R5
+   12d8   25                dec R5
                             
-   1151   3b b4             bm DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+   12d9   cb 13 3e          lbnf DYN_MEMORY_FREE_CALLER_OUTOFRANGE
                             
-   1153   f8 00             ldi HEAP_END.0
-   1155   f5                sd
-   1156   60                irx
-   1157   f8 fc             ldi HEAP_END.1
-   1159   75                sdb
+   12dc   f8 00             ldi HEAP_END.0
+   12de   f5                sd
+   12df   60                irx
+   12e0   f8 fc             ldi HEAP_END.1
+   12e2   75                sdb
                             
-   115a   25                dec R5
+   12e3   25                dec R5
                             
-   115b   33 b4             bpz DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+   12e4   c3 13 3e          lbdf DYN_MEMORY_FREE_CALLER_OUTOFRANGE
                             
-   115d   72                ldxa
-   115e   a4                plo R4
-   115f   f0                ldx
-   1160   b4                phi R4
+   12e7   72                ldxa
+   12e8   a4                plo R4
+   12e9   f0                ldx
+   12ea   b4                phi R4
                             
-   1161   25                dec R5
+   12eb   25                dec R5
                             
-   1162   f8 29             ldi DYN_MEMORY_FREE.0                 ;call free
-   1164   ad                plo CALL_REG
-   1165   f8 0c             ldi DYN_MEMORY_FREE.1
-   1167   bd                phi CALL_REG
+   12ec   f8 4a             ldi DYN_MEMORY_FREE.0                 ;call free
+   12ee   ad                plo CALL_REG
+   12ef   f8 0c             ldi DYN_MEMORY_FREE.1
+   12f1   bd                phi CALL_REG
                             
-   1168   f8 00             ldi FCALL.0
-   116a   ae                plo FCALL_REG
-   116b   de                sep FCALL_REG
+   12f2   f8 00             ldi FCALL.0
+   12f4   ae                plo FCALL_REG
+   12f5   de                sep FCALL_REG
                             
-   116c   f8 cd             ldi DYN_MEMORY_FREE_CALLER_STR1.0
-   116e   a6                plo R6
-   116f   f8 10             ldi DYN_MEMORY_FREE_CALLER_STR1.1
-   1171   b6                phi R6
+   12f6   f8 55             ldi DYN_MEMORY_FREE_CALLER_STR1.0
+   12f8   a6                plo R6
+   12f9   f8 12             ldi DYN_MEMORY_FREE_CALLER_STR1.1
+   12fb   b6                phi R6
                             
-   1172   f8 52             ldi PRINT.0                             ;print the success message 1st part
-   1174   ad                plo CALL_REG
-   1175   f8 01             ldi PRINT.1
-   1177   bd                phi CALL_REG
+   12fc   f8 52             ldi PRINT.0                             ;print the success message 1st part
+   12fe   ad                plo CALL_REG
+   12ff   f8 01             ldi PRINT.1
+   1301   bd                phi CALL_REG
                             
-   1178   f8 00             ldi FCALL.0
-   117a   ae                plo FCALL_REG
-   117b   de                sep FCALL_REG
+   1302   f8 00             ldi FCALL.0
+   1304   ae                plo FCALL_REG
+   1305   de                sep FCALL_REG
                             
-   117c   85                glo R5
-   117d   a4                plo R4
-   117e   95                ghi R5
-   117f   b4                phi R4
+   1306   85                glo R5
+   1307   a4                plo R4
+   1308   95                ghi R5
+   1309   b4                phi R4
                             
-   1180   f8 ae             ldi PRINT_DEC.0                         ;print address in decimal
-   1182   ad                plo CALL_REG
-   1183   f8 04             ldi PRINT_DEC.1
-   1185   bd                phi CALL_REG
+   130a   f8 ae             ldi PRINT_DEC.0                         ;print address in decimal
+   130c   ad                plo CALL_REG
+   130d   f8 04             ldi PRINT_DEC.1
+   130f   bd                phi CALL_REG
                             
-   1186   f8 00             ldi FCALL.0
-   1188   ae                plo FCALL_REG
-   1189   de                sep FCALL_REG
+   1310   f8 00             ldi FCALL.0
+   1312   ae                plo FCALL_REG
+   1313   de                sep FCALL_REG
                             
-   118a   f8 52             ldi PRINT.0                             ;print the success message 2nd part
-   118c   ad                plo CALL_REG
-   118d   f8 01             ldi PRINT.1
-   118f   bd                phi CALL_REG
+   1314   f8 52             ldi PRINT.0                             ;print the success message 2nd part
+   1316   ad                plo CALL_REG
+   1317   f8 01             ldi PRINT.1
+   1319   bd                phi CALL_REG
                             
-   1190   f8 00             ldi FCALL.0
-   1192   ae                plo FCALL_REG
-   1193   de                sep FCALL_REG
+   131a   f8 00             ldi FCALL.0
+   131c   ae                plo FCALL_REG
+   131d   de                sep FCALL_REG
                             
-   1194   85                glo R5
-   1195   a4                plo R4
-   1196   95                ghi R5
-   1197   b4                phi R4
+   131e   85                glo R5
+   131f   a4                plo R4
+   1320   95                ghi R5
+   1321   b4                phi R4
                             
-   1198   f8 04             ldi 4
-   119a   a5                plo R5
-   119b   f8 00             ldi 0
-   119d   b5                phi R5
+   1322   f8 04             ldi 4
+   1324   a5                plo R5
+   1325   f8 00             ldi 0
+   1327   b5                phi R5
                             
-   119e   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
-   11a0   ad                plo CALL_REG
-   11a1   f8 04             ldi PRINT_HEX.1
-   11a3   bd                phi CALL_REG
+   1328   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
+   132a   ad                plo CALL_REG
+   132b   f8 04             ldi PRINT_HEX.1
+   132d   bd                phi CALL_REG
                             
-   11a4   f8 00             ldi FCALL.0
-   11a6   ae                plo FCALL_REG
-   11a7   de                sep FCALL_REG
+   132e   f8 00             ldi FCALL.0
+   1330   ae                plo FCALL_REG
+   1331   de                sep FCALL_REG
                             
-   11a8   f8 52             ldi PRINT.0                             ;print the success message 2nd part
-   11aa   ad                plo CALL_REG
-   11ab   f8 01             ldi PRINT.1
-   11ad   bd                phi CALL_REG
+   1332   f8 52             ldi PRINT.0                             ;print the success message 2nd part
+   1334   ad                plo CALL_REG
+   1335   f8 01             ldi PRINT.1
+   1337   bd                phi CALL_REG
                             
-   11ae   f8 00             ldi FCALL.0
-   11b0   ae                plo FCALL_REG
-   11b1   de                sep FCALL_REG
+   1338   f8 00             ldi FCALL.0
+   133a   ae                plo FCALL_REG
+   133b   de                sep FCALL_REG
                             
-   11b2   30 c4             br DYN_MEMORY_FREE_CALLER_END
+   133c   30 4e             br DYN_MEMORY_FREE_CALLER_END
                             
-   11b4                 DYN_MEMORY_FREE_CALLER_OUTOFRANGE
-   11b4   f8 02             ldi DYN_MEMORY_FREE_CALLER_STR2.0
-   11b6   a6                plo R6
-   11b7   f8 11             ldi DYN_MEMORY_FREE_CALLER_STR2.1
-   11b9   b6                phi R6
+   133e                 DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+   133e   f8 8a             ldi DYN_MEMORY_FREE_CALLER_STR2.0
+   1340   a6                plo R6
+   1341   f8 12             ldi DYN_MEMORY_FREE_CALLER_STR2.1
+   1343   b6                phi R6
                             
-   11ba   f8 52             ldi PRINT.0                             ;print the out of range message
-   11bc   ad                plo CALL_REG
-   11bd   f8 01             ldi PRINT.1
-   11bf   bd                phi CALL_REG
+   1344   f8 52             ldi PRINT.0                             ;print the out of range message
+   1346   ad                plo CALL_REG
+   1347   f8 01             ldi PRINT.1
+   1349   bd                phi CALL_REG
                             
-   11c0   f8 00             ldi FCALL.0
-   11c2   ae                plo FCALL_REG
-   11c3   de                sep FCALL_REG                           ;call PRINT
+   134a   f8 00             ldi FCALL.0
+   134c   ae                plo FCALL_REG
+   134d   de                sep FCALL_REG                           ;call PRINT
                             
-   11c4                 DYN_MEMORY_FREE_CALLER_END
-   11c4   8f                glo STACK_REG
-   11c5   fc 04             adi 4
-   11c7   af                plo STACK_REG
-   11c8   9f                ghi STACK_REG
-   11c9   7c 00             adci 0
-   11cb   bf                phi STACK_REG
+   134e                 DYN_MEMORY_FREE_CALLER_END
+   134e   8f                glo STACK_REG
+   134f   fc 04             adi 4
+   1351   af                plo STACK_REG
+   1352   9f                ghi STACK_REG
+   1353   7c 00             adci 0
+   1355   bf                phi STACK_REG
                             
-   11cc   de                sep RETURN
+   1356   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-HEXVIEW_CALLER-------------------------------
-   11cd                 HEXVIEW_CALLER
-   11cd   ef                sex STACK_REG
+   1357                 HEXVIEW_CALLER
+   1357   ef                sex STACK_REG
                             
-   11ce   f8 00             ldi 0
-   11d0   73                stxd
-   11d1   73                stxd
-   11d2   73                stxd
-   11d3   73                stxd    ;+5 first arg
+   1358   f8 00             ldi 0
+   135a   73                stxd
+   135b   73                stxd
+   135c   73                stxd
+   135d   73                stxd    ;+5 first arg
                             
-   11d4   73                stxd
-   11d5   73                stxd
-   11d6   f8 01             ldi 1
-   11d8   73                stxd
-   11d9   f8 00             ldi 0
-   11db   73                stxd    ;+1 second arg
+   135e   73                stxd
+   135f   73                stxd
+   1360   f8 01             ldi 1
+   1362   73                stxd
+   1363   f8 00             ldi 0
+   1365   73                stxd    ;+1 second arg
                             
-   11dc   8f                glo STACK_REG
-   11dd   fc 05             adi 5
-   11df   a5                plo R5
-   11e0   9f                ghi STACK_REG
-   11e1   7c 00             adci 0
-   11e3   b5                phi R5
+   1366   8f                glo STACK_REG
+   1367   fc 05             adi 5
+   1369   a5                plo R5
+   136a   9f                ghi STACK_REG
+   136b   7c 00             adci 0
+   136d   b5                phi R5
                             
-   11e4   f8 55             ldi EXPRESSION.0
-   11e6   ad                plo CALL_REG
-   11e7   f8 08             ldi EXPRESSION.1
-   11e9   bd                phi CALL_REG
+   136e   f8 55             ldi EXPRESSION.0
+   1370   ad                plo CALL_REG
+   1371   f8 08             ldi EXPRESSION.1
+   1373   bd                phi CALL_REG
                             
-   11ea   f8 00             ldi FCALL.0
-   11ec   ae                plo FCALL_REG
-   11ed   de                sep FCALL_REG
+   1374   f8 00             ldi FCALL.0
+   1376   ae                plo FCALL_REG
+   1377   de                sep FCALL_REG
                             
-   11ee   44                lda R4
-   11ef   fb 2c             xri 44
-   11f1   c2 12 08          lbz HEXVIEW_CALLER_NEXTARG
-   11f4   24                dec R4
-   11f5   44                lda R4
-   11f6   c2 12 17          lbz HEXVIEW_CALLER_EXEC
-   11f9   24                dec R4
+   1378   44                lda R4
+   1379   fb 2c             xri 44
+   137b   c2 13 92          lbz HEXVIEW_CALLER_NEXTARG
+   137e   24                dec R4
+   137f   44                lda R4
+   1380   c2 13 a1          lbz HEXVIEW_CALLER_EXEC
+   1383   24                dec R4
                             
-   11fa   04                ldn R4
-   11fb   b4                phi R4
+   1384   04                ldn R4
+   1385   b4                phi R4
                             
-   11fc   f8 13             ldi SERIAL_SEND_START.0
-   11fe   ad                plo CALL_REG
-   11ff   f8 01             ldi SERIAL_SEND_START.1
-   1201   bd                phi CALL_REG
+   1386   f8 13             ldi SERIAL_SEND_START.0
+   1388   ad                plo CALL_REG
+   1389   f8 01             ldi SERIAL_SEND_START.1
+   138b   bd                phi CALL_REG
                             
-   1202   f8 00             ldi FCALL.0
-   1204   ae                plo FCALL_REG
-   1205   de                sep FCALL_REG
+   138c   f8 00             ldi FCALL.0
+   138e   ae                plo FCALL_REG
+   138f   de                sep FCALL_REG
                             
-   1206   30 36             br HEXVIEW_CALLER_END
+   1390   30 c0             br HEXVIEW_CALLER_END
                             
-   1208                 HEXVIEW_CALLER_NEXTARG
-   1208   8f                glo STACK_REG
-   1209   a5                plo R5
-   120a   9f                ghi STACK_REG
-   120b   b5                phi R5
-   120c   15                inc R5
+   1392                 HEXVIEW_CALLER_NEXTARG
+   1392   8f                glo STACK_REG
+   1393   a5                plo R5
+   1394   9f                ghi STACK_REG
+   1395   b5                phi R5
+   1396   15                inc R5
                             
-   120d   f8 55             ldi EXPRESSION.0
-   120f   ad                plo CALL_REG
-   1210   f8 08             ldi EXPRESSION.1
-   1212   bd                phi CALL_REG
+   1397   f8 55             ldi EXPRESSION.0
+   1399   ad                plo CALL_REG
+   139a   f8 08             ldi EXPRESSION.1
+   139c   bd                phi CALL_REG
                             
-   1213   f8 00             ldi FCALL.0
-   1215   ae                plo FCALL_REG
-   1216   de                sep FCALL_REG
+   139d   f8 00             ldi FCALL.0
+   139f   ae                plo FCALL_REG
+   13a0   de                sep FCALL_REG
                             
-   1217                 HEXVIEW_CALLER_EXEC
-   1217   8f                glo STACK_REG
-   1218   fc 05             adi 5
-   121a   a5                plo R5
-   121b   9f                ghi STACK_REG
-   121c   7c 00             adci 0
-   121e   b5                phi R5
+   13a1                 HEXVIEW_CALLER_EXEC
+   13a1   8f                glo STACK_REG
+   13a2   fc 05             adi 5
+   13a4   a5                plo R5
+   13a5   9f                ghi STACK_REG
+   13a6   7c 00             adci 0
+   13a8   b5                phi R5
                             
-   121f   45                lda R5
-   1220   a4                plo R4
-   1221   45                lda R5
-   1222   b4                phi R4
+   13a9   45                lda R5
+   13aa   a4                plo R4
+   13ab   45                lda R5
+   13ac   b4                phi R4
                             
-   1223   8f                glo STACK_REG
-   1224   a6                plo R6
-   1225   9f                ghi STACK_REG
-   1226   b6                phi R6
-   1227   16                inc R6
+   13ad   8f                glo STACK_REG
+   13ae   a6                plo R6
+   13af   9f                ghi STACK_REG
+   13b0   b6                phi R6
+   13b1   16                inc R6
                             
-   1228   46                lda R6
-   1229   a5                plo R5
-   122a   46                lda R6
-   122b   b5                phi R5
+   13b2   46                lda R6
+   13b3   a5                plo R5
+   13b4   46                lda R6
+   13b5   b5                phi R5
                             
-   122c   f8 86             ldi HEXVIEWER.0
-   122e   ad                plo CALL_REG
-   122f   f8 0d             ldi HEXVIEWER.1
-   1231   bd                phi CALL_REG
+   13b6   f8 0c             ldi HEXVIEWER.0
+   13b8   ad                plo CALL_REG
+   13b9   f8 0f             ldi HEXVIEWER.1
+   13bb   bd                phi CALL_REG
                             
-   1232   f8 00             ldi FCALL.0
-   1234   ae                plo FCALL_REG
-   1235   de                sep FCALL_REG
+   13bc   f8 00             ldi FCALL.0
+   13be   ae                plo FCALL_REG
+   13bf   de                sep FCALL_REG
                             
-   1236                 HEXVIEW_CALLER_END
-   1236   8f                glo STACK_REG
-   1237   fc 08             adi 8
-   1239   af                plo STACK_REG
-   123a   9f                ghi STACK_REG
-   123b   7c 00             adci 0
-   123d   bf                phi STACK_REG
+   13c0                 HEXVIEW_CALLER_END
+   13c0   8f                glo STACK_REG
+   13c1   fc 08             adi 8
+   13c3   af                plo STACK_REG
+   13c4   9f                ghi STACK_REG
+   13c5   7c 00             adci 0
+   13c7   bf                phi STACK_REG
                             
-   123e   de                sep RETURN
+   13c8   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-TEST FUNCTION--------------------------------
-   123f                 TEST_STR1
-   123f   52 65 73 75       db "Result: ",0
-   1243   6c 74 3a 20   
-   1247   00            
+   13c9                 TEST_STR1
+   13c9   52 65 73 75       db "Result: ",0
+   13cd   6c 74 3a 20   
+   13d1   00            
                         
-   1248                 FUNC_TEST
-   1248   ef                sex STACK_REG
+   13d2                 FUNC_TEST
+   13d2   ef                sex STACK_REG
                             
-   1249   f8 00             ldi 0
-   124b   73                stxd
-   124c   73                stxd
-   124d   73                stxd
-   124e   73                stxd    ;+1 result
+   13d3   f8 00             ldi 0
+   13d5   73                stxd
+   13d6   73                stxd
+   13d7   73                stxd
+   13d8   73                stxd    ;+1 result
                             
-   124f   8f                glo STACK_REG
-   1250   a5                plo R5
-   1251   9f                ghi STACK_REG
-   1252   b5                phi R5
-   1253   15                inc R5
+   13d9   8f                glo STACK_REG
+   13da   a5                plo R5
+   13db   9f                ghi STACK_REG
+   13dc   b5                phi R5
+   13dd   15                inc R5
                             
-   1254   f8 55             ldi EXPRESSION.0
-   1256   ad                plo CALL_REG
-   1257   f8 08             ldi EXPRESSION.1
-   1259   bd                phi CALL_REG
+   13de   f8 55             ldi EXPRESSION.0
+   13e0   ad                plo CALL_REG
+   13e1   f8 08             ldi EXPRESSION.1
+   13e3   bd                phi CALL_REG
                             
-   125a   f8 00             ldi FCALL.0
-   125c   ae                plo FCALL_REG
-   125d   de                sep FCALL_REG
+   13e4   f8 00             ldi FCALL.0
+   13e6   ae                plo FCALL_REG
+   13e7   de                sep FCALL_REG
                             
-   125e   8f                glo STACK_REG
-   125f   a4                plo R4
-   1260   9f                ghi STACK_REG
-   1261   b4                phi R4
-   1262   14                inc R4
+   13e8   8f                glo STACK_REG
+   13e9   a4                plo R4
+   13ea   9f                ghi STACK_REG
+   13eb   b4                phi R4
+   13ec   14                inc R4
                         
-   1263   f8 00             ldi 0
-   1265   a5                plo R5
+   13ed   f8 00             ldi 0
+   13ef   a5                plo R5
                             
-   1266   f8 ae             ldi PRINT_DEC.0     ;prepare to print the Decimal result.
-   1268   ad                plo CALL_REG
-   1269   f8 04             ldi PRINT_DEC.1
-   126b   bd                phi CALL_REG
+   13f0   f8 ae             ldi PRINT_DEC.0     ;prepare to print the Decimal result.
+   13f2   ad                plo CALL_REG
+   13f3   f8 04             ldi PRINT_DEC.1
+   13f5   bd                phi CALL_REG
                             
-   126c   f8 00             ldi FCALL.0
-   126e   ae                plo FCALL_REG
-   126f   de                sep FCALL_REG
+   13f6   f8 00             ldi FCALL.0
+   13f8   ae                plo FCALL_REG
+   13f9   de                sep FCALL_REG
                             
-   1270   f8 5b             ldi NEW_LINE.0  ;print newline
-   1272   a6                plo R6
-   1273   f8 13             ldi NEW_LINE.1
-   1275   b6                phi R6
+   13fa   f8 e5             ldi NEW_LINE.0  ;print newline
+   13fc   a6                plo R6
+   13fd   f8 14             ldi NEW_LINE.1
+   13ff   b6                phi R6
                         	
-   1276   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   1278   ad                plo CALL_REG
-   1279   f8 01             ldi PRINT.1
-   127b   bd                phi CALL_REG
+   1400   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1402   ad                plo CALL_REG
+   1403   f8 01             ldi PRINT.1
+   1405   bd                phi CALL_REG
                             
-   127c   f8 00             ldi FCALL.0
-   127e   ae                plo FCALL_REG
-   127f   de                sep FCALL_REG
+   1406   f8 00             ldi FCALL.0
+   1408   ae                plo FCALL_REG
+   1409   de                sep FCALL_REG
                             
-   1280   8f                glo STACK_REG
-   1281   fc 04             adi 4
-   1283   af                plo STACK_REG
-   1284   9f                ghi STACK_REG
-   1285   7c 00             adci 0
-   1287   bf                phi STACK_REG
+   140a   8f                glo STACK_REG
+   140b   fc 04             adi 4
+   140d   af                plo STACK_REG
+   140e   9f                ghi STACK_REG
+   140f   7c 00             adci 0
+   1411   bf                phi STACK_REG
                             
-   1288   de                sep RETURN
+   1412   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-COMMAND-CHECK--------------------------------
                         ;-R4-input string------------------------------
-   1289                 COMMAND_CHECK
-   1289   f8 8b             ldi COMMAND_FUNC_LIST.0
-   128b   a5                plo R5
-   128c   f8 13             ldi COMMAND_FUNC_LIST.1
-   128e   b5                phi R5
+   1413                 COMMAND_CHECK
+   1413   f8 19             ldi COMMAND_FUNC_LIST.0
+   1415   a5                plo R5
+   1416   f8 15             ldi COMMAND_FUNC_LIST.1
+   1418   b5                phi R5
                             
-   128f   f8 5e             ldi COMMAND_LIST.0
-   1291   a9                plo R9
-   1292   f8 13             ldi COMMAND_LIST.1
-   1294   b9                phi R9
+   1419   f8 e8             ldi COMMAND_LIST.0
+   141b   a9                plo R9
+   141c   f8 14             ldi COMMAND_LIST.1
+   141e   b9                phi R9
                             
-   1295   84                glo R4
-   1296   a6                plo R6
-   1297   94                ghi R4
-   1298   b6                phi R6
+   141f   84                glo R4
+   1420   a6                plo R6
+   1421   94                ghi R4
+   1422   b6                phi R6
                             
-   1299                 COMMAND_CHECK_GOTOSPACE
-   1299   46                lda R6
-   129a   c2 12 a5          lbz COMMAND_CHECK_INSERTZERO
-   129d   fb 20             xri 32
-   129f   c2 12 a6          lbz COMMAND_CHECK_REPLACESPACE
-   12a2   c0 12 99          lbr COMMAND_CHECK_GOTOSPACE
+   1423                 COMMAND_CHECK_GOTOSPACE
+   1423   46                lda R6
+   1424   c2 14 2f          lbz COMMAND_CHECK_INSERTZERO
+   1427   fb 20             xri 32
+   1429   c2 14 30          lbz COMMAND_CHECK_REPLACESPACE
+   142c   c0 14 23          lbr COMMAND_CHECK_GOTOSPACE
                             
-   12a5                 COMMAND_CHECK_INSERTZERO
-   12a5   56                str R6
-   12a6                 COMMAND_CHECK_REPLACESPACE
-   12a6   26                dec R6
-   12a7   56                str R6
-   12a8   16                inc R6
+   142f                 COMMAND_CHECK_INSERTZERO
+   142f   56                str R6
+   1430                 COMMAND_CHECK_REPLACESPACE
+   1430   26                dec R6
+   1431   56                str R6
+   1432   16                inc R6
                             
-   12a9                 COMMAND_CHECK_LOOP
-   12a9   84                glo R4
-   12aa   a8                plo R8
-   12ab   94                ghi R4
-   12ac   b8                phi R8
+   1433                 COMMAND_CHECK_LOOP
+   1433   84                glo R4
+   1434   a8                plo R8
+   1435   94                ghi R4
+   1436   b8                phi R8
                             
-   12ad   09                ldn R9
-   12ae   c2 12 d6          lbz COMMAND_CHECK_END
+   1437   09                ldn R9
+   1438   c2 14 60          lbz COMMAND_CHECK_END
                         
-   12b1   f8 c0             ldi STR_COMPARATOR.0
-   12b3   ad                plo CALL_REG
-   12b4   f8 01             ldi STR_COMPARATOR.1
-   12b6   bd                phi CALL_REG
+   143b   f8 c0             ldi STR_COMPARATOR.0
+   143d   ad                plo CALL_REG
+   143e   f8 01             ldi STR_COMPARATOR.1
+   1440   bd                phi CALL_REG
                             
-   12b7   f8 00             ldi FCALL.0
-   12b9   ae                plo FCALL_REG
-   12ba   de                sep FCALL_REG
+   1441   f8 00             ldi FCALL.0
+   1443   ae                plo FCALL_REG
+   1444   de                sep FCALL_REG
                             
-   12bb   8a                glo R10
-   12bc   ca 12 c9          lbnz COMMAND_CHECK_EXEC
+   1445   8a                glo R10
+   1446   ca 14 53          lbnz COMMAND_CHECK_EXEC
                             
-   12bf                 COMMAND_CHECK_STR_END
-   12bf   09                ldn R9
-   12c0   19                inc R9
-   12c1   ca 12 bf          lbnz COMMAND_CHECK_STR_END
+   1449                 COMMAND_CHECK_STR_END
+   1449   09                ldn R9
+   144a   19                inc R9
+   144b   ca 14 49          lbnz COMMAND_CHECK_STR_END
                             
-   12c4   15                inc R5
-   12c5   15                inc R5
-   12c6   c0 12 a9          lbr COMMAND_CHECK_LOOP
+   144e   15                inc R5
+   144f   15                inc R5
+   1450   c0 14 33          lbr COMMAND_CHECK_LOOP
                             
-   12c9                 COMMAND_CHECK_EXEC
-   12c9   86                glo R6
-   12ca   a4                plo R4
-   12cb   96                ghi R6
-   12cc   b4                phi R4
+   1453                 COMMAND_CHECK_EXEC
+   1453   86                glo R6
+   1454   a4                plo R4
+   1455   96                ghi R6
+   1456   b4                phi R4
                             
-   12cd   45                lda R5
-   12ce   ad                plo CALL_REG
-   12cf   05                ldn R5
-   12d0   bd                phi CALL_REG
+   1457   45                lda R5
+   1458   ad                plo CALL_REG
+   1459   05                ldn R5
+   145a   bd                phi CALL_REG
                             
-   12d1   f8 00             ldi FCALL.0
-   12d3   ae                plo FCALL_REG
-   12d4   de                sep FCALL_REG
+   145b   f8 00             ldi FCALL.0
+   145d   ae                plo FCALL_REG
+   145e   de                sep FCALL_REG
                             
-   12d5   de                sep RETURN
+   145f   de                sep RETURN
                             
-   12d6                 COMMAND_CHECK_END
-   12d6   f8 95             ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
-   12d8   a6                plo R6
-   12d9   f8 13             ldi UNKNOWN_COMMAND.1
-   12db   b6                phi R6
+   1460                 COMMAND_CHECK_END
+   1460   f8 25             ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
+   1462   a6                plo R6
+   1463   f8 15             ldi UNKNOWN_COMMAND.1
+   1465   b6                phi R6
                         	
-   12dc   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   12de   ad                plo CALL_REG
-   12df   f8 01             ldi PRINT.1
-   12e1   bd                phi CALL_REG
+   1466   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1468   ad                plo CALL_REG
+   1469   f8 01             ldi PRINT.1
+   146b   bd                phi CALL_REG
                             
-   12e2   f8 00             ldi FCALL.0
-   12e4   ae                plo FCALL_REG
-   12e5   de                sep FCALL_REG   ;call PRINT
+   146c   f8 00             ldi FCALL.0
+   146e   ae                plo FCALL_REG
+   146f   de                sep FCALL_REG   ;call PRINT
                             
-   12e6   de                sep RETURN
+   1470   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-MAIN-----------------------------------------
-   12e7                 MAIN_PROGRAM
-   12e7   f8 50             ldi DYN_MEMORY_INIT.0     ;heap init
-   12e9   ad                plo CALL_REG
-   12ea   f8 09             ldi DYN_MEMORY_INIT.1
-   12ec   bd                phi CALL_REG
+   1471                 MAIN_PROGRAM
+   1471   f8 50             ldi DYN_MEMORY_INIT.0     ;heap init
+   1473   ad                plo CALL_REG
+   1474   f8 09             ldi DYN_MEMORY_INIT.1
+   1476   bd                phi CALL_REG
                             
-   12ed   f8 00             ldi FCALL.0
-   12ef   ae                plo FCALL_REG
-   12f0   de                sep FCALL_REG   ;call heap init
+   1477   f8 00             ldi FCALL.0
+   1479   ae                plo FCALL_REG
+   147a   de                sep FCALL_REG   ;call heap init
                             
-   12f1   f8 34             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
-   12f3   a6                plo R6
-   12f4   f8 13             ldi BOOT_MSG.1
-   12f6   b6                phi R6
+   147b   f8 be             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
+   147d   a6                plo R6
+   147e   f8 14             ldi BOOT_MSG.1
+   1480   b6                phi R6
                         	
-   12f7   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   12f9   ad                plo CALL_REG
-   12fa   f8 01             ldi PRINT.1
-   12fc   bd                phi CALL_REG
+   1481   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1483   ad                plo CALL_REG
+   1484   f8 01             ldi PRINT.1
+   1486   bd                phi CALL_REG
                             
-   12fd   f8 00             ldi FCALL.0
-   12ff   ae                plo FCALL_REG
-   1300   de                sep FCALL_REG   ;call PRINT
+   1487   f8 00             ldi FCALL.0
+   1489   ae                plo FCALL_REG
+   148a   de                sep FCALL_REG   ;call PRINT
                         
-   1301                 ASK_INPUT
-   1301   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
-   1303   a7                plo R7
-   1304   f8 20             ldi INPUT_BUFF.1
-   1306   b7                phi R7
+   148b                 ASK_INPUT
+   148b   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
+   148d   a7                plo R7
+   148e   f8 20             ldi INPUT_BUFF.1
+   1490   b7                phi R7
                             
-   1307   f8 68             ldi READLINE.0      ;prepare to call READLINE
-   1309   ad                plo CALL_REG
-   130a   f8 01             ldi READLINE.1
-   130c   bd                phi CALL_REG
+   1491   f8 68             ldi READLINE.0      ;prepare to call READLINE
+   1493   ad                plo CALL_REG
+   1494   f8 01             ldi READLINE.1
+   1496   bd                phi CALL_REG
                             
-   130d   f8 00             ldi FCALL.0
-   130f   ae                plo FCALL_REG
-   1310   de                sep FCALL_REG       ;call READLINE
+   1497   f8 00             ldi FCALL.0
+   1499   ae                plo FCALL_REG
+   149a   de                sep FCALL_REG       ;call READLINE
                             
                             ;Program goes here
-   1311   f8 00             ldi INPUT_BUFF.0
-   1313   a4                plo R4
-   1314   f8 20             ldi INPUT_BUFF.1
-   1316   b4                phi R4
+   149b   f8 00             ldi INPUT_BUFF.0
+   149d   a4                plo R4
+   149e   f8 20             ldi INPUT_BUFF.1
+   14a0   b4                phi R4
                             
-   1317   f8 89             ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
-   1319   ad                plo CALL_REG
-   131a   f8 12             ldi COMMAND_CHECK.1
-   131c   bd                phi CALL_REG
+   14a1   f8 13             ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
+   14a3   ad                plo CALL_REG
+   14a4   f8 14             ldi COMMAND_CHECK.1
+   14a6   bd                phi CALL_REG
                             
-   131d   f8 00             ldi FCALL.0
-   131f   ae                plo FCALL_REG
-   1320   de                sep FCALL_REG
+   14a7   f8 00             ldi FCALL.0
+   14a9   ae                plo FCALL_REG
+   14aa   de                sep FCALL_REG
                             ;Program ends here
                             
-   1321   f8 57             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
-   1323   a6                plo R6
-   1324   f8 13             ldi ASK_IN.1
-   1326   b6                phi R6
+   14ab   f8 e1             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
+   14ad   a6                plo R6
+   14ae   f8 14             ldi ASK_IN.1
+   14b0   b6                phi R6
                             
-   1327   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   1329   ad                plo CALL_REG
-   132a   f8 01             ldi PRINT.1
-   132c   bd                phi CALL_REG
+   14b1   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   14b3   ad                plo CALL_REG
+   14b4   f8 01             ldi PRINT.1
+   14b6   bd                phi CALL_REG
                             
-   132d   f8 00             ldi FCALL.0
-   132f   ae                plo FCALL_REG
-   1330   de                sep FCALL_REG       ;call PRINT
+   14b7   f8 00             ldi FCALL.0
+   14b9   ae                plo FCALL_REG
+   14ba   de                sep FCALL_REG       ;call PRINT
                         	
-   1331   c0 13 01          lbr ASK_INPUT
+   14bb   c0 14 8b          lbr ASK_INPUT
                         ;----------------------------------------------
                         
                         ;-CONSTANT DATA--------------------------------
-   1334                 BOOT_MSG
-   1334   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
-   1338   20 2d 20 43   
-   133c   44 50 31 38   
-   1340   30 32 20 54   
-   1344   65 72 6d 69   
-   1348   6e 61 6c 2e   
-   134c   0d 0a 0d 0a   
-   1350   52 45 41 44   
-   1354   59 0d 0a      
-   1357                 ASK_IN
-   1357   0d 0a 3e 00       db "\r\n>",0
-   135b                 NEW_LINE
-   135b   0d 0a 00          db "\r\n",0
-   135e                 COMMAND_LIST
-   135e   70 72 69 6e       db "print",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
-   1362   74 00 6d 65   
-   1366   6d 5f 76 69   
-   136a   65 77 00 6d   
-   136e   65 6d 5f 64   
-   1372   65 62 75 67   
-   1376   00 6d 65 6d   
-   137a   5f 61 6c 6c   
-   137e   6f 63 00 6d   
-   1382   65 6d 5f 66   
-   1386   72 65 65 00   
-   138a   00            
-   138b                 COMMAND_FUNC_LIST
-   138b   48 12             db FUNC_TEST.0,FUNC_TEST.1
-   138d   cd 11             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
-   138f   a8 09             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
-   1391   14 10             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
-   1393   2d 11             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
-   1395                 UNKNOWN_COMMAND
-   1395   55 6e 6b 6e       db "Unknown command.\r\n",0
-   1399   6f 77 6e 20   
-   139d   63 6f 6d 6d   
-   13a1   61 6e 64 2e   
-   13a5   0d 0a 00      
-   13a8                 TEST_RESP
-   13a8   45 76 65 72       db "Everything is ok!",0
-   13ac   79 74 68 69   
-   13b0   6e 67 20 69   
-   13b4   73 20 6f 6b   
-   13b8   21 00         
+   14be                 BOOT_MSG
+   14be   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
+   14c2   20 2d 20 43   
+   14c6   44 50 31 38   
+   14ca   30 32 20 54   
+   14ce   65 72 6d 69   
+   14d2   6e 61 6c 2e   
+   14d6   0d 0a 0d 0a   
+   14da   52 45 41 44   
+   14de   59 0d 0a      
+   14e1                 ASK_IN
+   14e1   0d 0a 3e 00       db "\r\n>",0
+   14e5                 NEW_LINE
+   14e5   0d 0a 00          db "\r\n",0
+   14e8                 COMMAND_LIST
+   14e8   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
+   14ec   74 00 6c 65   
+   14f0   74 00 6d 65   
+   14f4   6d 5f 76 69   
+   14f8   65 77 00 6d   
+   14fc   65 6d 5f 64   
+   1500   65 62 75 67   
+   1504   00 6d 65 6d   
+   1508   5f 61 6c 6c   
+   150c   6f 63 00 6d   
+   1510   65 6d 5f 66   
+   1514   72 65 65 00   
+   1518   00            
+   1519                 COMMAND_FUNC_LIST
+   1519   d2 13             db FUNC_TEST.0,FUNC_TEST.1
+   151b   73 0d             db LET_STATEMENT.0,LET_STATEMENT.1
+   151d   57 13             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+   151f   a8 09             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
+   1521   9a 11             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
+   1523   b5 12             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
+   1525                 UNKNOWN_COMMAND
+   1525   55 6e 6b 6e       db "Unknown command.\r\n",0
+   1529   6f 77 6e 20   
+   152d   63 6f 6d 6d   
+   1531   61 6e 64 2e   
+   1535   0d 0a 00      
+   1538                 TEST_RESP
+   1538   45 76 65 72       db "Everything is ok!",0
+   153c   79 74 68 69   
+   1540   6e 67 20 69   
+   1544   73 20 6f 6b   
+   1548   21 00         
                         
-   13ba                     end
-1357  ASK_IN        1301  ASK_INPUT     0164  BACKSPACE_ACTION    1334  BOOT_MSG  
-000d  CALL_REG      0283  CARRY_SHIFTING    1289  COMMAND_CHECK    12d6  COMMAND_CHECK_END
-12c9  COMMAND_CHECK_EXEC    1299  COMMAND_CHECK_GOTOSPACE    12a5  COMMAND_CHECK_INSERTZERO    12a9  COMMAND_CHECK_LOOP
-12a6  COMMAND_CHECK_REPLACESPACE    12bf  COMMAND_CHECK_STR_END    138b  COMMAND_FUNC_LIST    135e  COMMAND_LIST
+   154a                     end
+14e1  ASK_IN        148b  ASK_INPUT     0164  BACKSPACE_ACTION    14be  BOOT_MSG  
+000d  CALL_REG      0283  CARRY_SHIFTING    1413  COMMAND_CHECK    1460  COMMAND_CHECK_END
+1453  COMMAND_CHECK_EXEC    1423  COMMAND_CHECK_GOTOSPACE    142f  COMMAND_CHECK_INSERTZERO    1433  COMMAND_CHECK_LOOP
+1430  COMMAND_CHECK_REPLACESPACE    1449  COMMAND_CHECK_STR_END    1519  COMMAND_FUNC_LIST    14e8  COMMAND_LIST
 028d  DIVISION_LOOP    3000  DMA_ADDRESS    0013  DMA_INIT      0000  DMA_REG   
-0ae7  DYN_MEMORY_ALLOC    1014  DYN_MEMORY_ALLOC_CALLER    10c4  DYN_MEMORY_ALLOC_CALLER_END    1047  DYN_MEMORY_ALLOC_CALLER_FAIL
-0fcc  DYN_MEMORY_ALLOC_CALLER_STR1    1003  DYN_MEMORY_ALLOC_CALLER_STR2    105a  DYN_MEMORY_ALLOC_CALLER_SUCCESS    0c20  DYN_MEMORY_ALLOC_END
-0b13  DYN_MEMORY_ALLOC_MAINLOOP    0beb  DYN_MEMORY_ALLOC_NEXTADDRESS    0c05  DYN_MEMORY_ALLOC_NEXTPASS    0b60  DYN_MEMORY_ALLOC_SIZEBIGGER
-0b4d  DYN_MEMORY_ALLOC_SIZEEQ    09a8  DYN_MEMORY_DEBUG    0ade  DYN_MEMORY_DEBUG_END    0aa3  DYN_MEMORY_DEBUG_FREE
+0ae7  DYN_MEMORY_ALLOC    119a  DYN_MEMORY_ALLOC_CALLER    124c  DYN_MEMORY_ALLOC_CALLER_END    11cf  DYN_MEMORY_ALLOC_CALLER_FAIL
+1152  DYN_MEMORY_ALLOC_CALLER_STR1    1189  DYN_MEMORY_ALLOC_CALLER_STR2    11e2  DYN_MEMORY_ALLOC_CALLER_SUCCESS    0c30  DYN_MEMORY_ALLOC_END
+0b23  DYN_MEMORY_ALLOC_MAINLOOP    0bfb  DYN_MEMORY_ALLOC_NEXTADDRESS    0c15  DYN_MEMORY_ALLOC_NEXTPASS    0b70  DYN_MEMORY_ALLOC_SIZEBIGGER
+0b5d  DYN_MEMORY_ALLOC_SIZEEQ    09a8  DYN_MEMORY_DEBUG    0ade  DYN_MEMORY_DEBUG_END    0aa3  DYN_MEMORY_DEBUG_FREE
 09c2  DYN_MEMORY_DEBUG_MAINLOOP    0aa9  DYN_MEMORY_DEBUG_NEXTADDRESS    0a05  DYN_MEMORY_DEBUG_PRINT    0973  DYN_MEMORY_DEBUG_STR
-099a  DYN_MEMORY_DEBUG_STR_FREE    09a1  DYN_MEMORY_DEBUG_STR_USED    0c29  DYN_MEMORY_FREE    112d  DYN_MEMORY_FREE_CALLER
-11c4  DYN_MEMORY_FREE_CALLER_END    11b4  DYN_MEMORY_FREE_CALLER_OUTOFRANGE    10cd  DYN_MEMORY_FREE_CALLER_STR1    1102  DYN_MEMORY_FREE_CALLER_STR2
-0cc0  DYN_MEMORY_FREE_END    0c61  DYN_MEMORY_FREE_MERGE    0c81  DYN_MEMORY_FREE_MERGELOOP    0c52  DYN_MEMORY_FREE_NEXTCHECK
-0cb9  DYN_MEMORY_FREE_SETPREVIOUS    0950  DYN_MEMORY_INIT    017a  END_LINE      0855  EXPRESSION
+099a  DYN_MEMORY_DEBUG_STR_FREE    09a1  DYN_MEMORY_DEBUG_STR_USED    0c4a  DYN_MEMORY_FREE    12b5  DYN_MEMORY_FREE_CALLER
+134e  DYN_MEMORY_FREE_CALLER_END    133e  DYN_MEMORY_FREE_CALLER_OUTOFRANGE    1255  DYN_MEMORY_FREE_CALLER_STR1    128a  DYN_MEMORY_FREE_CALLER_STR2
+0ce1  DYN_MEMORY_FREE_END    0c82  DYN_MEMORY_FREE_MERGE    0ca2  DYN_MEMORY_FREE_MERGELOOP    0c73  DYN_MEMORY_FREE_NEXTCHECK
+0cda  DYN_MEMORY_FREE_SETPREVIOUS    0950  DYN_MEMORY_INIT    017a  END_LINE      0855  EXPRESSION
 088a  EXPRESSION_ADD    08c4  EXPRESSION_ADD_LOOP    093f  EXPRESSION_END    0876  EXPRESSION_MAIN
 093b  EXPRESSION_NEXT_CYCLE    0866  EXPRESSION_SKIPSPACES    08e3  EXPRESSION_SUB    091d  EXPRESSION_SUB_LOOP
 06b0  FACTOR        072f  FACTOR_END    0755  FACTOR_FINAL    074a  FACTOR_INVERTING
 06bc  FACTOR_MAIN    0720  FACTOR_NEGATE    072b  FACTOR_NEXT_CYCLE    0706  FACTOR_PARENTHESIS
 0711  FACTOR_PARENTHESIS_SKIPSPACES    06eb  FACTOR_READ_DEC    06f8  FACTOR_READ_HEX    0100  FCALL     
 000e  FCALL_REG     031f  FINAL_CHECK    0343  FINAL_CHECK2    010a  FRETURN   
-1248  FUNC_TEST     fc00  HEAP_END      2100  HEAP_LASTADDRESS    2110  HEAP_START
-0d86  HEXVIEWER     0fc3  HEXVIEWER_END    0dfd  HEXVIEWER_MAINLOOP    0e79  HEXVIEWER_NEXT_HEX
-0f38  HEXVIEWER_NEXT_STR    0e25  HEXVIEWER_PRINT_HEX_LOOP    0e69  HEXVIEWER_PRINT_HEX_SPACES    0f1c  HEXVIEWER_PRINT_STR_DOT
-0ed9  HEXVIEWER_PRINT_STR_LOOP    0f2b  HEXVIEWER_PRINT_STR_SPACE    11cd  HEXVIEW_CALLER    1236  HEXVIEW_CALLER_END
-1217  HEXVIEW_CALLER_EXEC    1208  HEXVIEW_CALLER_NEXTARG    0cdd  HEX_BASE_SRT    0412  HEX_CHARS 
-0cf0  HEX_HEADER_STR    0d81  HEX_LINECNT_SEPARATOR    2000  INPUT_BUFF    01d4  INTEGER_DIV
+13d2  FUNC_TEST     0cfe  GET_STRING    0d31  GET_STRING_ADDLEN    0d3b  GET_STRING_ALLOCATE_MEM
+0d50  GET_STRING_COPY    0d5d  GET_STRING_COPY_LOOP    0d67  GET_STRING_END    0d11  GET_STRING_LEN
+0d35  GET_STRING_LEN_END    fc00  HEAP_END      2106  HEAP_LASTADDRESS    2110  HEAP_START
+0f0c  HEXVIEWER     1149  HEXVIEWER_END    0f83  HEXVIEWER_MAINLOOP    0fff  HEXVIEWER_NEXT_HEX
+10be  HEXVIEWER_NEXT_STR    0fab  HEXVIEWER_PRINT_HEX_LOOP    0fef  HEXVIEWER_PRINT_HEX_SPACES    10a2  HEXVIEWER_PRINT_STR_DOT
+105f  HEXVIEWER_PRINT_STR_LOOP    10b1  HEXVIEWER_PRINT_STR_SPACE    1357  HEXVIEW_CALLER    13c0  HEXVIEW_CALLER_END
+13a1  HEXVIEW_CALLER_EXEC    1392  HEXVIEW_CALLER_NEXTARG    0e63  HEX_BASE_SRT    0412  HEX_CHARS 
+0e76  HEX_HEADER_STR    0f07  HEX_LINECNT_SEPARATOR    2000  INPUT_BUFF    01d4  INTEGER_DIV
 0224  INTEGER_DIV_INVERT_LOOP1    0234  INTEGER_DIV_NEXT_CHECK    0372  INTEGER_MUL    03d3  INTEGER_MUL_ADD
 0409  INTEGER_MUL_END    039f  INTEGER_MUL_LOOP    03dc  INTEGER_MUL_SHIFT    03fd  INTEGER_MUL_SHMULTIPLICAND
 03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR    0001  INTP_REG      0002  INTX_REG  
-0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4    12e7  MAIN_PROGRAM
-135b  NEW_LINE      0307  NEXT_BIT      0003  PC_REG        0152  PRINT     
+0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4    0d73  LET_STATEMENT
+0e02  LET_STATEMENT_ADDNODE    0df3  LET_STATEMENT_ADDVAR    0d9d  LET_STATEMENT_CONTINUE1    0dc3  LET_STATEMENT_CONTINUE2
+0e4d  LET_STATEMENT_END    0de8  LET_STATEMENT_EXPRESSION    0e22  LET_STATEMENT_FIRSTNODE    0e3d  LET_STATEMENT_FREENODE
+0dd8  LET_STATEMENT_MAINLOOP    0de5  LET_STATEMENT_NEXTCHARACTER    0dac  LET_STATEMENT_SKIPSPACES    1471  MAIN_PROGRAM
+14e5  NEW_LINE      0307  NEXT_BIT      0003  PC_REG        0152  PRINT     
 045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC     0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL
 0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX 
 048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10       
@@ -4755,6 +5217,6 @@
 01aa  STORE_CHAR    01c3  STR_CHARCHECK    01c0  STR_COMPARATOR    01c9  STR_EQUAL 
 01d0  STR_INC       02fd  SUBTRACT_FOR_REAL    075e  TERM          0785  TERM_DIVIDE
 0843  TERM_END      0771  TERM_MAIN     07ea  TERM_MULTIPLY    083f  TERM_NEXT_CYCLE
-13a8  TEST_RESP     123f  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING
-1395  UNKNOWN_COMMAND    
+1538  TEST_RESP     13c9  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING
+1525  UNKNOWN_COMMAND    2100  VARLIST_COUNT    2102  VARLIST_FIRSTNODE    2104  VARLIST_LASTNODE
 

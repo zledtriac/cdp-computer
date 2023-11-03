@@ -22,7 +22,11 @@ DMA_ADDRESS EQU 03000h
 
 INPUT_BUFF EQU 02000h
 
-HEAP_LASTADDRESS EQU 02100h
+VARLIST_COUNT EQU 02100h
+VARLIST_FIRSTNODE EQU 02102h
+VARLIST_LASTNODE EQU 02104h
+
+HEAP_LASTADDRESS EQU 02106h
 HEAP_START EQU 02110h
 HEAP_END EQU 0FC00h
 
@@ -3334,7 +3338,7 @@ GET_STRING
     plo R5
     phi R5
     
-    glo R10
+    plo R10
     phi R10
 
 GET_STRING_LEN
@@ -3419,9 +3423,9 @@ GET_STRING_COPY_LOOP
     
     ldi 0
     str R6                          ;terminate the string
-    dec R4
 
 GET_STRING_END
+    irx
     irx
     irx
     
@@ -3440,17 +3444,81 @@ GET_STRING_END
 
 ;-LET-STATEMENT--------------------------------
 ;-R4-Input string------------------------------
+;-Local registres------------------------------
+;-R5-R6-R7-------------------------------------
 LET_STATEMENT
     sex STACK_REG
     
-LET_STATEMENT_SKIPSPACES
+    ghi R5
+    stxd
+    glo R5
+    stxd
+    
+    ghi R6
+    stxd
+    glo R6
+    stxd
+    
+    ghi R7
+    stxd
+    glo R7
+    stxd
+    
+    ghi R4          ;saving R4 value
+    stxd
+    glo R4
+    stxd            ;+3 inputString
+    
+    ldi 0
+    stxd
+    stxd            ;+1 variableNode address
+    
+    phi R4          ;R4 = 8
+    ldi 8
+    plo R4
+    
+    ldi DYN_MEMORY_ALLOC.0          ;call DYN_MEMORY_ALLOC
+    plo CALL_REG                    ;Allocating memory for the variable node
+    ldi DYN_MEMORY_ALLOC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10
+    bnz LET_STATEMENT_CONTINUE1
+    ghi R10
+    lbz LET_STATEMENT_END            ;if R10 == 0
+    
+LET_STATEMENT_CONTINUE1
+    glo STACK_REG                   ;set R5 pointer to variableNode address
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    glo R10                         ;store R10 to variableNode address
+    str R5
+    inc R5
+    
+    ghi R10
+    str R5
+    inc R5
+
+    lda R5                          ;restore R4 inputString
+    plo R4
+    lda R5
+    phi R4
+    
+LET_STATEMENT_SKIPSPACES            ;skipping spaces
     lda R4
     xri 32
     bz LET_STATEMENT_SKIPSPACES
     
     dec R4
     
-    ldi GET_STRING.0         ;call GET_STRING
+    ldi GET_STRING.0                ;call GET_STRING
     plo CALL_REG
     ldi GET_STRING.1
     phi CALL_REG
@@ -3458,8 +3526,196 @@ LET_STATEMENT_SKIPSPACES
     ldi FCALL.0
     plo FCALL_REG
     sep FCALL_REG
+    
+    glo R10
+    bnz LET_STATEMENT_CONTINUE2
+    ghi R10
+    lbz LET_STATEMENT_FREENODE       ;if allocating failed
 
+LET_STATEMENT_CONTINUE2
+    glo STACK_REG
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6                          ;set R6 to variableNode address
+    plo R5
+    lda R6
+    phi R5
+    
+    ldi 0                           ;set variableNode->nextNode to 0
+    str R5
+    inc R5
+    
+    str R5
+    inc R5
+    
+    glo R10                         ;store R10 to variableNode->name
+    str R5
+    inc R5
+    
+    ghi R10
+    str R5
+    inc R5
+    
+LET_STATEMENT_MAINLOOP
+    ldn R4
+    xri 32
+    bz LET_STATEMENT_NEXTCHARACTER      ;if ' '
+    ldn R4
+    xri 61
+    bz LET_STATEMENT_EXPRESSION         ;if '='
+    
+    lbr LET_STATEMENT_END
+
+LET_STATEMENT_NEXTCHARACTER
+    inc R4
+    br LET_STATEMENT_MAINLOOP
+
+LET_STATEMENT_EXPRESSION
+    inc R4
+    
+    ldi EXPRESSION.0         ;call EXPRESSION
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+LET_STATEMENT_ADDVAR
+    ldi VARLIST_COUNT.0
+    plo R5
+    ldi VARLIST_COUNT.1
+    phi R5
+    
+    sex R5
+    
+    lda R5
+    lbnz LET_STATEMENT_ADDNODE
+    ldn R5
+    lbz LET_STATEMENT_FIRSTNODE
+    
+LET_STATEMENT_ADDNODE
+    dec R5                          ;reset R5 to the VARLIST header
+    
+    ldi 1                           ;increment the VARLIST_COUNT by one
+    add
+    str R5
+    inc R5
+    
+    ldi 0
+    adc
+    str R5
+    inc R5
+    
+    inc R5                          ;skip VARLIST_FIRSTNODE
+    inc R5
+    
+    lda R5                          ;read VARLIST_LASTNODE
+    plo R7                          ;and place the address to R7
+    ldn R5
+    phi R7
+    
+    dec R5                          ;set R5 back to VARLIST_LASTNODE
+    
+    dec R6                          ;reset R6 to variableNode
+    dec R6
+    
+    lda R6                          ;load address and store it to address R7 and R5
+    str R7
+    str R5
+    inc R7
+    inc R5
+    
+    lda R6
+    str R7
+    str R5
+    inc R7
+    inc R5
+    
+    br LET_STATEMENT_END
+
+LET_STATEMENT_FIRSTNODE
+    dec R5                          ;reset R5 to the VARLIST header
+    
+    ldi 1                           ;set VARLIST_COUNT to one
+    str R5
+    inc R5
+    
+    ldi 0
+    str R5
+    inc R5
+    
+    dec R6                          ;reset R6 to variableNode
+    dec R6
+    
+    lda R6                          ;load address and store it to VARLIST_FIRSTNODE
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    dec R6                          ;reset R6 to variableNode
+    dec R6
+    
+    lda R6                          ;load address and store it to VARLIST_LASTNODE
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    br LET_STATEMENT_END
+
+LET_STATEMENT_FREENODE
+    dec R5
+    dec R5
+    
+    lda R5
+    plo R4
+    lda R5
+    phi R4
+    
+    ldi DYN_MEMORY_FREE.0         ;call DYN_MEMORY_FREE
+    plo CALL_REG
+    ldi DYN_MEMORY_FREE.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
 LET_STATEMENT_END
+    glo STACK_REG
+    adi 5
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R7
+    ldxa
+    phi R7
+    
+    ldxa
+    plo R6
+    ldxa
+    phi R6
+    
+    ldxa
+    plo R5
+    ldx
+    phi R5
+    
     sep RETURN
 ;----------------------------------------------
 
@@ -4111,9 +4367,9 @@ DYN_MEMORY_ALLOC_CALLER
     sep FCALL_REG
     
     glo R10                                 ;check if R10 has a value, if it is 0 then it failed
-    bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+    lbnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
     ghi R10
-    bnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
+    lbnz DYN_MEMORY_ALLOC_CALLER_SUCCESS
     
 DYN_MEMORY_ALLOC_CALLER_FAIL
     ldi DYN_MEMORY_ALLOC_CALLER_STR2.0      ;print out of memory
@@ -4288,7 +4544,7 @@ DYN_MEMORY_FREE_CALLER
     
     dec R5
     
-    bm DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+    lbnf DYN_MEMORY_FREE_CALLER_OUTOFRANGE
     
     ldi HEAP_END.0
     sd
@@ -4298,7 +4554,7 @@ DYN_MEMORY_FREE_CALLER
     
     dec R5
     
-    bpz DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+    lbdf DYN_MEMORY_FREE_CALLER_OUTOFRANGE
     
     ldxa
     plo R4
@@ -4772,9 +5028,10 @@ ASK_IN
 NEW_LINE
     db "\r\n",0
 COMMAND_LIST
-    db "print",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
+    db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
+    db LET_STATEMENT.0,LET_STATEMENT.1
     db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
     db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
     db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
