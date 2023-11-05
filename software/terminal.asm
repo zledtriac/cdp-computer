@@ -3311,6 +3311,28 @@ DYN_MEMORY_FREE_END
     sep RETURN
 ;----------------------------------------------
 
+;-VAR-LIST-INIT--------------------------------
+VAR_LIST_INIT
+    ldi VARLIST_COUNT.0
+    plo R4
+    ldi VARLIST_COUNT.1
+    phi R4
+    
+    ldi 6
+    plo R5
+
+VAR_LIST_INIT_LOOP
+    ldi 0
+    str R4
+    inc R4
+    
+    dec R5
+    glo R5
+    bnz VAR_LIST_INIT_LOOP
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-GET-STRING-----------------------------------
 ;-R4-Input string------------------------------
 ;-R10-New string address-----------------------
@@ -4949,6 +4971,15 @@ COMMAND_CHECK_END
 
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
+    ldi VAR_LIST_INIT.0       ;variable list init
+    plo CALL_REG
+    ldi VAR_LIST_INIT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
     ldi DYN_MEMORY_INIT.0     ;heap init
     plo CALL_REG
     ldi DYN_MEMORY_INIT.1
