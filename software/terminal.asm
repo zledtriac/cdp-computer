@@ -3698,6 +3698,8 @@ LET_STATEMENT_FIRSTNODE
 LET_STATEMENT_FREENODE
     dec R5
     dec R5
+    dec R5
+    dec R5
     
     lda R5
     plo R4
