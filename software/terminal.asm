@@ -2827,14 +2827,14 @@ DYN_MEMORY_ALLOC_MAINLOOP
     adci 0
     phi R6
     
-    lda R6                          ;currentSize == size
-    xor
+    ldn R6                          ;currentSize == size
+    sd
+    bnz DYN_MEMORY_ALLOC_SIZEBIGGER
     irx
-    sex R6
-    or
-    sex R4
-    xor
-    
+    inc R6
+    ldn R6
+    sdb
+
     dec R6                              ;set back R6
     dec R4                              ;set back R4
     
