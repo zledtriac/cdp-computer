@@ -1645,6 +1645,186 @@ READ_HEX_END
     sep RETURN
 ;----------------------------------------------
 
+;-READ-VAR-------------------------------------
+READ_VAR
+    sex STACK_REG
+    
+    ghi R5
+    stxd
+    glo R5
+    stxd                            ;+5 result pointer
+    
+    ldi 0
+    stxd
+    stxd                            ;+3 variableName address
+    
+    stxd
+    stxd                            ;+1 string address
+    
+    ldi GET_STRING.0                ;call GET_STRING
+    plo CALL_REG
+    ldi GET_STRING.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10                         ;if R10 == 0 then end, else continue
+    bnz READ_VAR_CONTINUE
+    plo R10
+    lbz READ_VAR_END
+    
+READ_VAR_CONTINUE
+    glo STACK_REG                   ;set R5 pointer to string address
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    glo R10                         ;store string address and set R9
+    plo R9
+    str R5
+    inc R5
+    
+    ghi R10
+    phi R9
+    str R5
+    
+    ldi VARLIST_FIRSTNODE.0         ;load the first node address
+    plo R5
+    ldi VARLIST_FIRSTNODE.1
+    phi R5
+    
+READ_VAR_SEARCHLOOP
+    glo R5                              ;test if the address in R5 is zero or not.
+    bnz READ_VAR_SEARCHLOOP_CONTINUE
+    ghi R5
+    lbz READ_VAR_END
+    
+READ_VAR_SEARCHLOOP_CONTINUE
+    lda R5                              ;set R6 pointer to node address
+    plo R6
+    lda R5
+    phi R6
+    
+    inc R6                              ;skip next node
+    inc R6
+    
+    lda R6                              ;load variableNode->name address to R8
+    plo R8                              ;for comparing the strings
+    lda R6
+    phi R8
+    
+    ldi STR_COMPARATOR.0                ;call STR_COMPARATOR
+    plo CALL_REG
+    ldi STR_COMPARATOR.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10                             ;if R10 == 1 then READ_VAR_FOUND
+    lbnz READ_VAR_FOUND
+
+READ_VAR_NEXTNODE
+    dec R6                              ;set back R6 to the base of the node
+    dec R6
+    dec R6
+    dec R6
+    
+    lda R6                              ;load next node address to R5
+    plo R5
+    lda R6
+    phi R5
+    
+    glo STACK_REG                       ;set R6 pointer to string address
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6                              ;load string address to R9
+    plo R9
+    lda R6
+    phi R9
+    
+    lbr READ_VAR_SEARCHLOOP
+
+READ_VAR_FOUND
+    glo STACK_REG
+    adi 5                               ;set R7 pointer to result pointer
+    plo R7
+    ghi STACK_REG
+    adci 0
+    phi R7
+    
+    lda R7
+    plo R5
+    lda R7
+    phi R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    
+    br READ_VAR_END
+    
+READ_VAR_NOTFOUND
+    glo STACK_REG
+    adi 5                               ;set R7 pointer to result pointer
+    plo R7
+    ghi STACK_REG
+    adci 0
+    phi R7
+    
+    lda R7
+    plo R5
+    lda R7
+    phi R5
+    
+    ldi 0
+    str R5
+    inc R5
+    
+    str R5
+    inc R5
+    
+    str R5
+    inc R5
+    
+    str R5
+
+READ_VAR_END
+    glo STACK_REG
+    adi 5
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sex STACK_REG
+    
+    ldxa
+    plo R5
+    ldx
+    phi R5
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-FACTOR---------------------------------------
 ;-R4-string pointer----------------------------
 ;-R5-result pointer----------------------------
@@ -2831,14 +3011,14 @@ DYN_MEMORY_ALLOC_MAINLOOP
     adci 0
     phi R6
     
-    lda R6                          ;currentSize == size
-    xor
+    ldn R6                          ;currentSize == size
+    sd
+    lbnz DYN_MEMORY_ALLOC_SIZEBIGGER
     irx
-    sex R6
-    or
-    sex R4
-    xor
-    
+    inc R6
+    ldn R6
+    sdb
+
     dec R6                              ;set back R6
     dec R4                              ;set back R4
     
@@ -3394,7 +3574,7 @@ GET_STRING_LEN_END
     glo R5
     bnz GET_STRING_ALLOCATE_MEM
     ghi R5
-    bz GET_STRING_END               ;if R5 == 0
+    lbz GET_STRING_END               ;if R5 == 0
     
 GET_STRING_ALLOCATE_MEM
     glo R5
@@ -3413,9 +3593,9 @@ GET_STRING_ALLOCATE_MEM
     sep FCALL_REG
     
     glo R10
-    bnz GET_STRING_COPY
+    lbnz GET_STRING_COPY
     ghi R10
-    bz GET_STRING_END               ;if R10 == 0
+    lbz GET_STRING_END               ;if R10 == 0
     
 GET_STRING_COPY
     glo STACK_REG                   ;restore R4
@@ -3658,7 +3838,7 @@ LET_STATEMENT_ADDNODE
     inc R7
     inc R5
     
-    br LET_STATEMENT_END
+    lbr LET_STATEMENT_END
 
 LET_STATEMENT_FIRSTNODE
     dec R5                          ;reset R5 to the VARLIST header
@@ -3693,7 +3873,7 @@ LET_STATEMENT_FIRSTNODE
     str R5
     inc R5
     
-    br LET_STATEMENT_END
+    lbr LET_STATEMENT_END
 
 LET_STATEMENT_FREENODE
     dec R5
@@ -4661,7 +4841,7 @@ DYN_MEMORY_FREE_CALLER
     plo FCALL_REG
     sep FCALL_REG
     
-    br DYN_MEMORY_FREE_CALLER_END
+    lbr DYN_MEMORY_FREE_CALLER_END
     
 DYN_MEMORY_FREE_CALLER_OUTOFRANGE
     ldi DYN_MEMORY_FREE_CALLER_STR2.0
