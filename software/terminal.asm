@@ -1700,7 +1700,7 @@ READ_VAR_SEARCHLOOP
     lda R5                              ;test if the address in R5 is zero or not.
     bnz READ_VAR_SEARCHLOOP_CONTINUE
     ldn R5
-    lbz READ_VAR_END
+    lbz READ_VAR_NOTFOUND
     
 READ_VAR_SEARCHLOOP_CONTINUE
     dec R5
@@ -1715,7 +1715,7 @@ READ_VAR_SEARCHLOOP_CONTINUE
     
     lda R6                              ;load variableNode->name address to R8
     plo R8                              ;for comparing the strings
-    ldn R6
+    lda R6
     phi R8
     
     ldi STR_COMPARATOR.0                ;call STR_COMPARATOR
@@ -1734,10 +1734,11 @@ READ_VAR_NEXTNODE
     dec R6                              ;set back R6 to the base of the node
     dec R6
     dec R6
+    dec R6
     
-    lda R6                              ;load next node address to R5
+    glo R6                              ;load next node address to R5
     plo R5
-    lda R6
+    ghi R6
     phi R5
     
     glo STACK_REG                       ;set R6 pointer to string address

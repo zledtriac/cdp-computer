@@ -1675,7 +1675,7 @@
                             
    06c5   8a                glo R10                         ;if R10 == 0 then end, else continue
    06c6   3a cc             bnz READ_VAR_CONTINUE
-   06c8   aa                plo R10
+   06c8   9a                ghi R10
    06c9   c2 07 40          lbz READ_VAR_END
                             
    06cc                 READ_VAR_CONTINUE
@@ -1703,7 +1703,7 @@
    06de   45                lda R5                              ;test if the address in R5 is zero or not.
    06df   3a e5             bnz READ_VAR_SEARCHLOOP_CONTINUE
    06e1   05                ldn R5
-   06e2   c2 07 40          lbz READ_VAR_END
+   06e2   c2 07 2b          lbz READ_VAR_NOTFOUND
                             
    06e5                 READ_VAR_SEARCHLOOP_CONTINUE
    06e5   25                dec R5
@@ -1739,9 +1739,9 @@
    0700   26                dec R6
    0701   26                dec R6
                             
-   0702   46                lda R6                              ;load next node address to R5
+   0702   86                glo R6                              ;load next node address to R5
    0703   a5                plo R5
-   0704   46                lda R6
+   0704   96                ghi R6
    0705   b5                phi R5
                             
    0706   8f                glo STACK_REG                       ;set R6 pointer to string address
