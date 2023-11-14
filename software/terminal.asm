@@ -1861,12 +1861,40 @@ FACTOR_MAIN
     ldn R4
     xri 40
     lbz FACTOR_PARENTHESIS      ;if '('
+
     ldn R4
     smi 48
     lbnf FACTOR_END             ;if *R4 < '0'
     smi 10
-    lbdf FACTOR_END             ;if *R4 > '9'
+    lbnf FACTOR_READ_NUMBER     ;if *R4 <= '9'
 
+    ldn R4
+    smi 65
+    lbnf FACTOR_END             ;if *R4 < 'A'
+    ldn R4
+    smi 91
+    lbnf FACTOR_VAR             ;if *R4 <= 'Z'
+
+    ldn R4
+    smi 97
+    lbnf FACTOR_END             ;if *R4 < 'a'
+    ldn R4
+    smi 123
+    lbdf FACTOR_END             ;if *R4 > 'z'
+
+FACTOR_VAR
+    ldi READ_VAR.0
+    plo CALL_REG
+    ldi READ_VAR.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lbr FACTOR_END
+
+FACTOR_READ_NUMBER
     ldn R4
     xri 48
     bnz FACTOR_READ_DEC         ;if *R4 != '0'
@@ -3548,29 +3576,29 @@ GET_STRING
 GET_STRING_LEN
     ldn R4                  
     smi 48
-    bm GET_STRING_LEN_END   ;if *R4 < '0'
+    lbnf GET_STRING_LEN_END   ;if *R4 < '0'
     ldn R4
     smi 58
-    bm GET_STRING_ADDLEN    ;if *R4 <= '9'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= '9'
     ldn R4
     smi 65
-    bm GET_STRING_LEN_END   ;if *R4 < 'A'
+    lbnf GET_STRING_LEN_END   ;if *R4 < 'A'
     ldn R4
     smi 91
-    bm GET_STRING_ADDLEN    ;if *R4 <= 'Z'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= 'Z'
     ldn R4
     smi 97
-    bm GET_STRING_LEN_END   ;if *R4 < 'a'
+    lbnf GET_STRING_LEN_END   ;if *R4 < 'a'
     ldn R4
     smi 123
-    bm GET_STRING_ADDLEN    ;if *R4 <= 'z'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= 'z'
     
-    br GET_STRING_LEN_END   ;length checking end
+    lbr GET_STRING_LEN_END   ;length checking end
     
 GET_STRING_ADDLEN
     inc R5                  ;increment R4 and R5
     inc R4
-    br GET_STRING_LEN
+    lbr GET_STRING_LEN
         
 GET_STRING_LEN_END
     glo R5
@@ -5056,65 +5084,6 @@ FUNC_TEST
     sep RETURN
 ;----------------------------------------------
 
-;-READ-VAR-CALLER------------------------------
-READ_VAR_CALLER
-    sex STACK_REG
-
-    ldi 0
-    stxd
-    stxd
-    stxd
-    stxd            ;+1 result
-
-READ_VAR_CALLER_SKIPSPACES
-    lda R4
-    xri 32
-    bz READ_VAR_CALLER_SKIPSPACES
-
-    dec R4
-
-    glo STACK_REG
-    plo R5
-    ghi STACK_REG
-    phi R5
-    inc R5
-
-    ldi READ_VAR.0
-    plo CALL_REG
-    ldi READ_VAR.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
-
-    glo STACK_REG
-    plo R4
-    ghi STACK_REG
-    phi R4
-    inc R4
-
-    ldi 0
-    plo R5
-    
-    ldi PRINT_DEC.0     ;prepare to print the Decimal result.
-    plo CALL_REG
-    ldi PRINT_DEC.1
-    phi CALL_REG
-
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
-
-READ_VAR_CALLER_END
-    inc STACK_REG
-    inc STACK_REG
-    inc STACK_REG
-    inc STACK_REG
-
-    sep RETURN
-;----------------------------------------------
-
 ;-COMMAND-CHECK--------------------------------
 ;-R4-input string------------------------------
 COMMAND_CHECK
@@ -5302,8 +5271,7 @@ ASK_IN
 NEW_LINE
     db "\r\n",0
 COMMAND_LIST
-    db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-    db "read_var",0,0
+    db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -5311,7 +5279,6 @@ COMMAND_FUNC_LIST
     db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
     db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
     db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
-    db READ_VAR_CALLER.0,READ_VAR_CALLER.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
