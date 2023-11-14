@@ -1672,7 +1672,7 @@ READ_VAR
     
     glo R10                         ;if R10 == 0 then end, else continue
     bnz READ_VAR_CONTINUE
-    plo R10
+    ghi R10
     lbz READ_VAR_END
     
 READ_VAR_CONTINUE
@@ -1697,12 +1697,14 @@ READ_VAR_CONTINUE
     phi R5
     
 READ_VAR_SEARCHLOOP
-    glo R5                              ;test if the address in R5 is zero or not.
+    lda R5                              ;test if the address in R5 is zero or not.
     bnz READ_VAR_SEARCHLOOP_CONTINUE
-    ghi R5
-    lbz READ_VAR_END
+    ldn R5
+    lbz READ_VAR_NOTFOUND
     
 READ_VAR_SEARCHLOOP_CONTINUE
+    dec R5
+    
     lda R5                              ;set R6 pointer to node address
     plo R6
     lda R5
@@ -1734,9 +1736,9 @@ READ_VAR_NEXTNODE
     dec R6
     dec R6
     
-    lda R6                              ;load next node address to R5
+    glo R6                              ;load next node address to R5
     plo R5
-    lda R6
+    ghi R6
     phi R5
     
     glo STACK_REG                       ;set R6 pointer to string address
@@ -3574,29 +3576,29 @@ GET_STRING
 GET_STRING_LEN
     ldn R4                  
     smi 48
-    bm GET_STRING_LEN_END   ;if *R4 < '0'
+    lbnf GET_STRING_LEN_END   ;if *R4 < '0'
     ldn R4
     smi 58
-    bm GET_STRING_ADDLEN    ;if *R4 <= '9'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= '9'
     ldn R4
     smi 65
-    bm GET_STRING_LEN_END   ;if *R4 < 'A'
+    lbnf GET_STRING_LEN_END   ;if *R4 < 'A'
     ldn R4
     smi 91
-    bm GET_STRING_ADDLEN    ;if *R4 <= 'Z'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= 'Z'
     ldn R4
     smi 97
-    bm GET_STRING_LEN_END   ;if *R4 < 'a'
+    lbnf GET_STRING_LEN_END   ;if *R4 < 'a'
     ldn R4
     smi 123
-    bm GET_STRING_ADDLEN    ;if *R4 <= 'z'
+    lbnf GET_STRING_ADDLEN    ;if *R4 <= 'z'
     
-    br GET_STRING_LEN_END   ;length checking end
+    lbr GET_STRING_LEN_END   ;length checking end
     
 GET_STRING_ADDLEN
     inc R5                  ;increment R4 and R5
     inc R4
-    br GET_STRING_LEN
+    lbr GET_STRING_LEN
         
 GET_STRING_LEN_END
     glo R5
