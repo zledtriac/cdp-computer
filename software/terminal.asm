@@ -1646,49 +1646,96 @@ READ_HEX_END
 ;----------------------------------------------
 
 ;-READ-VAR-------------------------------------
+;-R4-string pointer----------------------------
+;-R5-result pointer----------------------------
+;-Local registers------------------------------
+;-R6-R7-R8-R9-R10------------------------------
 READ_VAR
     sex STACK_REG
+    
+    ghi R6          ;saving local registers
+    stxd
+    glo R6
+    stxd
+    
+    ghi R7
+    stxd
+    glo R7
+    stxd
+    
+    ghi R8
+    stxd
+    glo R8
+    stxd
+    
+    ghi R9
+    stxd
+    glo R9
+    stxd
+    
+    ghi R10
+    stxd
+    glo R10
+    stxd
     
     ghi R5
     stxd
     glo R5
-    stxd                            ;+5 result pointer
+    stxd                            ;+34 result pointer
     
-    ldi 0
-    stxd
-    stxd                            ;+3 variableName address
+    glo STACK_REG
+    smi 33
+    plo STACK_REG
+    ghi STACK_REG
+    smbi 0
+    phi STACK_REG                   ;+1
     
-    stxd
-    stxd                            ;+1 string address
-    
-    ldi GET_STRING.0                ;call GET_STRING
-    plo CALL_REG
-    ldi GET_STRING.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
-    
-    glo R10                         ;if R10 == 0 then end, else continue
-    bnz READ_VAR_CONTINUE
-    ghi R10
-    lbz READ_VAR_END
-    
-READ_VAR_CONTINUE
-    glo STACK_REG                   ;set R5 pointer to string address
+    glo STACK_REG
     plo R5
     ghi STACK_REG
     phi R5
     inc R5
     
-    glo R10                         ;store string address and set R9
-    plo R9
-    str R5
-    inc R5
+    ldi 31
+    plo R6
     
-    ghi R10
-    phi R9
+READ_VAR_COPYLOOP
+    ldn R4                  
+    smi 48
+    lbnf READ_VAR_CONTINUE   ;if *R4 < '0'
+    ldn R4
+    smi 58
+    lbnf READ_VAR_STRCHAR    ;if *R4 <= '9'
+    ldn R4
+    smi 65
+    lbnf READ_VAR_CONTINUE   ;if *R4 < 'A'
+    ldn R4
+    smi 91
+    lbnf READ_VAR_STRCHAR    ;if *R4 <= 'Z'
+    ldn R4
+    xri 95
+    lbz READ_VAR_STRCHAR     ;if *R4 == '_'
+    ldn R4
+    smi 97
+    lbnf READ_VAR_CONTINUE   ;if *R4 < 'a'
+    ldn R4
+    smi 123
+    lbnf READ_VAR_STRCHAR    ;if *R4 <= 'z'
+    
+    lbr READ_VAR_CONTINUE   ;
+    
+READ_VAR_STRCHAR
+    lda R4
+    str R5
+    glo R6
+    lbz READ_VAR_COPYLOOP
+    inc R5
+    dec R6
+
+    lbr READ_VAR_COPYLOOP
+    
+READ_VAR_CONTINUE
+    ldi 0
     str R5
     
     ldi VARLIST_FIRSTNODE.0         ;load the first node address
@@ -1712,6 +1759,12 @@ READ_VAR_SEARCHLOOP_CONTINUE
     
     inc R6                              ;skip next node
     inc R6
+    
+    glo STACK_REG
+    plo R9
+    ghi STACK_REG
+    phi R9
+    inc R9
     
     lda R6                              ;load variableNode->name address to R8
     plo R8                              ;for comparing the strings
@@ -1741,22 +1794,11 @@ READ_VAR_NEXTNODE
     ghi R6
     phi R5
     
-    glo STACK_REG                       ;set R6 pointer to string address
-    plo R6
-    ghi STACK_REG
-    phi R6
-    inc R6
-    
-    lda R6                              ;load string address to R9
-    plo R9
-    lda R6
-    phi R9
-    
     lbr READ_VAR_SEARCHLOOP
 
 READ_VAR_FOUND
     glo STACK_REG
-    adi 5                               ;set R7 pointer to result pointer
+    adi 34                               ;set R7 pointer to result pointer
     plo R7
     ghi STACK_REG
     adci 0
@@ -1786,7 +1828,7 @@ READ_VAR_FOUND
     
 READ_VAR_NOTFOUND
     glo STACK_REG
-    adi 5                               ;set R7 pointer to result pointer
+    adi 34                               ;set R7 pointer to result pointer
     plo R7
     ghi STACK_REG
     adci 0
@@ -1811,7 +1853,7 @@ READ_VAR_NOTFOUND
 
 READ_VAR_END
     glo STACK_REG
-    adi 5
+    adi 34
     plo STACK_REG
     ghi STACK_REG
     adci 0
@@ -1821,9 +1863,34 @@ READ_VAR_END
     
     ldxa
     plo R5
-    ldx
+    ldxa
     phi R5
     
+    ldxa                ;restoring local registers
+    plo R10
+    ldxa
+    phi R10
+    
+    ldxa
+    plo R9
+    ldxa
+    phi R9
+    
+    ldxa
+    plo R8
+    ldxa
+    phi R8
+    
+    ldxa
+    plo R7
+    ldxa
+    phi R7
+    
+    ldxa
+    plo R6
+    ldx
+    phi R6
+
     sep RETURN
 ;----------------------------------------------
 
@@ -1902,7 +1969,7 @@ FACTOR_READ_NUMBER
     inc R4                      ;increment R4 to get the next char
     ldn R4
     xri 120
-    bz FACTOR_READ_HEX          ;if *R4 == 'x'
+    lbz FACTOR_READ_HEX          ;if *R4 == 'x'
     
     dec R4                      ;decrement R4 to step back
 
