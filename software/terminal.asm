@@ -5084,6 +5084,244 @@ FUNC_TEST
     sep RETURN
 ;----------------------------------------------
 
+;-STATEMENT------------------------------------
+;-R4-input string------------------------------
+STATEMENT
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd                    ;+34 var result
+    
+    glo STACK_REG
+    smi 33
+    plo STACK_REG
+    ghi STACK_REG
+    smbi 0
+    phi STACK_REG           ;+1 statement buffer
+
+STATEMENT_SKIPSPACES
+    lda R4
+    xri 32
+    bz STATEMENT_SKIPSPACES
+    
+    dec R4
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi 31
+    plo R6
+    
+STATEMENT_COPYLOOP
+    ldn R4                  
+    smi 48
+    lbnf STATEMENT_SEARCH   ;if *R4 < '0'
+    ldn R4
+    smi 58
+    lbnf STATEMENT_STRCHAR    ;if *R4 <= '9'
+    ldn R4
+    smi 65
+    lbnf STATEMENT_SEARCH   ;if *R4 < 'A'
+    ldn R4
+    smi 91
+    lbnf STATEMENT_STRCHAR    ;if *R4 <= 'Z'
+    ldn R4
+    xri 95
+    lbz STATEMENT_STRCHAR     ;if *R4 == '_'
+    ldn R4
+    smi 97
+    lbnf STATEMENT_SEARCH   ;if *R4 < 'a'
+    ldn R4
+    smi 123
+    lbnf STATEMENT_STRCHAR    ;if *R4 <= 'z'
+    
+    lbr STATEMENT_SEARCH   ;
+    
+STATEMENT_STRCHAR
+    lda R4
+    str R5
+    glo R6
+    lbz STATEMENT_COPYLOOP
+    inc R5
+    dec R6
+
+    lbr STATEMENT_COPYLOOP
+    
+STATEMENT_SEARCH
+    ldi 0
+    str R5
+    
+    ldi COMMAND_FUNC_LIST.0
+    plo R5
+    ldi COMMAND_FUNC_LIST.1
+    phi R5
+    
+    ldi COMMAND_LIST.0
+    plo R9
+    ldi COMMAND_LIST.1
+    phi R9
+    
+STATEMENT_SEARCHLOOP
+    glo STACK_REG
+    plo R8
+    ghi STACK_REG
+    phi R8
+    inc R8
+    
+    ldn R9
+    lbz STATEMENT_SEARCHVAR
+    
+    ldi STR_COMPARATOR.0
+    plo CALL_REG
+    ldi STR_COMPARATOR.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10
+    lbnz STATEMENT_EXEC
+    
+STATEMENT_SKIPCHARS
+    lda R9
+    lbnz STATEMENT_SKIPCHARS
+    
+    inc R5
+    inc R5
+    lbr STATEMENT_SEARCHLOOP
+    
+STATEMENT_SEARCHVAR
+    lda R4
+    xri 32
+    bz STATEMENT_SEARCHVAR
+    
+    dec R4
+    
+    lda R4
+    xri 61
+    lbnz STATEMENT_END
+    
+    ldi VARLIST_FIRSTNODE.0         ;load the first node address
+    plo R5
+    ldi VARLIST_FIRSTNODE.1
+    phi R5
+    
+STATEMENT_SEARCHVARLOOP
+    lda R5                              ;test if the address in R5 is zero or not.
+    bnz STATEMENT_SEARCHVARLOOP_CONTINUE
+    ldn R5
+    lbz STATEMENT_VAR_NOTFOUND
+    
+STATEMENT_SEARCHVARLOOP_CONTINUE
+    dec R5
+    
+    glo STACK_REG                       ;set R6 pointer to string address
+    plo R9
+    ghi STACK_REG
+    phi R9
+    inc R9
+    
+    lda R5                              ;set R6 pointer to node address
+    plo R6
+    lda R5
+    phi R6
+    
+    inc R6                              ;skip next node
+    inc R6
+    
+    lda R6                              ;load variableNode->name address to R8
+    plo R8                              ;for comparing the strings
+    lda R6
+    phi R8
+    
+    ldi STR_COMPARATOR.0                ;call STR_COMPARATOR
+    plo CALL_REG
+    ldi STR_COMPARATOR.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10                             ;if R10 == 1 then READ_VAR_FOUND
+    lbnz STATEMENT_VAR_FOUND
+
+STATEMENT_NEXTNODE
+    dec R6                              ;set back R6 to the base of the node
+    dec R6
+    dec R6
+    dec R6
+    
+    glo R6                              ;load next node address to R5
+    plo R5
+    ghi R6
+    phi R5
+    
+    lbr STATEMENT_SEARCHVARLOOP
+    
+STATEMENT_VAR_FOUND
+    glo STACK_REG
+    adi 34
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+    
+STATEMENT_VAR_NOTFOUND
+    lbr STATEMENT_END
+
+STATEMENT_EXEC
+    lda R5
+    plo CALL_REG
+    lda R5
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+STATEMENT_END
+    glo STACK_REG
+    adi 37
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-COMMAND-CHECK--------------------------------
 ;-R4-input string------------------------------
 COMMAND_CHECK
@@ -5236,9 +5474,9 @@ ASK_INPUT
     ldi INPUT_BUFF.1
     phi R4
     
-    ldi COMMAND_CHECK.0      ;prepare to call COMMAND_CHECK
+    ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
     plo CALL_REG
-    ldi COMMAND_CHECK.1
+    ldi STATEMENT.1
     phi CALL_REG
     
     ldi FCALL.0
