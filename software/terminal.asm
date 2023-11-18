@@ -5389,103 +5389,6 @@ STATEMENT_END
     sep RETURN
 ;----------------------------------------------
 
-;-COMMAND-CHECK--------------------------------
-;-R4-input string------------------------------
-COMMAND_CHECK
-    ldi COMMAND_FUNC_LIST.0
-    plo R5
-    ldi COMMAND_FUNC_LIST.1
-    phi R5
-    
-    ldi COMMAND_LIST.0
-    plo R9
-    ldi COMMAND_LIST.1
-    phi R9
-    
-    glo R4
-    plo R6
-    ghi R4
-    phi R6
-    
-COMMAND_CHECK_GOTOSPACE
-    lda R6
-    lbz COMMAND_CHECK_INSERTZERO
-    xri 32
-    lbz COMMAND_CHECK_REPLACESPACE
-    lbr COMMAND_CHECK_GOTOSPACE
-    
-COMMAND_CHECK_INSERTZERO
-    str R6
-COMMAND_CHECK_REPLACESPACE
-    dec R6
-    str R6
-    inc R6
-    
-COMMAND_CHECK_LOOP
-    glo R4
-    plo R8
-    ghi R4
-    phi R8
-    
-    ldn R9
-    lbz COMMAND_CHECK_END
-
-    ldi STR_COMPARATOR.0
-    plo CALL_REG
-    ldi STR_COMPARATOR.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
-    
-    glo R10
-    lbnz COMMAND_CHECK_EXEC
-    
-COMMAND_CHECK_STR_END
-    ldn R9
-    inc R9
-    lbnz COMMAND_CHECK_STR_END
-    
-    inc R5
-    inc R5
-    lbr COMMAND_CHECK_LOOP
-    
-COMMAND_CHECK_EXEC
-    glo R6
-    plo R4
-    ghi R6
-    phi R4
-    
-    lda R5
-    plo CALL_REG
-    ldn R5
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
-    
-    sep RETURN
-    
-COMMAND_CHECK_END
-    ldi UNKNOWN_COMMAND.0  ;set the address of the boot msg in R6
-    plo R6
-    ldi UNKNOWN_COMMAND.1
-    phi R6
-	
-    ldi PRINT.0     ;prepare to call PRINT
-    plo CALL_REG
-    ldi PRINT.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG   ;call PRINT
-    
-    sep RETURN
-;----------------------------------------------
-
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
     ldi VAR_LIST_INIT.0       ;variable list init
@@ -5570,6 +5473,7 @@ ASK_INPUT
 
 ;-CONSTANT DATA--------------------------------
 BOOT_MSG
+    db "\r\n---CPU RESET---\r\n"
     db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
 ASK_IN
     db "\r\n>",0
