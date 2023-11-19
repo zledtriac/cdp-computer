@@ -60,7 +60,7 @@
    0016   f8 30             ldi DMA_ADDRESS.1
    0018   b0                phi DMA_REG
                             
-   0019   c0 16 3e          lbr MAIN_PROGRAM
+   0019   c0 16 5d          lbr MAIN_PROGRAM
                             
                         ;-FUNCTION CALL HELPER-------------------------
                         ;-WHERE TO JUMP-(CALL_REG)---------------------
@@ -210,7 +210,7 @@
    017a   f8 00             ldi 00h             ;put 0 to the endof the string
    017c   57                str R7
                             
-   017d   f8 cf             ldi NEW_LINE.0      ;load the address of CRLF string
+   017d   f8 ee             ldi NEW_LINE.0      ;load the address of CRLF string
    017f   a6                plo R6
    0180   f8 16             ldi NEW_LINE.1
    0182   b6                phi R6
@@ -4547,7 +4547,7 @@
    120e   88                glo R8
    120f   ca 11 92          lbnz HEXVIEWER_PRINT_STR_LOOP
                             
-   1212   f8 cf             ldi NEW_LINE.0     ;prepare to print a space
+   1212   f8 ee             ldi NEW_LINE.0     ;prepare to print a space
    1214   a6                plo R6
    1215   f8 16             ldi NEW_LINE.1
    1217   b6                phi R6
@@ -5223,7 +5223,7 @@
    152c   ae                plo FCALL_REG
    152d   de                sep FCALL_REG
                             
-   152e   f8 cf             ldi NEW_LINE.0  ;print newline
+   152e   f8 ee             ldi NEW_LINE.0  ;print newline
    1530   a6                plo R6
    1531   f8 16             ldi NEW_LINE.1
    1533   b6                phi R6
@@ -5320,12 +5320,12 @@
    159c   f8 00             ldi 0
    159e   55                str R5
                             
-   159f   f8 03             ldi COMMAND_FUNC_LIST.0
+   159f   f8 2a             ldi COMMAND_FUNC_LIST.0
    15a1   a5                plo R5
    15a2   f8 17             ldi COMMAND_FUNC_LIST.1
    15a4   b5                phi R5
                             
-   15a5   f8 d2             ldi COMMAND_LIST.0
+   15a5   f8 f1             ldi COMMAND_LIST.0
    15a7   a9                plo R9
    15a8   f8 16             ldi COMMAND_LIST.1
    15aa   b9                phi R9
@@ -5485,200 +5485,242 @@
    163d   de                sep RETURN
                         ;----------------------------------------------
                         
-                        ;-MAIN-----------------------------------------
-   163e                 MAIN_PROGRAM
-   163e   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
-   1640   ad                plo CALL_REG
-   1641   f8 0e             ldi VAR_LIST_INIT.1
-   1643   bd                phi CALL_REG
+                        ;-DMA-SET--------------------------------------
+   163e                 DMA_SET
+   163e   ef                sex STACK_REG
                             
-   1644   f8 00             ldi FCALL.0
-   1646   ae                plo FCALL_REG
-   1647   de                sep FCALL_REG
+   163f   f8 00             ldi 0
+   1641   73                stxd
+   1642   73                stxd
+   1643   73                stxd
+   1644   73                stxd
                             
-   1648   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
-   164a   ad                plo CALL_REG
-   164b   f8 0a             ldi DYN_MEMORY_INIT.1
-   164d   bd                phi CALL_REG
+   1645   8f                glo STACK_REG
+   1646   a5                plo R5
+   1647   9f                ghi STACK_REG
+   1648   b5                phi R5
+   1649   15                inc R5
                             
-   164e   f8 00             ldi FCALL.0
-   1650   ae                plo FCALL_REG
-   1651   de                sep FCALL_REG   ;call heap init
+   164a   f8 65             ldi EXPRESSION.0
+   164c   ad                plo CALL_REG
+   164d   f8 09             ldi EXPRESSION.1
+   164f   bd                phi CALL_REG
                             
-   1652   f8 95             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
-   1654   a6                plo R6
-   1655   f8 16             ldi BOOT_MSG.1
-   1657   b6                phi R6
-                        	
-   1658   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   165a   ad                plo CALL_REG
-   165b   f8 01             ldi PRINT.1
-   165d   bd                phi CALL_REG
+   1650   f8 00             ldi FCALL.0
+   1652   ae                plo FCALL_REG
+   1653   de                sep FCALL_REG
                             
-   165e   f8 00             ldi FCALL.0
-   1660   ae                plo FCALL_REG
-   1661   de                sep FCALL_REG   ;call PRINT
+   1654   45                lda R5
+   1655   a0                plo DMA_REG
+   1656   45                lda R5
+   1657   b0                phi DMA_REG
+                            
+   1658                 DMA_SET_END
+   1658   1f                inc STACK_REG
+   1659   1f                inc STACK_REG
+   165a   1f                inc STACK_REG
+   165b   1f                inc STACK_REG
+                            
+   165c   de                sep RETURN
+                        ;----------------------------------------------
                         
-   1662                 ASK_INPUT
-   1662   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
-   1664   a7                plo R7
-   1665   f8 20             ldi INPUT_BUFF.1
-   1667   b7                phi R7
+                        ;-MAIN-----------------------------------------
+   165d                 MAIN_PROGRAM
+   165d   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
+   165f   ad                plo CALL_REG
+   1660   f8 0e             ldi VAR_LIST_INIT.1
+   1662   bd                phi CALL_REG
                             
-   1668   f8 68             ldi READLINE.0      ;prepare to call READLINE
-   166a   ad                plo CALL_REG
-   166b   f8 01             ldi READLINE.1
-   166d   bd                phi CALL_REG
+   1663   f8 00             ldi FCALL.0
+   1665   ae                plo FCALL_REG
+   1666   de                sep FCALL_REG
                             
-   166e   f8 00             ldi FCALL.0
-   1670   ae                plo FCALL_REG
-   1671   de                sep FCALL_REG       ;call READLINE
+   1667   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
+   1669   ad                plo CALL_REG
+   166a   f8 0a             ldi DYN_MEMORY_INIT.1
+   166c   bd                phi CALL_REG
+                            
+   166d   f8 00             ldi FCALL.0
+   166f   ae                plo FCALL_REG
+   1670   de                sep FCALL_REG   ;call heap init
+                            
+   1671   f8 b4             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
+   1673   a6                plo R6
+   1674   f8 16             ldi BOOT_MSG.1
+   1676   b6                phi R6
+                        	
+   1677   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1679   ad                plo CALL_REG
+   167a   f8 01             ldi PRINT.1
+   167c   bd                phi CALL_REG
+                            
+   167d   f8 00             ldi FCALL.0
+   167f   ae                plo FCALL_REG
+   1680   de                sep FCALL_REG   ;call PRINT
+                        
+   1681                 ASK_INPUT
+   1681   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
+   1683   a7                plo R7
+   1684   f8 20             ldi INPUT_BUFF.1
+   1686   b7                phi R7
+                            
+   1687   f8 68             ldi READLINE.0      ;prepare to call READLINE
+   1689   ad                plo CALL_REG
+   168a   f8 01             ldi READLINE.1
+   168c   bd                phi CALL_REG
+                            
+   168d   f8 00             ldi FCALL.0
+   168f   ae                plo FCALL_REG
+   1690   de                sep FCALL_REG       ;call READLINE
                             
                             ;Program goes here
-   1672   f8 00             ldi INPUT_BUFF.0
-   1674   a4                plo R4
-   1675   f8 20             ldi INPUT_BUFF.1
-   1677   b4                phi R4
+   1691   f8 00             ldi INPUT_BUFF.0
+   1693   a4                plo R4
+   1694   f8 20             ldi INPUT_BUFF.1
+   1696   b4                phi R4
                             
-   1678   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
-   167a   ad                plo CALL_REG
-   167b   f8 15             ldi STATEMENT.1
-   167d   bd                phi CALL_REG
+   1697   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
+   1699   ad                plo CALL_REG
+   169a   f8 15             ldi STATEMENT.1
+   169c   bd                phi CALL_REG
                             
-   167e   f8 00             ldi FCALL.0
-   1680   ae                plo FCALL_REG
-   1681   de                sep FCALL_REG
+   169d   f8 00             ldi FCALL.0
+   169f   ae                plo FCALL_REG
+   16a0   de                sep FCALL_REG
                             ;Program ends here
                             
-   1682   f8 cb             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
-   1684   a6                plo R6
-   1685   f8 16             ldi ASK_IN.1
-   1687   b6                phi R6
+   16a1   f8 ea             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
+   16a3   a6                plo R6
+   16a4   f8 16             ldi ASK_IN.1
+   16a6   b6                phi R6
                             
-   1688   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   168a   ad                plo CALL_REG
-   168b   f8 01             ldi PRINT.1
-   168d   bd                phi CALL_REG
+   16a7   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   16a9   ad                plo CALL_REG
+   16aa   f8 01             ldi PRINT.1
+   16ac   bd                phi CALL_REG
                             
-   168e   f8 00             ldi FCALL.0
-   1690   ae                plo FCALL_REG
-   1691   de                sep FCALL_REG       ;call PRINT
+   16ad   f8 00             ldi FCALL.0
+   16af   ae                plo FCALL_REG
+   16b0   de                sep FCALL_REG       ;call PRINT
                         	
-   1692   c0 16 62          lbr ASK_INPUT
+   16b1   c0 16 81          lbr ASK_INPUT
                         ;----------------------------------------------
                         
                         ;-CONSTANT DATA--------------------------------
-   1695                 BOOT_MSG
-   1695   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
-   1699   2d 43 50 55   
-   169d   20 52 45 53   
-   16a1   45 54 2d 2d   
-   16a5   2d 0d 0a      
-   16a8   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
-   16ac   20 2d 20 43   
-   16b0   44 50 31 38   
-   16b4   30 32 20 54   
-   16b8   65 72 6d 69   
-   16bc   6e 61 6c 2e   
-   16c0   0d 0a 0d 0a   
-   16c4   52 45 41 44   
-   16c8   59 0d 0a      
-   16cb                 ASK_IN
-   16cb   0d 0a 3e 00       db "\r\n>",0
-   16cf                 NEW_LINE
-   16cf   0d 0a 00          db "\r\n",0
-   16d2                 COMMAND_LIST
-   16d2   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
-   16d6   74 00 6c 65   
-   16da   74 00 6d 65   
-   16de   6d 5f 76 69   
-   16e2   65 77 00 6d   
-   16e6   65 6d 5f 64   
-   16ea   65 62 75 67   
-   16ee   00 6d 65 6d   
-   16f2   5f 61 6c 6c   
-   16f6   6f 63 00 6d   
-   16fa   65 6d 5f 66   
-   16fe   72 65 65 00   
-   1702   00            
-   1703                 COMMAND_FUNC_LIST
-   1703   06 15             db FUNC_TEST.0,FUNC_TEST.1
-   1705   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
-   1707   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
-   1709   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
-   170b   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
-   170d   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
-   170f                 UNKNOWN_COMMAND
-   170f   55 6e 6b 6e       db "Unknown command.\r\n",0
-   1713   6f 77 6e 20   
-   1717   63 6f 6d 6d   
-   171b   61 6e 64 2e   
-   171f   0d 0a 00      
-   1722                 TEST_RESP
-   1722   45 76 65 72       db "Everything is ok!",0
-   1726   79 74 68 69   
-   172a   6e 67 20 69   
-   172e   73 20 6f 6b   
-   1732   21 00         
+   16b4                 BOOT_MSG
+   16b4   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
+   16b8   2d 43 50 55   
+   16bc   20 52 45 53   
+   16c0   45 54 2d 2d   
+   16c4   2d 0d 0a      
+   16c7   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
+   16cb   20 2d 20 43   
+   16cf   44 50 31 38   
+   16d3   30 32 20 54   
+   16d7   65 72 6d 69   
+   16db   6e 61 6c 2e   
+   16df   0d 0a 0d 0a   
+   16e3   52 45 41 44   
+   16e7   59 0d 0a      
+   16ea                 ASK_IN
+   16ea   0d 0a 3e 00       db "\r\n>",0
+   16ee                 NEW_LINE
+   16ee   0d 0a 00          db "\r\n",0
+   16f1                 COMMAND_LIST
+   16f1   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
+   16f5   74 00 6c 65   
+   16f9   74 00 6d 65   
+   16fd   6d 5f 76 69   
+   1701   65 77 00 6d   
+   1705   65 6d 5f 64   
+   1709   65 62 75 67   
+   170d   00 6d 65 6d   
+   1711   5f 61 6c 6c   
+   1715   6f 63 00 6d   
+   1719   65 6d 5f 66   
+   171d   72 65 65 00   
+   1721   64 6d 61 5f       db "dma_set",0,0
+   1725   73 65 74 00   
+   1729   00            
+   172a                 COMMAND_FUNC_LIST
+   172a   06 15             db FUNC_TEST.0,FUNC_TEST.1
+   172c   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
+   172e   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+   1730   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
+   1732   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
+   1734   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
+   1736   3e 16             db DMA_SET.0,DMA_SET.1
+   1738                 UNKNOWN_COMMAND
+   1738   55 6e 6b 6e       db "Unknown command.\r\n",0
+   173c   6f 77 6e 20   
+   1740   63 6f 6d 6d   
+   1744   61 6e 64 2e   
+   1748   0d 0a 00      
+   174b                 TEST_RESP
+   174b   45 76 65 72       db "Everything is ok!",0
+   174f   79 74 68 69   
+   1753   6e 67 20 69   
+   1757   73 20 6f 6b   
+   175b   21 00         
                         
-   1734                     end
-16cb  ASK_IN        1662  ASK_INPUT     0164  BACKSPACE_ACTION    1695  BOOT_MSG  
-000d  CALL_REG      0283  CARRY_SHIFTING    1703  COMMAND_FUNC_LIST    16d2  COMMAND_LIST
+   175d                     end
+16ea  ASK_IN        1681  ASK_INPUT     0164  BACKSPACE_ACTION    16b4  BOOT_MSG  
+000d  CALL_REG      0283  CARRY_SHIFTING    172a  COMMAND_FUNC_LIST    16f1  COMMAND_LIST
 028d  DIVISION_LOOP    3000  DMA_ADDRESS    0013  DMA_INIT      0000  DMA_REG   
-0bf7  DYN_MEMORY_ALLOC    12cd  DYN_MEMORY_ALLOC_CALLER    137f  DYN_MEMORY_ALLOC_CALLER_END    1302  DYN_MEMORY_ALLOC_CALLER_FAIL
-1285  DYN_MEMORY_ALLOC_CALLER_STR1    12bc  DYN_MEMORY_ALLOC_CALLER_STR2    1315  DYN_MEMORY_ALLOC_CALLER_SUCCESS    0d42  DYN_MEMORY_ALLOC_END
-0c33  DYN_MEMORY_ALLOC_MAINLOOP    0d0d  DYN_MEMORY_ALLOC_NEXTADDRESS    0d27  DYN_MEMORY_ALLOC_NEXTPASS    0c82  DYN_MEMORY_ALLOC_SIZEBIGGER
-0c6f  DYN_MEMORY_ALLOC_SIZEEQ    0ab8  DYN_MEMORY_DEBUG    0bee  DYN_MEMORY_DEBUG_END    0bb3  DYN_MEMORY_DEBUG_FREE
-0ad2  DYN_MEMORY_DEBUG_MAINLOOP    0bb9  DYN_MEMORY_DEBUG_NEXTADDRESS    0b15  DYN_MEMORY_DEBUG_PRINT    0a83  DYN_MEMORY_DEBUG_STR
-0aaa  DYN_MEMORY_DEBUG_STR_FREE    0ab1  DYN_MEMORY_DEBUG_STR_USED    0d5c  DYN_MEMORY_FREE    13e8  DYN_MEMORY_FREE_CALLER
-1482  DYN_MEMORY_FREE_CALLER_END    1472  DYN_MEMORY_FREE_CALLER_OUTOFRANGE    1388  DYN_MEMORY_FREE_CALLER_STR1    13bd  DYN_MEMORY_FREE_CALLER_STR2
-0df3  DYN_MEMORY_FREE_END    0d94  DYN_MEMORY_FREE_MERGE    0db4  DYN_MEMORY_FREE_MERGELOOP    0d85  DYN_MEMORY_FREE_NEXTCHECK
-0dec  DYN_MEMORY_FREE_SETPREVIOUS    0a60  DYN_MEMORY_INIT    017a  END_LINE      0965  EXPRESSION
-099a  EXPRESSION_ADD    09d4  EXPRESSION_ADD_LOOP    0a4f  EXPRESSION_END    0986  EXPRESSION_MAIN
-0a4b  EXPRESSION_NEXT_CYCLE    0976  EXPRESSION_SKIPSPACES    09f3  EXPRESSION_SUB    0a2d  EXPRESSION_SUB_LOOP
-079a  FACTOR        083f  FACTOR_END    0865  FACTOR_FINAL    085a  FACTOR_INVERTING
-07a6  FACTOR_MAIN    0830  FACTOR_NEGATE    083b  FACTOR_NEXT_CYCLE    0816  FACTOR_PARENTHESIS
-0821  FACTOR_PARENTHESIS_SKIPSPACES    07fb  FACTOR_READ_DEC    0808  FACTOR_READ_HEX    07ee  FACTOR_READ_NUMBER
-07e1  FACTOR_VAR    0100  FCALL         000e  FCALL_REG     031f  FINAL_CHECK
-0343  FINAL_CHECK2    010a  FRETURN       1506  FUNC_TEST     0e22  GET_STRING
-0e5c  GET_STRING_ADDLEN    0e68  GET_STRING_ALLOCATE_MEM    0e7f  GET_STRING_COPY    0e8c  GET_STRING_COPY_LOOP
-0e96  GET_STRING_END    0e35  GET_STRING_LEN    0e61  GET_STRING_LEN_END    fc00  HEAP_END  
-2106  HEAP_LASTADDRESS    2110  HEAP_START    103f  HEXVIEWER     127c  HEXVIEWER_END
-10b6  HEXVIEWER_MAINLOOP    1132  HEXVIEWER_NEXT_HEX    11f1  HEXVIEWER_NEXT_STR    10de  HEXVIEWER_PRINT_HEX_LOOP
-1122  HEXVIEWER_PRINT_HEX_SPACES    11d5  HEXVIEWER_PRINT_STR_DOT    1192  HEXVIEWER_PRINT_STR_LOOP    11e4  HEXVIEWER_PRINT_STR_SPACE
-148b  HEXVIEW_CALLER    14f4  HEXVIEW_CALLER_END    14d5  HEXVIEW_CALLER_EXEC    14c6  HEXVIEW_CALLER_NEXTARG
-0f96  HEX_BASE_SRT    0412  HEX_CHARS     0fa9  HEX_HEADER_STR    103a  HEX_LINECNT_SEPARATOR
-2000  INPUT_BUFF    01d4  INTEGER_DIV    0224  INTEGER_DIV_INVERT_LOOP1    0234  INTEGER_DIV_NEXT_CHECK
-0372  INTEGER_MUL    03d3  INTEGER_MUL_ADD    0409  INTEGER_MUL_END    039f  INTEGER_MUL_LOOP
-03dc  INTEGER_MUL_SHIFT    03fd  INTEGER_MUL_SHMULTIPLICAND    03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR
-0001  INTP_REG      0002  INTX_REG      0253  INVERT_LOOP2    0337  INVERT_LOOP3
-035e  INVERT_LOOP4    0ea2  LET_STATEMENT    0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR
-0ecc  LET_STATEMENT_CONTINUE1    0ef2  LET_STATEMENT_CONTINUE2    0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION
-0f52  LET_STATEMENT_FIRSTNODE    0f6e  LET_STATEMENT_FREENODE    0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER
-0edb  LET_STATEMENT_SKIPSPACES    163e  MAIN_PROGRAM    16cf  NEW_LINE      0307  NEXT_BIT  
-0003  PC_REG        0152  PRINT         045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC 
-0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL    0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP
-0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX     048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1
-0449  PRINT_UNTIL_R    000a  R10           000b  R11           000c  R12       
-0004  R4            0005  R5            0006  R6            0007  R7        
-0008  R8            0009  R9            0168  READLINE      018e  READLINE_BACKSPACE
-016b  READLINE_LOOP    058b  READ_DEC      061c  READ_DEC_END    05a5  READ_DEC_MAIN_LOOP
-062e  READ_HEX      066a  READ_HEX_CONTINUE    069e  READ_HEX_END    068d  READ_HEX_HEXDIGIT
-0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP    0699  READ_HEX_NEXTCHAR    066d  READ_HEX_SHIFTLOOP
-06b0  READ_VAR      0711  READ_VAR_CONTINUE    06d9  READ_VAR_COPYLOOP    0778  READ_VAR_END
-074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE    0763  READ_VAR_NOTFOUND    071a  READ_VAR_SEARCHLOOP
-0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR    000e  RETURN        013f  SERIAL_NULL_BIT
-012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT    0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT
-0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START    02a5  SHIFTING_Q    0276  SHIFT_DR  
-0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS    000f  STACK_REG     0000  START     
-1547  STATEMENT     1564  STATEMENT_COPYLOOP    1635  STATEMENT_END    162d  STATEMENT_EXEC
-1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH    15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR
-15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE    15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES
-1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND    162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR
-01c3  STR_CHARCHECK    01c0  STR_COMPARATOR    01c9  STR_EQUAL     01d0  STR_INC   
-02fd  SUBTRACT_FOR_REAL    086e  TERM          0895  TERM_DIVIDE    0953  TERM_END  
-0881  TERM_MAIN     08fa  TERM_MULTIPLY    094f  TERM_NEXT_CYCLE    1722  TEST_RESP 
-14fd  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING    170f  UNKNOWN_COMMAND
-2100  VARLIST_COUNT    2102  VARLIST_FIRSTNODE    2104  VARLIST_LASTNODE    0e10  VAR_LIST_INIT
-0e19  VAR_LIST_INIT_LOOP    
+163e  DMA_SET       1658  DMA_SET_END    0bf7  DYN_MEMORY_ALLOC    12cd  DYN_MEMORY_ALLOC_CALLER
+137f  DYN_MEMORY_ALLOC_CALLER_END    1302  DYN_MEMORY_ALLOC_CALLER_FAIL    1285  DYN_MEMORY_ALLOC_CALLER_STR1    12bc  DYN_MEMORY_ALLOC_CALLER_STR2
+1315  DYN_MEMORY_ALLOC_CALLER_SUCCESS    0d42  DYN_MEMORY_ALLOC_END    0c33  DYN_MEMORY_ALLOC_MAINLOOP    0d0d  DYN_MEMORY_ALLOC_NEXTADDRESS
+0d27  DYN_MEMORY_ALLOC_NEXTPASS    0c82  DYN_MEMORY_ALLOC_SIZEBIGGER    0c6f  DYN_MEMORY_ALLOC_SIZEEQ    0ab8  DYN_MEMORY_DEBUG
+0bee  DYN_MEMORY_DEBUG_END    0bb3  DYN_MEMORY_DEBUG_FREE    0ad2  DYN_MEMORY_DEBUG_MAINLOOP    0bb9  DYN_MEMORY_DEBUG_NEXTADDRESS
+0b15  DYN_MEMORY_DEBUG_PRINT    0a83  DYN_MEMORY_DEBUG_STR    0aaa  DYN_MEMORY_DEBUG_STR_FREE    0ab1  DYN_MEMORY_DEBUG_STR_USED
+0d5c  DYN_MEMORY_FREE    13e8  DYN_MEMORY_FREE_CALLER    1482  DYN_MEMORY_FREE_CALLER_END    1472  DYN_MEMORY_FREE_CALLER_OUTOFRANGE
+1388  DYN_MEMORY_FREE_CALLER_STR1    13bd  DYN_MEMORY_FREE_CALLER_STR2    0df3  DYN_MEMORY_FREE_END    0d94  DYN_MEMORY_FREE_MERGE
+0db4  DYN_MEMORY_FREE_MERGELOOP    0d85  DYN_MEMORY_FREE_NEXTCHECK    0dec  DYN_MEMORY_FREE_SETPREVIOUS    0a60  DYN_MEMORY_INIT
+017a  END_LINE      0965  EXPRESSION    099a  EXPRESSION_ADD    09d4  EXPRESSION_ADD_LOOP
+0a4f  EXPRESSION_END    0986  EXPRESSION_MAIN    0a4b  EXPRESSION_NEXT_CYCLE    0976  EXPRESSION_SKIPSPACES
+09f3  EXPRESSION_SUB    0a2d  EXPRESSION_SUB_LOOP    079a  FACTOR        083f  FACTOR_END
+0865  FACTOR_FINAL    085a  FACTOR_INVERTING    07a6  FACTOR_MAIN    0830  FACTOR_NEGATE
+083b  FACTOR_NEXT_CYCLE    0816  FACTOR_PARENTHESIS    0821  FACTOR_PARENTHESIS_SKIPSPACES    07fb  FACTOR_READ_DEC
+0808  FACTOR_READ_HEX    07ee  FACTOR_READ_NUMBER    07e1  FACTOR_VAR    0100  FCALL     
+000e  FCALL_REG     031f  FINAL_CHECK    0343  FINAL_CHECK2    010a  FRETURN   
+1506  FUNC_TEST     0e22  GET_STRING    0e5c  GET_STRING_ADDLEN    0e68  GET_STRING_ALLOCATE_MEM
+0e7f  GET_STRING_COPY    0e8c  GET_STRING_COPY_LOOP    0e96  GET_STRING_END    0e35  GET_STRING_LEN
+0e61  GET_STRING_LEN_END    fc00  HEAP_END      2106  HEAP_LASTADDRESS    2110  HEAP_START
+103f  HEXVIEWER     127c  HEXVIEWER_END    10b6  HEXVIEWER_MAINLOOP    1132  HEXVIEWER_NEXT_HEX
+11f1  HEXVIEWER_NEXT_STR    10de  HEXVIEWER_PRINT_HEX_LOOP    1122  HEXVIEWER_PRINT_HEX_SPACES    11d5  HEXVIEWER_PRINT_STR_DOT
+1192  HEXVIEWER_PRINT_STR_LOOP    11e4  HEXVIEWER_PRINT_STR_SPACE    148b  HEXVIEW_CALLER    14f4  HEXVIEW_CALLER_END
+14d5  HEXVIEW_CALLER_EXEC    14c6  HEXVIEW_CALLER_NEXTARG    0f96  HEX_BASE_SRT    0412  HEX_CHARS 
+0fa9  HEX_HEADER_STR    103a  HEX_LINECNT_SEPARATOR    2000  INPUT_BUFF    01d4  INTEGER_DIV
+0224  INTEGER_DIV_INVERT_LOOP1    0234  INTEGER_DIV_NEXT_CHECK    0372  INTEGER_MUL    03d3  INTEGER_MUL_ADD
+0409  INTEGER_MUL_END    039f  INTEGER_MUL_LOOP    03dc  INTEGER_MUL_SHIFT    03fd  INTEGER_MUL_SHMULTIPLICAND
+03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR    0001  INTP_REG      0002  INTX_REG  
+0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4    0ea2  LET_STATEMENT
+0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR    0ecc  LET_STATEMENT_CONTINUE1    0ef2  LET_STATEMENT_CONTINUE2
+0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION    0f52  LET_STATEMENT_FIRSTNODE    0f6e  LET_STATEMENT_FREENODE
+0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER    0edb  LET_STATEMENT_SKIPSPACES    165d  MAIN_PROGRAM
+16ee  NEW_LINE      0307  NEXT_BIT      0003  PC_REG        0152  PRINT     
+045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC     0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL
+0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX 
+048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10       
+000b  R11           000c  R12           0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+0168  READLINE      018e  READLINE_BACKSPACE    016b  READLINE_LOOP    058b  READ_DEC  
+061c  READ_DEC_END    05a5  READ_DEC_MAIN_LOOP    062e  READ_HEX      066a  READ_HEX_CONTINUE
+069e  READ_HEX_END    068d  READ_HEX_HEXDIGIT    0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP
+0699  READ_HEX_NEXTCHAR    066d  READ_HEX_SHIFTLOOP    06b0  READ_VAR      0711  READ_VAR_CONTINUE
+06d9  READ_VAR_COPYLOOP    0778  READ_VAR_END    074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE
+0763  READ_VAR_NOTFOUND    071a  READ_VAR_SEARCHLOOP    0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR
+000e  RETURN        013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT
+0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START
+02a5  SHIFTING_Q    0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS
+000f  STACK_REG     0000  START         1547  STATEMENT     1564  STATEMENT_COPYLOOP
+1635  STATEMENT_END    162d  STATEMENT_EXEC    1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH
+15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR    15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE
+15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES    1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND
+162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR    01c3  STR_CHARCHECK    01c0  STR_COMPARATOR
+01c9  STR_EQUAL     01d0  STR_INC       02fd  SUBTRACT_FOR_REAL    086e  TERM      
+0895  TERM_DIVIDE    0953  TERM_END      0881  TERM_MAIN     08fa  TERM_MULTIPLY
+094f  TERM_NEXT_CYCLE    174b  TEST_RESP     14fd  TEST_STR1     0369  THE_END   
+02c7  TRY_SUBTRACTING    1738  UNKNOWN_COMMAND    2100  VARLIST_COUNT    2102  VARLIST_FIRSTNODE
+2104  VARLIST_LASTNODE    0e10  VAR_LIST_INIT    0e19  VAR_LIST_INIT_LOOP    
 
