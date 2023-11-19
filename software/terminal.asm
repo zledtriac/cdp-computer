@@ -5539,6 +5539,49 @@ MEM_WRITE_END
     sep RETURN
 ;----------------------------------------------
 
+;-EXEC-----------------------------------------
+EXEC
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R5
+    plo CALL_REG
+    lda R5
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+EXEC_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
     ldi VAR_LIST_INIT.0       ;variable list init
@@ -5631,7 +5674,7 @@ NEW_LINE
     db "\r\n",0
 COMMAND_LIST
     db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-    db "mem_set",0,"mem_write",0,"dma_set",0,0
+    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -5642,6 +5685,7 @@ COMMAND_FUNC_LIST
     db MEM_SET.0,MEM_SET.1
     db MEM_WRITE.0,MEM_WRITE.1
     db DMA_SET.0,DMA_SET.1
+    db EXEC.0,EXEC.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
