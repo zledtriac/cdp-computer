@@ -22,11 +22,13 @@ DMA_ADDRESS EQU 03000h
 
 INPUT_BUFF EQU 02000h
 
-VARLIST_COUNT EQU 02100h
-VARLIST_FIRSTNODE EQU 02102h
-VARLIST_LASTNODE EQU 02104h
+MEMWRITE_ADDRESS EQU 02100h
 
-HEAP_LASTADDRESS EQU 02106h
+VARLIST_COUNT EQU 02102h
+VARLIST_FIRSTNODE EQU 02104h
+VARLIST_LASTNODE EQU 02106h
+
+HEAP_LASTADDRESS EQU 02108h
 HEAP_START EQU 02110h
 HEAP_END EQU 0FC00h
 
@@ -5389,6 +5391,197 @@ STATEMENT_END
     sep RETURN
 ;----------------------------------------------
 
+;-DMA-SET--------------------------------------
+DMA_SET
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R5
+    plo DMA_REG
+    lda R5
+    phi DMA_REG
+    
+DMA_SET_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-MEM-SET--------------------------------------
+MEM_SET
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi MEMWRITE_ADDRESS.0
+    plo R6
+    ldi MEMWRITE_ADDRESS.1
+    phi R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+    
+MEM_SET_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-MEM-WRITE------------------------------------
+MEM_WRITE
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd
+    
+MEM_WRITE_LOOP
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi MEMWRITE_ADDRESS.0
+    plo R6
+    ldi MEMWRITE_ADDRESS.1
+    phi R6
+    
+    lda R6
+    plo R7
+    lda R6
+    phi R7
+    
+    lda R5
+    str R7
+    inc R7
+    
+    dec R6
+    dec R6
+    
+    glo R7
+    str R6
+    inc R6
+    
+    ghi R7
+    str R6
+    
+    lda R4
+    xri 44
+    lbz MEM_WRITE_LOOP
+
+MEM_WRITE_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-EXEC-----------------------------------------
+EXEC
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R5
+    plo CALL_REG
+    lda R5
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+EXEC_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
     ldi VAR_LIST_INIT.0       ;variable list init
@@ -5480,7 +5673,8 @@ ASK_IN
 NEW_LINE
     db "\r\n",0
 COMMAND_LIST
-    db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0,0
+    db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
+    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -5488,6 +5682,10 @@ COMMAND_FUNC_LIST
     db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
     db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
     db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
+    db MEM_SET.0,MEM_SET.1
+    db MEM_WRITE.0,MEM_WRITE.1
+    db DMA_SET.0,DMA_SET.1
+    db EXEC.0,EXEC.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
