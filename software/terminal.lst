@@ -136,7 +136,7 @@
    0130   b5                phi R5
                             
    0131                 SERIAL_WAIT_START
-   0131   3c 31             bn1 SERIAL_WAIT_START ;16 - loop until EF1 goes low
+   0131   3e 31             bn3 SERIAL_WAIT_START ;16 - loop until EF3 goes low
    0133   c4                nop         ;24
    0134   c4                nop         ;24
    0135   c4                nop         ;24
@@ -144,7 +144,7 @@
    0137   f9 00             ori 00h     ;16 - do nothing for 16 clock cycles
                         
    0139                 SERIAL_SAMPLE_BIT
-   0139   34 3f             b1 SERIAL_NULL_BIT  ;16 - checking the EF1
+   0139   36 3f             b3 SERIAL_NULL_BIT  ;16 - checking the EF3
    013b   f9 80             ori 080h            ;16 - if EF1 is high then set MSB to 1 in D register
    013d   30 43             br SERIAL_SAVE_BIT  ;16
                         
