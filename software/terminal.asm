@@ -28,8 +28,13 @@ VARLIST_COUNT EQU 02102h
 VARLIST_FIRSTNODE EQU 02104h
 VARLIST_LASTNODE EQU 02106h
 
-HEAP_LASTADDRESS EQU 02108h
-HEAP_START EQU 02110h
+LINE_COUNT EQU 02108h
+LINE_FIRSTNODE EQU 0210Ah
+LINE_LASTNODE EQU 0210Ch
+LINE_LASTLINE EQU 0210Eh
+
+HEAP_LASTADDRESS EQU 02110h
+HEAP_START EQU 02112h
 HEAP_END EQU 0FC00h
 
 
@@ -5391,6 +5396,512 @@ STATEMENT_END
     sep RETURN
 ;----------------------------------------------
 
+;-LINE-INIT------------------------------------
+LINE_INIT
+    sex STACK_REG
+    
+    ldi LINE_COUNT.0
+    plo R4
+    ldi LINE_COUNT.1
+    phi R4
+    
+    ldi 6
+    plo R5
+    
+LINE_INIT_RESETLOOP
+    ldi 0
+    str R4
+    inc R4
+    
+    dec R5
+    glo R5
+    bnz LINE_INIT_RESETLOOP
+    
+    sep RETURN
+;----------------------------------------------
+
+;0         2          4          6
+;+---------+----------+----------+----------+
+;|line num |next node |prev node |statement |
+;+---------+----------+----------+----------+
+
+;-LINE-ADD-------------------------------------
+;-R4-input string------------------------------
+LINE_ADD
+    sex STACK_REG
+    
+    ldi 0
+    
+    stxd
+    stxd            ;+7 string address
+    
+    stxd
+    stxd
+    stxd
+    stxd            ;+3 line number
+    
+    stxd
+    stxd            ;+1 newNode
+    
+    glo R4                      ;save R4 value to R5
+    plo R5
+    ghi R4
+    phi R5
+    
+    ldi 0                       ;allocate 8 bytes
+    phi R4
+    ldi 8
+    plo R4
+    
+    ldi DYN_MEMORY_ALLOC.0      ;call DYN_MEMORY_ALLOC
+    plo CALL_REG
+    ldi DYN_MEMORY_ALLOC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10                     ;if allocation was successful
+    bnz LINE_ADD_CONTINUE       ;then continue
+    ghi R10
+    lbz LINE_ADD_END
+    
+LINE_ADD_CONTINUE
+    glo R5                      ;restore R4 value from R5
+    plo R4
+    ghi R5
+    phi R4
+    
+    glo STACK_REG               ;set R5 pointer to newNode
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    glo R10                     ;save R10 value to newNode
+    str R5
+    inc R5
+    
+    ghi R10
+    str R5
+    inc R5
+
+    ldi READ_DEC.0              ;read the line number
+    plo CALL_REG
+    ldi READ_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R4                      ;check if there is a space after it
+    xri 32
+    lbnz LINE_ADD_END           ;if there is no space then RETURN
+    
+    ldi 0                       ;set R6 to 0
+    plo R6
+    phi R6
+    
+    glo R4                      ;save R4 value to R7
+    plo R7
+    ghi R4
+    phi R7
+    
+LINE_ADD_LEN                    ;count the statement length
+    lda R4
+    inc R6
+    bnz LINE_ADD_LEN
+    
+LINE_ADD_ALLOCATION
+    glo R6                      ;Allocate memory for the string
+    plo R4
+    ghi R6
+    phi R4
+
+    ldi DYN_MEMORY_ALLOC.0
+    plo CALL_REG
+    ldi DYN_MEMORY_ALLOC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R10
+    bnz LINE_ADD_ALLOCATION_SUCCESS     ;if it was successful
+    ghi R10
+    lbz LINE_ADD_ALLOCATION_FAILED
+    
+LINE_ADD_ALLOCATION_SUCCESS
+    glo STACK_REG                       ;set R5 pointer to string
+    adi 7
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    glo R10                             ;save R10 to string
+    str R5
+    inc R5
+    
+    ghi R10
+    str R5
+    
+    phi R5                              ;copy R10 value to R5
+    glo R10
+    plo R5
+    
+    glo R7
+    plo R4
+    ghi R7
+    phi R4
+    ;copy string here
+    
+LINE_ADD_COPY_STR
+    lda R4
+    str R5
+    inc R5
+    dec R6
+    glo R6
+    bnz LINE_ADD_COPY_STR
+    
+LINE_ADD_FILLNODE
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R5
+    plo R6
+    lda R5
+    phi R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    ldi 0
+    str R6
+    inc R6
+    
+    str R6
+    inc R6
+    
+    str R6
+    inc R6
+    
+    str R6
+    inc R6
+    
+    inc R5
+    inc R5
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+
+LINE_ADD_INSERT
+    ldi LINE_COUNT.0
+    plo R5
+    ldi LINE_COUNT.1
+    phi R5
+    
+    lda R5
+    lbnz LINE_ADD_APPEND
+    ldn R5
+    lbnz LINE_ADD_APPEND
+    
+LINE_ADD_ADDFIRST
+    dec R5
+    
+    ldi 1                   ;store 1 to R5
+    str R5
+    inc R5
+    
+    ldi 0
+    str R5
+    inc R5
+    
+    glo STACK_REG           ;set R6 pointer to newNode
+    plo R6
+    ghi STACK_REG
+    phi R6
+    inc R6
+    
+    lda R6                  ;store newNode to LINE_FIRSTNODE
+    str R5
+    inc R5
+    
+    ldn R6
+    str R5
+    inc R5
+    
+    dec R6                  ;decrement R6 by one to step back to newNode
+    
+    lda R6                  ;store newNode to LINE_LASTNODE
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    lda R6                  ;store line number to LINE_LASTLINE
+    str R5
+    inc R5
+    
+    lda R6
+    str R5
+    inc R5
+    
+    lbr LINE_ADD_END
+    
+LINE_ADD_APPEND
+    dec R5
+    
+    ldn R5
+    adi 1
+    str R5
+    inc R5
+    
+    ldn R5
+    adci 0
+    str R5
+    inc R5
+    
+    inc R5
+    inc R5
+    
+    lda R5
+    plo R6
+    lda R5
+    phi R6
+    
+    inc R6
+    inc R6
+    
+    glo STACK_REG           ;set R6 pointer to newNode
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R5
+    str R6
+    inc R6
+    
+    ldn R5
+    str R6
+    
+    dec R6
+    dec R6
+    dec R6
+    
+    dec R5
+    
+    lda R5
+    adi 4
+    plo R7
+    ldn R5
+    adci 0
+    phi R7
+    
+    glo R6
+    str R7
+    inc R7
+    
+    ghi R6
+    str R7
+    
+    dec R5
+    
+    ldi LINE_LASTNODE.0
+    plo R6
+    ldi LINE_LASTNODE.1
+    phi R6
+    
+    lda R5
+    str R6
+    inc R6
+    
+    lda R5
+    str R6
+
+    lbr LINE_ADD_END
+
+LINE_ADD_ALLOCATION_FAILED
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    lda R5
+    plo R4
+    lda R5
+    phi R4
+    
+    ldi DYN_MEMORY_FREE.0
+    plo CALL_REG
+    ldi DYN_MEMORY_FREE.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+
+LINE_ADD_END
+    glo STACK_REG
+    adi 8
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+LINE_LIST_EMPTY_STR
+    db "Nothing to list."
+LINE_LIST_EMPTY_STR1
+    db "\r\n",0
+
+;-LINE-LIST------------------------------------
+LINE_LIST
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd                    ;+1 temp variable
+
+    ldi LINE_COUNT.0
+    plo R4
+    ldi LINE_COUNT.1
+    phi R4
+    
+    lda R4
+    bnz LINE_LIST_CONTINUE
+    lda R4
+    bnz LINE_LIST_CONTINUE
+    
+LINE_LIST_EMPTY
+    ldi LINE_LIST_EMPTY_STR.0
+    plo R6
+    ldi LINE_LIST_EMPTY_STR.1
+    phi R6
+    
+    ldi PRINT.0                 ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT
+    
+    lbr LINE_LIST_END
+    
+LINE_LIST_CONTINUE
+    lda R4
+    plo R5
+    lda R4
+    phi R5
+    
+LINE_LIST_MAINLOOP
+    glo STACK_REG.0
+    plo R4
+    ghi STACK_REG.1
+    phi R4
+    inc R4
+    
+    lda R5
+    str R4
+    inc R4
+    
+    lda R5
+    str R4
+    
+    dec R4
+    
+    ldi PRINT_DEC.0
+    plo CALL_REG
+    ldi PRINT_DEC.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT_DEC
+    
+    lda R5
+    plo R4
+    lda R5
+    phi R4
+
+    inc R5
+    inc R5
+    
+    lda R5
+    plo R6
+    lda R5
+    phi R6
+    
+    ldi PRINT.0                 ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT
+    
+    ldi LINE_LIST_EMPTY_STR1.0
+    plo R6
+    ldi LINE_LIST_EMPTY_STR1.1
+    phi R6
+    
+    ldi PRINT.0                 ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT
+    
+    glo R4
+    bnz LINE_LIST_NEXTNODE
+    ghi R4
+    lbz LINE_LIST_END
+    
+LINE_LIST_NEXTNODE
+    glo R4
+    plo R5
+    ghi R4
+    phi R5
+    
+    lbr LINE_LIST_MAINLOOP
+
+LINE_LIST_END
+    dec STACK_REG
+    dec STACK_REG
+    dec STACK_REG
+    dec STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-DMA-SET--------------------------------------
 DMA_SET
     sex STACK_REG
@@ -5593,6 +6104,15 @@ MAIN_PROGRAM
     plo FCALL_REG
     sep FCALL_REG
     
+    ldi LINE_INIT.0       ;line list init
+    plo CALL_REG
+    ldi LINE_INIT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
     ldi DYN_MEMORY_INIT.0     ;heap init
     plo CALL_REG
     ldi DYN_MEMORY_INIT.1
@@ -5637,6 +6157,24 @@ ASK_INPUT
     ldi INPUT_BUFF.1
     phi R4
     
+    ldn R4
+    smi 48
+    bm MAIN_STATEMENT
+    smi 10
+    bpz MAIN_STATEMENT
+    
+    ldi LINE_ADD.0      ;prepare to call LINE_ADD
+    plo CALL_REG
+    ldi LINE_ADD.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lbr MAIN_NEXT_ASK
+    
+MAIN_STATEMENT
     ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
     plo CALL_REG
     ldi STATEMENT.1
@@ -5646,7 +6184,8 @@ ASK_INPUT
     plo FCALL_REG
     sep FCALL_REG
     ;Program ends here
-    
+
+MAIN_NEXT_ASK
     ldi ASK_IN.0        ;load the ASK_IN string's address to R6
     plo R6
     ldi ASK_IN.1
@@ -5674,7 +6213,7 @@ NEW_LINE
     db "\r\n",0
 COMMAND_LIST
     db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,0
+    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"list",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -5686,6 +6225,7 @@ COMMAND_FUNC_LIST
     db MEM_WRITE.0,MEM_WRITE.1
     db DMA_SET.0,DMA_SET.1
     db EXEC.0,EXEC.1
+    db LINE_LIST.0,LINE_LIST.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
