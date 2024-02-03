@@ -28,9 +28,20 @@ VARLIST_COUNT EQU 02102h
 VARLIST_FIRSTNODE EQU 02104h
 VARLIST_LASTNODE EQU 02106h
 
-HEAP_LASTADDRESS EQU 02108h
-HEAP_START EQU 02110h
+OUTPUT_CTRL EQU 02108h
+
+PORTA EQU 02109h
+PORTB EQU 0210Ah
+PORTC EQU 0210Bh
+
+INPA EQU 0210Ch
+INPB EQU 0210Dh
+INPC EQU 0210Eh
+
+HEAP_LASTADDRESS EQU 0210Fh
+HEAP_START EQU 02111h
 HEAP_END EQU 0FC00h
+
 
 
     org 00h
@@ -5582,6 +5593,307 @@ EXEC_END
     sep RETURN
 ;----------------------------------------------
 
+;-IO-INIT--------------------------------------
+IO_INIT
+    ldi INPA.0
+    plo R4
+    ldi INPA.1
+    phi R4
+    sex R4
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    
+    ldi 0FFh
+    stxd
+    
+    ldi 0
+    stxd
+    stxd
+    
+    ldi 5
+    stxd
+    
+    irx
+    
+    out 1
+    out 2
+    out 3
+    out 4
+    
+    sep RETURN
+;----------------------------------------------
+
+;-IO-WRITE-------------------------------------
+IO_WRITE
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd            ;+5 second arg
+    
+    stxd
+    stxd
+    stxd
+    stxd            ;+1 first arg
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    lda R4
+    xri 44
+    lbnz IO_WRITE_END
+    
+    glo STACK_REG
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldn R5
+    plo R6
+    
+    lbz IO_WRITE_END
+    
+    glo STACK_REG
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    sex R5
+    
+    glo 6
+    
+    smi 1
+    lsnz
+    out 1
+    nop
+    
+    smi 1
+    lsnz
+    out 2
+    nop
+    
+    smi 1
+    lsnz
+    out 3
+    nop
+    
+    smi 1
+    lsnz
+    out 4
+    nop
+    
+    smi 1
+    lsnz
+    out 5
+    nop
+    
+    smi 1
+    lsnz
+    out 6
+    nop
+    
+    smi 1
+    lsnz
+    out 7
+    nop
+    
+IO_WRITE_END
+    glo STACK_REG
+    adi 8
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
+;-IO-READ--------------------------------------
+IO_READ_STR1
+    db "0x",0
+    
+IO_READ
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd            ;+5 input data
+    
+    stxd
+    stxd
+    stxd
+    stxd            ;+1 first arg
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldn R5
+    plo R6
+    
+    lbz IO_READ_END
+    
+    glo STACK_REG
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    sex R5
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 1
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 2
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 3
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 4
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 5
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 6
+    nop
+    
+    dec R6
+    glo R6
+    lsnz
+    inp 7
+    nop
+    
+IO_PRINT_INPUT
+    ldi IO_READ_STR1.0  ;print IO_READ_STR1
+    plo R6
+    ldi IO_READ_STR1.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo STACK_REG                           ;reset R4 pointer to input data
+    adi 5
+    plo R4
+    ghi STACK_REG
+    adci 0
+    phi R4
+    
+    ldi 2                                   ;set number of digits to 2
+    plo R5
+    ldi 0
+    phi R5
+    
+    ldi PRINT_HEX.0                         ;print address in hexadecimal
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi NEW_LINE.0  ;print newline
+    plo R6
+    ldi NEW_LINE.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+IO_READ_END
+    glo STACK_REG
+    adi 8
+    plo STACK_REG
+    ghi STACK_REG
+    adci 0
+    phi STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
     ldi VAR_LIST_INIT.0       ;variable list init
@@ -5674,7 +5986,7 @@ NEW_LINE
     db "\r\n",0
 COMMAND_LIST
     db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,0
+    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -5686,6 +5998,8 @@ COMMAND_FUNC_LIST
     db MEM_WRITE.0,MEM_WRITE.1
     db DMA_SET.0,DMA_SET.1
     db EXEC.0,EXEC.1
+    db IO_WRITE.0,IO_WRITE.1
+    db IO_READ.0,IO_READ.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
