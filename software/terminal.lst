@@ -73,7 +73,7 @@
    0016   f8 30             ldi DMA_ADDRESS.1
    0018   b0                phi DMA_REG
                             
-   0019   c0 17 f8          lbr MAIN_PROGRAM
+   0019   c0 18 aa          lbr MAIN_PROGRAM
                             
                         ;-FUNCTION CALL HELPER-------------------------
                         ;-WHERE TO JUMP-(CALL_REG)---------------------
@@ -223,9 +223,9 @@
    017a   f8 00             ldi 00h             ;put 0 to the endof the string
    017c   57                str R7
                             
-   017d   f8 89             ldi NEW_LINE.0      ;load the address of CRLF string
+   017d   f8 3b             ldi NEW_LINE.0      ;load the address of CRLF string
    017f   a6                plo R6
-   0180   f8 18             ldi NEW_LINE.1
+   0180   f8 19             ldi NEW_LINE.1
    0182   b6                phi R6
                             
    0183   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -4560,9 +4560,9 @@
    120e   88                glo R8
    120f   ca 11 92          lbnz HEXVIEWER_PRINT_STR_LOOP
                             
-   1212   f8 89             ldi NEW_LINE.0     ;prepare to print a space
+   1212   f8 3b             ldi NEW_LINE.0     ;prepare to print a space
    1214   a6                plo R6
-   1215   f8 18             ldi NEW_LINE.1
+   1215   f8 19             ldi NEW_LINE.1
    1217   b6                phi R6
                         	
    1218   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -5236,9 +5236,9 @@
    152c   ae                plo FCALL_REG
    152d   de                sep FCALL_REG
                             
-   152e   f8 89             ldi NEW_LINE.0  ;print newline
+   152e   f8 3b             ldi NEW_LINE.0  ;print newline
    1530   a6                plo R6
-   1531   f8 18             ldi NEW_LINE.1
+   1531   f8 19             ldi NEW_LINE.1
    1533   b6                phi R6
                         	
    1534   f8 52             ldi PRINT.0     ;prepare to call PRINT
@@ -5333,14 +5333,14 @@
    159c   f8 00             ldi 0
    159e   55                str R5
                             
-   159f   f8 ed             ldi COMMAND_FUNC_LIST.0
+   159f   f8 b5             ldi COMMAND_FUNC_LIST.0
    15a1   a5                plo R5
-   15a2   f8 18             ldi COMMAND_FUNC_LIST.1
+   15a2   f8 19             ldi COMMAND_FUNC_LIST.1
    15a4   b5                phi R5
                             
-   15a5   f8 8c             ldi COMMAND_LIST.0
+   15a5   f8 3e             ldi COMMAND_LIST.0
    15a7   a9                plo R9
-   15a8   f8 18             ldi COMMAND_LIST.1
+   15a8   f8 19             ldi COMMAND_LIST.1
    15aa   b9                phi R9
                             
    15ab                 STATEMENT_SEARCHLOOP
@@ -5965,9 +5965,9 @@
    17dd   ae                plo FCALL_REG
    17de   de                sep FCALL_REG
                             
-   17df   f8 89             ldi NEW_LINE.0  ;print newline
+   17df   f8 3b             ldi NEW_LINE.0  ;print newline
    17e1   a6                plo R6
-   17e2   f8 18             ldi NEW_LINE.1
+   17e2   f8 19             ldi NEW_LINE.1
    17e4   b6                phi R6
                         	
    17e5   f8 52             ldi PRINT.0     ;prepare to call PRINT
@@ -5990,163 +5990,368 @@
    17f7   de                sep RETURN
                         ;----------------------------------------------
                         
-                        ;-MAIN-----------------------------------------
-   17f8                 MAIN_PROGRAM
-   17f8   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
-   17fa   ad                plo CALL_REG
-   17fb   f8 0e             ldi VAR_LIST_INIT.1
-   17fd   bd                phi CALL_REG
+                        ;-IO-SPI-INIT----------------------------------
+   17f8                 IO_SPI_INIT
+   17f8   f8 08             ldi OUTPUT_CTRL.0
+   17fa   a5                plo R5
+   17fb   f8 21             ldi OUTPUT_CTRL.1
+   17fd   b5                phi R5
+   17fe   e5                sex R5
                             
-   17fe   f8 00             ldi FCALL.0
-   1800   ae                plo FCALL_REG
-   1801   de                sep FCALL_REG
+   17ff   60                irx
+   1800   f8 00             ldi 0
+   1802   55                str R5
                             
-   1802   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
-   1804   ad                plo CALL_REG
-   1805   f8 0a             ldi DYN_MEMORY_INIT.1
-   1807   bd                phi CALL_REG
+   1803   62                out 2
+   1804   25                dec R5
+   1805   63                out 3
+   1806   25                dec R5
                             
-   1808   f8 00             ldi FCALL.0
-   180a   ae                plo FCALL_REG
-   180b   de                sep FCALL_REG   ;call heap init
+   1807   f8 ff             ldi 0FFh
+   1809   55                str R5
                             
-   180c   f8 4f             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
-   180e   a6                plo R6
-   180f   f8 18             ldi BOOT_MSG.1
-   1811   b6                phi R6
-                        	
-   1812   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   1814   ad                plo CALL_REG
-   1815   f8 01             ldi PRINT.1
-   1817   bd                phi CALL_REG
+   180a   64                out 4
+   180b   25                dec R5
                             
-   1818   f8 00             ldi FCALL.0
-   181a   ae                plo FCALL_REG
-   181b   de                sep FCALL_REG   ;call PRINT
+   180c   25                dec R5
+                            
+   180d   f8 05             ldi 5
+   180f   55                str R5
+                            
+   1810   61                out 1
+   1811   25                dec R5
                         
-   181c                 ASK_INPUT
-   181c   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
-   181e   a7                plo R7
-   181f   f8 20             ldi INPUT_BUFF.1
-   1821   b7                phi R7
+   1812                 IO_SPI_INIT_END
+   1812   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-IO-SPI-TRANSFER------------------------------
+   1813                 IO_SPI_TRANSFER
+   1813   ef                sex STACK_REG
                             
-   1822   f8 68             ldi READLINE.0      ;prepare to call READLINE
-   1824   ad                plo CALL_REG
-   1825   f8 01             ldi READLINE.1
-   1827   bd                phi CALL_REG
+   1814   f8 00             ldi 0
+   1816   73                stxd
+   1817   73                stxd
+   1818   73                stxd
+   1819   73                stxd        ;+1 data
                             
-   1828   f8 00             ldi FCALL.0
-   182a   ae                plo FCALL_REG
-   182b   de                sep FCALL_REG       ;call READLINE
+   181a   8f                glo STACK_REG
+   181b   a5                plo R5
+   181c   9f                ghi STACK_REG
+   181d   b5                phi R5
+   181e   15                inc R5
+                            
+   181f   f8 65             ldi EXPRESSION.0
+   1821   ad                plo CALL_REG
+   1822   f8 09             ldi EXPRESSION.1
+   1824   bd                phi CALL_REG
+                            
+   1825   f8 00             ldi FCALL.0
+   1827   ae                plo FCALL_REG
+   1828   de                sep FCALL_REG
+                            
+   1829   f8 09             ldi PORTA.0
+   182b   a6                plo R6
+   182c   f8 21             ldi PORTA.1
+   182e   b6                phi R6
+                            
+   182f   f8 0d             ldi INPB.0
+   1831   a7                plo R7
+   1832   f8 21             ldi INPB.1
+   1834   b7                phi R7
+                            
+   1835   f8 08             ldi 8
+   1837   a8                plo R8
+                            
+   1838   e6                sex R6
+                            
+   1839                 IO_SPI_MAINLOOP
+   1839   06                ldn R6                  ;16
+   183a   fa fc             ani 0FCh                ;16
+   183c   56                str R6                  ;16
+                            
+   183d   05                ldn R5                  ;16
+   183e   fa 80             ani 080h                ;16
+   1840   c2 18 48          lbz IO_SPI_SENDZERO     ;24
+                            
+                            ;send one
+   1843   06                ldn R6                  ;16
+   1844   f9 01             ori 01h                 ;16
+   1846   30 4d             br IO_SPI_STORE_R       ;16 - !!
+                        
+   1848                 IO_SPI_SENDZERO
+                            ;send zero
+   1848   06                ldn R6                  ;16
+   1849   fa fe             ani 0FEh                ;16
+   184b   f9 00             ori 0                   ;16
+                        
+   184d                 IO_SPI_STORE_R
+   184d   56                str R6                  ;16
+                            
+   184e   62                out 2                   ;16  --- 184
+   184f   26                dec R6                  ;16
+                            
+   1850                 IO_SPI_SAMPLING
+   1850   e7                sex R7                  ;16
+   1851   6b                inp 3                   ;16
+   1852   f6                shr                     ;16
+                            
+   1853   c4                nop
+   1854   c4                nop
+   1855   f9 00             ori 0                   ;64
+                            
+   1857   05                ldn R5                  ;16
+   1858   7e                shlc                    ;16
+   1859   55                str R5                  ;16
+                        
+   185a   06                ldn R6                  ;16
+   185b   f9 02             ori 02h                 ;16
+                                        
+   185d   56                str R6                  ;16
+                            
+   185e   e6                sex R6                  ;16
+   185f   62                out 2                   ;16  --- 256
+   1860   26                dec R6                  ;16
+                            
+   1861   28                dec R8                  ;16
+   1862   88                glo R8                  ;16
+   1863   ca 18 39          lbnz IO_SPI_MAINLOOP    ;24  --- 72
+                            
+   1866                 IO_SPI_FINISH
+   1866   06                ldn R6                  ;16
+   1867   fa fc             ani 0FCh                ;16
+   1869   56                str R6                  ;16
+                            
+   186a   c4                nop                     
+   186b   c4                nop
+   186c   c4                nop
+   186d   c4                nop
+   186e   c4                nop                     ;120
+                                
+   186f   62                out 2                   ;16
+   1870   26                dec R6
+                            
+   1871                 IO_SPI_PRINT_RESULT
+   1871   f8 69             ldi IO_READ_STR1.0  ;print IO_READ_STR1
+   1873   a6                plo R6
+   1874   f8 17             ldi IO_READ_STR1.1
+   1876   b6                phi R6
+                        	
+   1877   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1879   ad                plo CALL_REG
+   187a   f8 01             ldi PRINT.1
+   187c   bd                phi CALL_REG
+                            
+   187d   f8 00             ldi FCALL.0
+   187f   ae                plo FCALL_REG
+   1880   de                sep FCALL_REG
+                            
+   1881   85                glo R5
+   1882   a4                plo R4
+   1883   95                ghi R5
+   1884   b4                phi R4
+                            
+   1885   f8 02             ldi 2                                   ;set number of digits to 2
+   1887   a5                plo R5
+   1888   f8 00             ldi 0
+   188a   b5                phi R5
+                            
+   188b   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
+   188d   ad                plo CALL_REG
+   188e   f8 04             ldi PRINT_HEX.1
+   1890   bd                phi CALL_REG
+                            
+   1891   f8 00             ldi FCALL.0
+   1893   ae                plo FCALL_REG
+   1894   de                sep FCALL_REG
+                            
+   1895   f8 3b             ldi NEW_LINE.0  ;print newline
+   1897   a6                plo R6
+   1898   f8 19             ldi NEW_LINE.1
+   189a   b6                phi R6
+                        	
+   189b   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   189d   ad                plo CALL_REG
+   189e   f8 01             ldi PRINT.1
+   18a0   bd                phi CALL_REG
+                            
+   18a1   f8 00             ldi FCALL.0
+   18a3   ae                plo FCALL_REG
+   18a4   de                sep FCALL_REG
+                            
+   18a5                 IO_SPI_TRANSFER_END
+   18a5   1f                inc STACK_REG
+   18a6   1f                inc STACK_REG
+   18a7   1f                inc STACK_REG
+   18a8   1f                inc STACK_REG
+                            
+   18a9   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-MAIN-----------------------------------------
+   18aa                 MAIN_PROGRAM
+   18aa   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
+   18ac   ad                plo CALL_REG
+   18ad   f8 0e             ldi VAR_LIST_INIT.1
+   18af   bd                phi CALL_REG
+                            
+   18b0   f8 00             ldi FCALL.0
+   18b2   ae                plo FCALL_REG
+   18b3   de                sep FCALL_REG
+                            
+   18b4   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
+   18b6   ad                plo CALL_REG
+   18b7   f8 0a             ldi DYN_MEMORY_INIT.1
+   18b9   bd                phi CALL_REG
+                            
+   18ba   f8 00             ldi FCALL.0
+   18bc   ae                plo FCALL_REG
+   18bd   de                sep FCALL_REG   ;call heap init
+                            
+   18be   f8 01             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
+   18c0   a6                plo R6
+   18c1   f8 19             ldi BOOT_MSG.1
+   18c3   b6                phi R6
+                        	
+   18c4   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   18c6   ad                plo CALL_REG
+   18c7   f8 01             ldi PRINT.1
+   18c9   bd                phi CALL_REG
+                            
+   18ca   f8 00             ldi FCALL.0
+   18cc   ae                plo FCALL_REG
+   18cd   de                sep FCALL_REG   ;call PRINT
+                        
+   18ce                 ASK_INPUT
+   18ce   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
+   18d0   a7                plo R7
+   18d1   f8 20             ldi INPUT_BUFF.1
+   18d3   b7                phi R7
+                            
+   18d4   f8 68             ldi READLINE.0      ;prepare to call READLINE
+   18d6   ad                plo CALL_REG
+   18d7   f8 01             ldi READLINE.1
+   18d9   bd                phi CALL_REG
+                            
+   18da   f8 00             ldi FCALL.0
+   18dc   ae                plo FCALL_REG
+   18dd   de                sep FCALL_REG       ;call READLINE
                             
                             ;Program goes here
-   182c   f8 00             ldi INPUT_BUFF.0
-   182e   a4                plo R4
-   182f   f8 20             ldi INPUT_BUFF.1
-   1831   b4                phi R4
+   18de   f8 00             ldi INPUT_BUFF.0
+   18e0   a4                plo R4
+   18e1   f8 20             ldi INPUT_BUFF.1
+   18e3   b4                phi R4
                             
-   1832   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
-   1834   ad                plo CALL_REG
-   1835   f8 15             ldi STATEMENT.1
-   1837   bd                phi CALL_REG
+   18e4   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
+   18e6   ad                plo CALL_REG
+   18e7   f8 15             ldi STATEMENT.1
+   18e9   bd                phi CALL_REG
                             
-   1838   f8 00             ldi FCALL.0
-   183a   ae                plo FCALL_REG
-   183b   de                sep FCALL_REG
+   18ea   f8 00             ldi FCALL.0
+   18ec   ae                plo FCALL_REG
+   18ed   de                sep FCALL_REG
                             ;Program ends here
                             
-   183c   f8 85             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
-   183e   a6                plo R6
-   183f   f8 18             ldi ASK_IN.1
-   1841   b6                phi R6
+   18ee   f8 37             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
+   18f0   a6                plo R6
+   18f1   f8 19             ldi ASK_IN.1
+   18f3   b6                phi R6
                             
-   1842   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   1844   ad                plo CALL_REG
-   1845   f8 01             ldi PRINT.1
-   1847   bd                phi CALL_REG
+   18f4   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   18f6   ad                plo CALL_REG
+   18f7   f8 01             ldi PRINT.1
+   18f9   bd                phi CALL_REG
                             
-   1848   f8 00             ldi FCALL.0
-   184a   ae                plo FCALL_REG
-   184b   de                sep FCALL_REG       ;call PRINT
+   18fa   f8 00             ldi FCALL.0
+   18fc   ae                plo FCALL_REG
+   18fd   de                sep FCALL_REG       ;call PRINT
                         	
-   184c   c0 18 1c          lbr ASK_INPUT
+   18fe   c0 18 ce          lbr ASK_INPUT
                         ;----------------------------------------------
                         
                         ;-CONSTANT DATA--------------------------------
-   184f                 BOOT_MSG
-   184f   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
-   1853   2d 43 50 55   
-   1857   20 52 45 53   
-   185b   45 54 2d 2d   
-   185f   2d 0d 0a      
-   1862   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
-   1866   20 2d 20 43   
-   186a   44 50 31 38   
-   186e   30 32 20 54   
-   1872   65 72 6d 69   
-   1876   6e 61 6c 2e   
-   187a   0d 0a 0d 0a   
-   187e   52 45 41 44   
-   1882   59 0d 0a      
-   1885                 ASK_IN
-   1885   0d 0a 3e 00       db "\r\n>",0
-   1889                 NEW_LINE
-   1889   0d 0a 00          db "\r\n",0
-   188c                 COMMAND_LIST
-   188c   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-   1890   74 00 6c 65   
-   1894   74 00 6d 65   
-   1898   6d 5f 76 69   
-   189c   65 77 00 6d   
-   18a0   65 6d 5f 64   
-   18a4   65 62 75 67   
-   18a8   00 6d 65 6d   
-   18ac   5f 61 6c 6c   
-   18b0   6f 63 00 6d   
-   18b4   65 6d 5f 66   
-   18b8   72 65 65 00   
-   18bc   6d 65 6d 5f       db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0,0
-   18c0   73 65 74 00   
-   18c4   6d 65 6d 5f   
-   18c8   77 72 69 74   
-   18cc   65 00 64 6d   
-   18d0   61 5f 73 65   
-   18d4   74 00 65 78   
-   18d8   65 63 00 69   
-   18dc   6f 5f 77 72   
-   18e0   69 74 65 00   
-   18e4   69 6f 5f 72   
-   18e8   65 61 64 00   
-   18ec   00            
-   18ed                 COMMAND_FUNC_LIST
-   18ed   06 15             db FUNC_TEST.0,FUNC_TEST.1
-   18ef   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
-   18f1   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
-   18f3   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
-   18f5   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
-   18f7   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
-   18f9   5d 16             db MEM_SET.0,MEM_SET.1
-   18fb   83 16             db MEM_WRITE.0,MEM_WRITE.1
-   18fd   3e 16             db DMA_SET.0,DMA_SET.1
-   18ff   b8 16             db EXEC.0,EXEC.1
-   1901   f7 16             db IO_WRITE.0,IO_WRITE.1
-   1903   6c 17             db IO_READ.0,IO_READ.1
-   1905                 UNKNOWN_COMMAND
-   1905   55 6e 6b 6e       db "Unknown command.\r\n",0
-   1909   6f 77 6e 20   
-   190d   63 6f 6d 6d   
-   1911   61 6e 64 2e   
-   1915   0d 0a 00      
-   1918                 TEST_RESP
-   1918   45 76 65 72       db "Everything is ok!",0
-   191c   79 74 68 69   
-   1920   6e 67 20 69   
-   1924   73 20 6f 6b   
-   1928   21 00         
+   1901                 BOOT_MSG
+   1901   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
+   1905   2d 43 50 55   
+   1909   20 52 45 53   
+   190d   45 54 2d 2d   
+   1911   2d 0d 0a      
+   1914   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
+   1918   20 2d 20 43   
+   191c   44 50 31 38   
+   1920   30 32 20 54   
+   1924   65 72 6d 69   
+   1928   6e 61 6c 2e   
+   192c   0d 0a 0d 0a   
+   1930   52 45 41 44   
+   1934   59 0d 0a      
+   1937                 ASK_IN
+   1937   0d 0a 3e 00       db "\r\n>",0
+   193b                 NEW_LINE
+   193b   0d 0a 00          db "\r\n",0
+   193e                 COMMAND_LIST
+   193e   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
+   1942   74 00 6c 65   
+   1946   74 00 6d 65   
+   194a   6d 5f 76 69   
+   194e   65 77 00 6d   
+   1952   65 6d 5f 64   
+   1956   65 62 75 67   
+   195a   00 6d 65 6d   
+   195e   5f 61 6c 6c   
+   1962   6f 63 00 6d   
+   1966   65 6d 5f 66   
+   196a   72 65 65 00   
+   196e   6d 65 6d 5f       db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0
+   1972   73 65 74 00   
+   1976   6d 65 6d 5f   
+   197a   77 72 69 74   
+   197e   65 00 64 6d   
+   1982   61 5f 73 65   
+   1986   74 00 65 78   
+   198a   65 63 00 69   
+   198e   6f 5f 77 72   
+   1992   69 74 65 00   
+   1996   69 6f 5f 72   
+   199a   65 61 64 00   
+   199e   73 70 69 5f       db "spi_init",0,"spi_transfer",0,0
+   19a2   69 6e 69 74   
+   19a6   00 73 70 69   
+   19aa   5f 74 72 61   
+   19ae   6e 73 66 65   
+   19b2   72 00 00      
+   19b5                 COMMAND_FUNC_LIST
+   19b5   06 15             db FUNC_TEST.0,FUNC_TEST.1
+   19b7   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
+   19b9   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+   19bb   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
+   19bd   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
+   19bf   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
+   19c1   5d 16             db MEM_SET.0,MEM_SET.1
+   19c3   83 16             db MEM_WRITE.0,MEM_WRITE.1
+   19c5   3e 16             db DMA_SET.0,DMA_SET.1
+   19c7   b8 16             db EXEC.0,EXEC.1
+   19c9   f7 16             db IO_WRITE.0,IO_WRITE.1
+   19cb   6c 17             db IO_READ.0,IO_READ.1
+   19cd   f8 17             db IO_SPI_INIT.0,IO_SPI_INIT.1
+   19cf   13 18             db IO_SPI_TRANSFER.0,IO_SPI_TRANSFER.1
+   19d1                 UNKNOWN_COMMAND
+   19d1   55 6e 6b 6e       db "Unknown command.\r\n",0
+   19d5   6f 77 6e 20   
+   19d9   63 6f 6d 6d   
+   19dd   61 6e 64 2e   
+   19e1   0d 0a 00      
+   19e4                 TEST_RESP
+   19e4   45 76 65 72       db "Everything is ok!",0
+   19e8   79 74 68 69   
+   19ec   6e 67 20 69   
+   19f0   73 20 6f 6b   
+   19f4   21 00         
                         
-   192a                     end
-1885  ASK_IN        181c  ASK_INPUT     0164  BACKSPACE_ACTION    184f  BOOT_MSG  
-000d  CALL_REG      0283  CARRY_SHIFTING    18ed  COMMAND_FUNC_LIST    188c  COMMAND_LIST
+   19f6                     end
+1937  ASK_IN        18ce  ASK_INPUT     0164  BACKSPACE_ACTION    1901  BOOT_MSG  
+000d  CALL_REG      0283  CARRY_SHIFTING    19b5  COMMAND_FUNC_LIST    193e  COMMAND_LIST
 028d  DIVISION_LOOP    3000  DMA_ADDRESS    0013  DMA_INIT      0000  DMA_REG   
 163e  DMA_SET       1658  DMA_SET_END    0bf7  DYN_MEMORY_ALLOC    12cd  DYN_MEMORY_ALLOC_CALLER
 137f  DYN_MEMORY_ALLOC_CALLER_END    1302  DYN_MEMORY_ALLOC_CALLER_FAIL    1285  DYN_MEMORY_ALLOC_CALLER_STR1    12bc  DYN_MEMORY_ALLOC_CALLER_STR2
@@ -6178,36 +6383,38 @@
 03fd  INTEGER_MUL_SHMULTIPLICAND    03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR    0001  INTP_REG  
 0002  INTX_REG      0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4
 16db  IO_INIT       17b7  IO_PRINT_INPUT    176c  IO_READ       17ef  IO_READ_END
-1769  IO_READ_STR1    16f7  IO_WRITE      1760  IO_WRITE_END    0ea2  LET_STATEMENT
-0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR    0ecc  LET_STATEMENT_CONTINUE1    0ef2  LET_STATEMENT_CONTINUE2
-0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION    0f52  LET_STATEMENT_FIRSTNODE    0f6e  LET_STATEMENT_FREENODE
-0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER    0edb  LET_STATEMENT_SKIPSPACES    17f8  MAIN_PROGRAM
-2100  MEMWRITE_ADDRESS    165d  MEM_SET       167e  MEM_SET_END    1683  MEM_WRITE 
-16b3  MEM_WRITE_END    168a  MEM_WRITE_LOOP    1889  NEW_LINE      0307  NEXT_BIT  
-2108  OUTPUT_CTRL    0003  PC_REG        2109  PORTA         210a  PORTB     
-210b  PORTC         0152  PRINT         045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC 
-0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL    0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP
-0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX     048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1
-0449  PRINT_UNTIL_R    000a  R10           000b  R11           000c  R12       
-0004  R4            0005  R5            0006  R6            0007  R7        
-0008  R8            0009  R9            0168  READLINE      018e  READLINE_BACKSPACE
-016b  READLINE_LOOP    058b  READ_DEC      061c  READ_DEC_END    05a5  READ_DEC_MAIN_LOOP
-062e  READ_HEX      066a  READ_HEX_CONTINUE    069e  READ_HEX_END    068d  READ_HEX_HEXDIGIT
-0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP    0699  READ_HEX_NEXTCHAR    066d  READ_HEX_SHIFTLOOP
-06b0  READ_VAR      0711  READ_VAR_CONTINUE    06d9  READ_VAR_COPYLOOP    0778  READ_VAR_END
-074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE    0763  READ_VAR_NOTFOUND    071a  READ_VAR_SEARCHLOOP
-0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR    000e  RETURN        013f  SERIAL_NULL_BIT
-012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT    0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT
-0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START    02a5  SHIFTING_Q    0276  SHIFT_DR  
-0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS    000f  STACK_REG     0000  START     
-1547  STATEMENT     1564  STATEMENT_COPYLOOP    1635  STATEMENT_END    162d  STATEMENT_EXEC
-1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH    15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR
-15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE    15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES
-1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND    162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR
-01c3  STR_CHARCHECK    01c0  STR_COMPARATOR    01c9  STR_EQUAL     01d0  STR_INC   
-02fd  SUBTRACT_FOR_REAL    086e  TERM          0895  TERM_DIVIDE    0953  TERM_END  
-0881  TERM_MAIN     08fa  TERM_MULTIPLY    094f  TERM_NEXT_CYCLE    1918  TEST_RESP 
-14fd  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING    1905  UNKNOWN_COMMAND
-2102  VARLIST_COUNT    2104  VARLIST_FIRSTNODE    2106  VARLIST_LASTNODE    0e10  VAR_LIST_INIT
-0e19  VAR_LIST_INIT_LOOP    
+1769  IO_READ_STR1    1866  IO_SPI_FINISH    17f8  IO_SPI_INIT    1812  IO_SPI_INIT_END
+1839  IO_SPI_MAINLOOP    1871  IO_SPI_PRINT_RESULT    1850  IO_SPI_SAMPLING    1848  IO_SPI_SENDZERO
+184d  IO_SPI_STORE_R    1813  IO_SPI_TRANSFER    18a5  IO_SPI_TRANSFER_END    16f7  IO_WRITE  
+1760  IO_WRITE_END    0ea2  LET_STATEMENT    0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR
+0ecc  LET_STATEMENT_CONTINUE1    0ef2  LET_STATEMENT_CONTINUE2    0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION
+0f52  LET_STATEMENT_FIRSTNODE    0f6e  LET_STATEMENT_FREENODE    0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER
+0edb  LET_STATEMENT_SKIPSPACES    18aa  MAIN_PROGRAM    2100  MEMWRITE_ADDRESS    165d  MEM_SET   
+167e  MEM_SET_END    1683  MEM_WRITE     16b3  MEM_WRITE_END    168a  MEM_WRITE_LOOP
+193b  NEW_LINE      0307  NEXT_BIT      2108  OUTPUT_CTRL    0003  PC_REG    
+2109  PORTA         210a  PORTB         210b  PORTC         0152  PRINT     
+045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC     0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL
+0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX 
+048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10       
+000b  R11           000c  R12           0004  R4            0005  R5        
+0006  R6            0007  R7            0008  R8            0009  R9        
+0168  READLINE      018e  READLINE_BACKSPACE    016b  READLINE_LOOP    058b  READ_DEC  
+061c  READ_DEC_END    05a5  READ_DEC_MAIN_LOOP    062e  READ_HEX      066a  READ_HEX_CONTINUE
+069e  READ_HEX_END    068d  READ_HEX_HEXDIGIT    0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP
+0699  READ_HEX_NEXTCHAR    066d  READ_HEX_SHIFTLOOP    06b0  READ_VAR      0711  READ_VAR_CONTINUE
+06d9  READ_VAR_COPYLOOP    0778  READ_VAR_END    074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE
+0763  READ_VAR_NOTFOUND    071a  READ_VAR_SEARCHLOOP    0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR
+000e  RETURN        013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT
+0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START
+02a5  SHIFTING_Q    0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS
+000f  STACK_REG     0000  START         1547  STATEMENT     1564  STATEMENT_COPYLOOP
+1635  STATEMENT_END    162d  STATEMENT_EXEC    1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH
+15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR    15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE
+15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES    1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND
+162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR    01c3  STR_CHARCHECK    01c0  STR_COMPARATOR
+01c9  STR_EQUAL     01d0  STR_INC       02fd  SUBTRACT_FOR_REAL    086e  TERM      
+0895  TERM_DIVIDE    0953  TERM_END      0881  TERM_MAIN     08fa  TERM_MULTIPLY
+094f  TERM_NEXT_CYCLE    19e4  TEST_RESP     14fd  TEST_STR1     0369  THE_END   
+02c7  TRY_SUBTRACTING    19d1  UNKNOWN_COMMAND    2102  VARLIST_COUNT    2104  VARLIST_FIRSTNODE
+2106  VARLIST_LASTNODE    0e10  VAR_LIST_INIT    0e19  VAR_LIST_INIT_LOOP    
 

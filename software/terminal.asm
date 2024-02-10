@@ -5894,6 +5894,204 @@ IO_READ_END
     sep RETURN
 ;----------------------------------------------
 
+;-IO-SPI-INIT----------------------------------
+IO_SPI_INIT
+    ldi OUTPUT_CTRL.0
+    plo R5
+    ldi OUTPUT_CTRL.1
+    phi R5
+    sex R5
+    
+    irx
+    ldi 0
+    str R5
+    
+    out 2
+    dec R5
+    out 3
+    dec R5
+    
+    ldi 0FFh
+    str R5
+    
+    out 4
+    dec R5
+    
+    dec R5
+    
+    ldi 5
+    str R5
+    
+    out 1
+    dec R5
+
+IO_SPI_INIT_END
+    sep RETURN
+;----------------------------------------------
+
+;-IO-SPI-TRANSFER------------------------------
+IO_SPI_TRANSFER
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd        ;+1 data
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi PORTA.0
+    plo R6
+    ldi PORTA.1
+    phi R6
+    
+    ldi INPB.0
+    plo R7
+    ldi INPB.1
+    phi R7
+    
+    ldi 8
+    plo R8
+    
+    sex R6
+    
+IO_SPI_MAINLOOP
+    ldn R6                  ;16
+    ani 0FCh                ;16
+    str R6                  ;16
+    
+    ldn R5                  ;16
+    ani 080h                ;16
+    lbz IO_SPI_SENDZERO     ;24
+    
+    ;send one
+    ldn R6                  ;16
+    ori 01h                 ;16
+    br IO_SPI_STORE_R       ;16 - !!
+
+IO_SPI_SENDZERO
+    ;send zero
+    ldn R6                  ;16
+    ani 0FEh                ;16
+    ori 0                   ;16
+
+IO_SPI_STORE_R
+    str R6                  ;16
+    
+    out 2                   ;16  --- 184
+    dec R6                  ;16
+    
+IO_SPI_SAMPLING
+    sex R7                  ;16
+    inp 3                   ;16
+    shr                     ;16
+    
+    nop
+    nop
+    ori 0                   ;64
+    
+    ldn R5                  ;16
+    shlc                    ;16
+    str R5                  ;16
+
+    ldn R6                  ;16
+    ori 02h                 ;16
+                
+    str R6                  ;16
+    
+    sex R6                  ;16
+    out 2                   ;16  --- 256
+    dec R6                  ;16
+    
+    dec R8                  ;16
+    glo R8                  ;16
+    lbnz IO_SPI_MAINLOOP    ;24  --- 72
+    
+IO_SPI_FINISH
+    ldn R6                  ;16
+    ani 0FCh                ;16
+    str R6                  ;16
+    
+    nop                     
+    nop
+    nop
+    nop
+    nop                     ;120
+        
+    out 2                   ;16
+    dec R6
+    
+IO_SPI_PRINT_RESULT
+    ldi IO_READ_STR1.0  ;print IO_READ_STR1
+    plo R6
+    ldi IO_READ_STR1.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    glo R5
+    plo R4
+    ghi R5
+    phi R4
+    
+    ldi 2                                   ;set number of digits to 2
+    plo R5
+    ldi 0
+    phi R5
+    
+    ldi PRINT_HEX.0                         ;print address in hexadecimal
+    plo CALL_REG
+    ldi PRINT_HEX.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldi NEW_LINE.0  ;print newline
+    plo R6
+    ldi NEW_LINE.1
+    phi R6
+	
+    ldi PRINT.0     ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+IO_SPI_TRANSFER_END
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    inc STACK_REG
+    
+    sep RETURN
+;----------------------------------------------
+
 ;-MAIN-----------------------------------------
 MAIN_PROGRAM
     ldi VAR_LIST_INIT.0       ;variable list init
@@ -5986,7 +6184,8 @@ NEW_LINE
     db "\r\n",0
 COMMAND_LIST
     db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0,0
+    db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0
+    db "spi_init",0,"spi_transfer",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -6000,6 +6199,8 @@ COMMAND_FUNC_LIST
     db EXEC.0,EXEC.1
     db IO_WRITE.0,IO_WRITE.1
     db IO_READ.0,IO_READ.1
+    db IO_SPI_INIT.0,IO_SPI_INIT.1
+    db IO_SPI_TRANSFER.0,IO_SPI_TRANSFER.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP
