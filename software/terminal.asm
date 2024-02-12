@@ -5933,26 +5933,20 @@ IO_SPI_INIT_END
 IO_SPI_TRANSFER
     sex STACK_REG
     
-    ldi 0
+    glo R6
     stxd
+    ghi R6
     stxd
+    
+    glo R7
     stxd
-    stxd        ;+1 data
+    ghi R7
+    stxd
     
-    glo STACK_REG
-    plo R5
-    ghi STACK_REG
-    phi R5
-    inc R5
-    
-    ldi EXPRESSION.0
-    plo CALL_REG
-    ldi EXPRESSION.1
-    phi CALL_REG
-    
-    ldi FCALL.0
-    plo FCALL_REG
-    sep FCALL_REG
+    glo R8
+    stxd
+    ghi R8
+    stxd
     
     ldi PORTA.0
     plo R6
@@ -5974,7 +5968,7 @@ IO_SPI_MAINLOOP
     ani 0FCh                ;16
     str R6                  ;16
     
-    ldn R5                  ;16
+    glo R5                  ;16
     ani 080h                ;16
     lbz IO_SPI_SENDZERO     ;24
     
@@ -5996,17 +5990,17 @@ IO_SPI_STORE_R
     dec R6                  ;16
     
 IO_SPI_SAMPLING
-    sex R7                  ;16
-    inp 3                   ;16
-    shr                     ;16
-    
     nop
     nop
     ori 0                   ;64
     
-    ldn R5                  ;16
+    sex R7                  ;16
+    inp 3                   ;16
+    shr                     ;16
+    
+    glo R5                  ;16
     shlc                    ;16
-    str R5                  ;16
+    plo R5                  ;16
 
     ldn R6                  ;16
     ori 02h                 ;16
@@ -6035,15 +6029,161 @@ IO_SPI_FINISH
     out 2                   ;16
     dec R6
     
-IO_SPI_PRINT_RESULT
-    ldi IO_READ_STR1.0  ;print IO_READ_STR1
-    plo R6
-    ldi IO_READ_STR1.1
+IO_SPI_TRANSFER_END
+    sex STACK_REG
+    irx
+    
+    ldxa
+    phi R8
+    ldxa
+    plo R8
+    
+    ldxa
+    phi R7
+    ldxa
+    plo R7
+    
+    ldxa
     phi R6
-	
-    ldi PRINT.0     ;prepare to call PRINT
+    ldx
+    plo R6
+    
+    sep RETURN
+;----------------------------------------------
+
+;-SPI-WRITE------------------------------------
+SPI_WRITE_STR1
+    db ", "
+SPI_WRITE_STR2
+    db "0x",0
+SPI_WRITE_STR3
+    db "Received: ",0
+    
+SPI_WRITE
+    sex STACK_REG
+    
+    ldi 0
+    stxd
+    stxd
+    stxd
+    stxd        ;+5 temp
+    
+    stxd
+    stxd
+    stxd
+    stxd        ;+1 device
+    
+    glo STACK_REG           ;store stack
+    plo R12
+    ghi STACK_REG
+    phi R12
+    
+    glo STACK_REG
+    plo R5
+    ghi STACK_REG
+    phi R5
+    inc R5
+    
+    ldi EXPRESSION.0            ;read the device number
     plo CALL_REG
-    ldi PRINT.1
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldn R5                      ;limit it to 7
+    ani 07h
+    str R5
+    
+    lda R4                      ;check if R4 has a comma
+    xri 44
+    lbnz SPI_WRITE_END          ;if not then end.
+    
+    glo STACK_REG
+    adi 5
+    plo R5
+    ghi STACK_REG
+    adci 0
+    phi R5
+    
+    ldi 0                   ;this is the counter
+    plo R11
+    phi R11
+    
+SPI_WRITE_COLLECTING
+    ldi EXPRESSION.0        ;read the next data
+    plo CALL_REG
+    ldi EXPRESSION.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG
+    
+    ldn R5                  ;store it to stack
+    stxd
+    
+    inc R11                 ;increment R11
+    
+    lda R4                          ;check if the next char is comma
+    xri 44
+    lbz SPI_WRITE_COLLECTING        ;if it is then get the next data
+    
+SPI_WRITE_PREPARE
+    ldi PORTC.0                     ;set R6 to PORTC
+    plo R6
+    ldi PORTC.1
+    phi R6
+    
+    sex R6                          ;from now on we use R6 as X register
+    
+    ldi 0FDh                         ;setup R6 initial state
+    shr
+    ori 080h
+    str R6
+    
+    glo R12                         ;set R8 to R12
+    plo R8
+    ghi R12
+    phi R8
+    
+    glo R12                   ;set R5 to device
+    plo R5
+    ghi R12
+    phi R5
+    inc R5
+    
+    ldn R5                          ;store device number to R7
+    plo R7
+    
+SPI_WRITE_SELECTING
+    glo R7
+    lbz SPI_WRITE_CONTINUE          ;if R7 is 0 then continue
+    
+    dec R7                          ;else shift R6 to left with carry
+    ldx
+    shlc
+    str R6
+    lbr SPI_WRITE_SELECTING
+    
+SPI_WRITE_CONTINUE
+    glo R11
+    plo R7                  ;counter for transfer
+    ghi R11
+    phi R7
+    
+    out 4                   ;select the device!
+    dec R6
+    
+SPI_WRITE_TRANSFERING
+    ldn R8                      ;send data
+    plo R5
+    
+    ldi IO_SPI_TRANSFER.0
+    plo CALL_REG
+    ldi IO_SPI_TRANSFER.1
     phi CALL_REG
     
     ldi FCALL.0
@@ -6051,16 +6191,78 @@ IO_SPI_PRINT_RESULT
     sep FCALL_REG
     
     glo R5
+    str R8                      ;store the received data
+    
+    dec R8                      ;decrement R8
+    dec R7                      ;decrement R7
+    
+    ghi R7                          ;if R7 is not 0 then jump to SPI_WRITE_TRANSFERING
+    lbnz SPI_WRITE_TRANSFERING
+    glo R7
+    lbnz SPI_WRITE_TRANSFERING
+    
+    sex R6
+    ldi 0FFh
+    str R6
+    
+    out R4
+    dec R6
+    
+    ldi SPI_WRITE_STR3.0        ;load the SPI_WRITE_STR3's address to R6
+    plo R6
+    ldi SPI_WRITE_STR3.1
+    phi R6
+    
+    ldi PRINT.0                 ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG               ;call PRINT
+    
+    ldi SPI_WRITE_STR2.0        ;load the SPI_WRITE_STR2's address to R6
+    plo R6
+    ldi SPI_WRITE_STR2.1
+    phi R6
+    
+    glo R11                     ;use R7 as counter again
+    plo R7
+    ghi R11
+    phi R7
+    
+    glo R12                     ;set R8 to R12 to point ot the datas
+    plo R8                      
+    ghi R12
+    phi R8
+    
+SPI_WRITE_PRINT_RECEIVED
+    ldi PRINT.0         ;prepare to call PRINT
+    plo CALL_REG
+    ldi PRINT.1
+    phi CALL_REG
+    
+    ldi FCALL.0
+    plo FCALL_REG
+    sep FCALL_REG       ;call PRINT
+    
+    glo R12
+    adi 5
     plo R4
-    ghi R5
+    ghi R12
+    adci 0
     phi R4
     
-    ldi 2                                   ;set number of digits to 2
+    ldn R8              ;load data from R8 address
+    str R4              ;store it to temp
+    
+    ldi 2               ;set number of digits to 2
     plo R5
     ldi 0
     phi R5
     
-    ldi PRINT_HEX.0                         ;print address in hexadecimal
+    ldi PRINT_HEX.0     ;print address in hexadecimal
     plo CALL_REG
     ldi PRINT_HEX.1
     phi CALL_REG
@@ -6069,26 +6271,41 @@ IO_SPI_PRINT_RESULT
     plo FCALL_REG
     sep FCALL_REG
     
-    ldi NEW_LINE.0  ;print newline
+    ldi SPI_WRITE_STR1.0        ;load the SPI_WRITE_STR1 address to R6
+    plo R6
+    ldi SPI_WRITE_STR1.1
+    phi R6
+    
+    dec R8
+    dec R7
+    
+    ghi R7
+    lbnz SPI_WRITE_PRINT_RECEIVED
+    glo R7
+    lbnz SPI_WRITE_PRINT_RECEIVED
+    
+    ldi NEW_LINE.0        ;load the NEW_LINE's address to R6
     plo R6
     ldi NEW_LINE.1
     phi R6
-	
-    ldi PRINT.0     ;prepare to call PRINT
+    
+    ldi PRINT.0         ;prepare to call PRINT
     plo CALL_REG
     ldi PRINT.1
     phi CALL_REG
     
     ldi FCALL.0
     plo FCALL_REG
-    sep FCALL_REG
-    
-IO_SPI_TRANSFER_END
-    inc STACK_REG
-    inc STACK_REG
-    inc STACK_REG
-    inc STACK_REG
-    
+    sep FCALL_REG       ;call PRINT
+
+SPI_WRITE_END
+    glo R12
+    adi 8
+    plo STACK_REG
+    ghi R12
+    adci 0
+    phi STACK_REG
+
     sep RETURN
 ;----------------------------------------------
 
@@ -6185,7 +6402,7 @@ NEW_LINE
 COMMAND_LIST
     db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
     db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0
-    db "spi_init",0,"spi_transfer",0,0
+    db "spi_init",0,"spi_write",0,0
 COMMAND_FUNC_LIST
     db FUNC_TEST.0,FUNC_TEST.1
     db LET_STATEMENT.0,LET_STATEMENT.1
@@ -6200,7 +6417,7 @@ COMMAND_FUNC_LIST
     db IO_WRITE.0,IO_WRITE.1
     db IO_READ.0,IO_READ.1
     db IO_SPI_INIT.0,IO_SPI_INIT.1
-    db IO_SPI_TRANSFER.0,IO_SPI_TRANSFER.1
+    db SPI_WRITE.0,SPI_WRITE.1
 UNKNOWN_COMMAND
     db "Unknown command.\r\n",0
 TEST_RESP

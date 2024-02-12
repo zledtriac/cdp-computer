@@ -73,7 +73,7 @@
    0016   f8 30             ldi DMA_ADDRESS.1
    0018   b0                phi DMA_REG
                             
-   0019   c0 18 aa          lbr MAIN_PROGRAM
+   0019   c0 19 80          lbr MAIN_PROGRAM
                             
                         ;-FUNCTION CALL HELPER-------------------------
                         ;-WHERE TO JUMP-(CALL_REG)---------------------
@@ -223,9 +223,9 @@
    017a   f8 00             ldi 00h             ;put 0 to the endof the string
    017c   57                str R7
                             
-   017d   f8 3b             ldi NEW_LINE.0      ;load the address of CRLF string
+   017d   f8 11             ldi NEW_LINE.0      ;load the address of CRLF string
    017f   a6                plo R6
-   0180   f8 19             ldi NEW_LINE.1
+   0180   f8 1a             ldi NEW_LINE.1
    0182   b6                phi R6
                             
    0183   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -4560,9 +4560,9 @@
    120e   88                glo R8
    120f   ca 11 92          lbnz HEXVIEWER_PRINT_STR_LOOP
                             
-   1212   f8 3b             ldi NEW_LINE.0     ;prepare to print a space
+   1212   f8 11             ldi NEW_LINE.0     ;prepare to print a space
    1214   a6                plo R6
-   1215   f8 19             ldi NEW_LINE.1
+   1215   f8 1a             ldi NEW_LINE.1
    1217   b6                phi R6
                         	
    1218   f8 52             ldi PRINT.0         ;prepare to call PRINT
@@ -5236,9 +5236,9 @@
    152c   ae                plo FCALL_REG
    152d   de                sep FCALL_REG
                             
-   152e   f8 3b             ldi NEW_LINE.0  ;print newline
+   152e   f8 11             ldi NEW_LINE.0  ;print newline
    1530   a6                plo R6
-   1531   f8 19             ldi NEW_LINE.1
+   1531   f8 1a             ldi NEW_LINE.1
    1533   b6                phi R6
                         	
    1534   f8 52             ldi PRINT.0     ;prepare to call PRINT
@@ -5333,14 +5333,14 @@
    159c   f8 00             ldi 0
    159e   55                str R5
                             
-   159f   f8 b5             ldi COMMAND_FUNC_LIST.0
+   159f   f8 88             ldi COMMAND_FUNC_LIST.0
    15a1   a5                plo R5
-   15a2   f8 19             ldi COMMAND_FUNC_LIST.1
+   15a2   f8 1a             ldi COMMAND_FUNC_LIST.1
    15a4   b5                phi R5
                             
-   15a5   f8 3e             ldi COMMAND_LIST.0
+   15a5   f8 14             ldi COMMAND_LIST.0
    15a7   a9                plo R9
-   15a8   f8 19             ldi COMMAND_LIST.1
+   15a8   f8 1a             ldi COMMAND_LIST.1
    15aa   b9                phi R9
                             
    15ab                 STATEMENT_SEARCHLOOP
@@ -5965,9 +5965,9 @@
    17dd   ae                plo FCALL_REG
    17de   de                sep FCALL_REG
                             
-   17df   f8 3b             ldi NEW_LINE.0  ;print newline
+   17df   f8 11             ldi NEW_LINE.0  ;print newline
    17e1   a6                plo R6
-   17e2   f8 19             ldi NEW_LINE.1
+   17e2   f8 1a             ldi NEW_LINE.1
    17e4   b6                phi R6
                         	
    17e5   f8 52             ldi PRINT.0     ;prepare to call PRINT
@@ -6029,329 +6029,547 @@
    1813                 IO_SPI_TRANSFER
    1813   ef                sex STACK_REG
                             
-   1814   f8 00             ldi 0
-   1816   73                stxd
+   1814   86                glo R6
+   1815   73                stxd
+   1816   96                ghi R6
    1817   73                stxd
-   1818   73                stxd
-   1819   73                stxd        ;+1 data
                             
-   181a   8f                glo STACK_REG
-   181b   a5                plo R5
-   181c   9f                ghi STACK_REG
-   181d   b5                phi R5
-   181e   15                inc R5
+   1818   87                glo R7
+   1819   73                stxd
+   181a   97                ghi R7
+   181b   73                stxd
                             
-   181f   f8 65             ldi EXPRESSION.0
-   1821   ad                plo CALL_REG
-   1822   f8 09             ldi EXPRESSION.1
-   1824   bd                phi CALL_REG
+   181c   88                glo R8
+   181d   73                stxd
+   181e   98                ghi R8
+   181f   73                stxd
                             
-   1825   f8 00             ldi FCALL.0
-   1827   ae                plo FCALL_REG
-   1828   de                sep FCALL_REG
+   1820   f8 09             ldi PORTA.0
+   1822   a6                plo R6
+   1823   f8 21             ldi PORTA.1
+   1825   b6                phi R6
                             
-   1829   f8 09             ldi PORTA.0
-   182b   a6                plo R6
-   182c   f8 21             ldi PORTA.1
-   182e   b6                phi R6
+   1826   f8 0d             ldi INPB.0
+   1828   a7                plo R7
+   1829   f8 21             ldi INPB.1
+   182b   b7                phi R7
                             
-   182f   f8 0d             ldi INPB.0
-   1831   a7                plo R7
-   1832   f8 21             ldi INPB.1
-   1834   b7                phi R7
+   182c   f8 08             ldi 8
+   182e   a8                plo R8
                             
-   1835   f8 08             ldi 8
-   1837   a8                plo R8
+   182f   e6                sex R6
                             
-   1838   e6                sex R6
+   1830                 IO_SPI_MAINLOOP
+   1830   06                ldn R6                  ;16
+   1831   fa fc             ani 0FCh                ;16
+   1833   56                str R6                  ;16
                             
-   1839                 IO_SPI_MAINLOOP
-   1839   06                ldn R6                  ;16
-   183a   fa fc             ani 0FCh                ;16
-   183c   56                str R6                  ;16
-                            
-   183d   05                ldn R5                  ;16
-   183e   fa 80             ani 080h                ;16
-   1840   c2 18 48          lbz IO_SPI_SENDZERO     ;24
+   1834   85                glo R5                  ;16
+   1835   fa 80             ani 080h                ;16
+   1837   c2 18 3f          lbz IO_SPI_SENDZERO     ;24
                             
                             ;send one
-   1843   06                ldn R6                  ;16
-   1844   f9 01             ori 01h                 ;16
-   1846   30 4d             br IO_SPI_STORE_R       ;16 - !!
+   183a   06                ldn R6                  ;16
+   183b   f9 01             ori 01h                 ;16
+   183d   30 44             br IO_SPI_STORE_R       ;16 - !!
                         
-   1848                 IO_SPI_SENDZERO
+   183f                 IO_SPI_SENDZERO
                             ;send zero
-   1848   06                ldn R6                  ;16
-   1849   fa fe             ani 0FEh                ;16
-   184b   f9 00             ori 0                   ;16
+   183f   06                ldn R6                  ;16
+   1840   fa fe             ani 0FEh                ;16
+   1842   f9 00             ori 0                   ;16
                         
-   184d                 IO_SPI_STORE_R
-   184d   56                str R6                  ;16
+   1844                 IO_SPI_STORE_R
+   1844   56                str R6                  ;16
                             
-   184e   62                out 2                   ;16  --- 184
-   184f   26                dec R6                  ;16
+   1845   62                out 2                   ;16  --- 184
+   1846   26                dec R6                  ;16
                             
-   1850                 IO_SPI_SAMPLING
-   1850   e7                sex R7                  ;16
-   1851   6b                inp 3                   ;16
-   1852   f6                shr                     ;16
+   1847                 IO_SPI_SAMPLING
+   1847   c4                nop
+   1848   c4                nop
+   1849   f9 00             ori 0                   ;64
                             
-   1853   c4                nop
-   1854   c4                nop
-   1855   f9 00             ori 0                   ;64
+   184b   e7                sex R7                  ;16
+   184c   6b                inp 3                   ;16
+   184d   f6                shr                     ;16
                             
-   1857   05                ldn R5                  ;16
-   1858   7e                shlc                    ;16
-   1859   55                str R5                  ;16
+   184e   85                glo R5                  ;16
+   184f   7e                shlc                    ;16
+   1850   a5                plo R5                  ;16
                         
-   185a   06                ldn R6                  ;16
-   185b   f9 02             ori 02h                 ;16
+   1851   06                ldn R6                  ;16
+   1852   f9 02             ori 02h                 ;16
                                         
-   185d   56                str R6                  ;16
+   1854   56                str R6                  ;16
                             
-   185e   e6                sex R6                  ;16
-   185f   62                out 2                   ;16  --- 256
-   1860   26                dec R6                  ;16
+   1855   e6                sex R6                  ;16
+   1856   62                out 2                   ;16  --- 256
+   1857   26                dec R6                  ;16
                             
-   1861   28                dec R8                  ;16
-   1862   88                glo R8                  ;16
-   1863   ca 18 39          lbnz IO_SPI_MAINLOOP    ;24  --- 72
+   1858   28                dec R8                  ;16
+   1859   88                glo R8                  ;16
+   185a   ca 18 30          lbnz IO_SPI_MAINLOOP    ;24  --- 72
                             
-   1866                 IO_SPI_FINISH
-   1866   06                ldn R6                  ;16
-   1867   fa fc             ani 0FCh                ;16
-   1869   56                str R6                  ;16
+   185d                 IO_SPI_FINISH
+   185d   06                ldn R6                  ;16
+   185e   fa fc             ani 0FCh                ;16
+   1860   56                str R6                  ;16
                             
-   186a   c4                nop                     
-   186b   c4                nop
-   186c   c4                nop
-   186d   c4                nop
-   186e   c4                nop                     ;120
+   1861   c4                nop                     
+   1862   c4                nop
+   1863   c4                nop
+   1864   c4                nop
+   1865   c4                nop                     ;120
                                 
-   186f   62                out 2                   ;16
-   1870   26                dec R6
+   1866   62                out 2                   ;16
+   1867   26                dec R6
                             
-   1871                 IO_SPI_PRINT_RESULT
-   1871   f8 69             ldi IO_READ_STR1.0  ;print IO_READ_STR1
-   1873   a6                plo R6
-   1874   f8 17             ldi IO_READ_STR1.1
-   1876   b6                phi R6
-                        	
-   1877   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   1879   ad                plo CALL_REG
-   187a   f8 01             ldi PRINT.1
-   187c   bd                phi CALL_REG
+   1868                 IO_SPI_TRANSFER_END
+   1868   ef                sex STACK_REG
+   1869   60                irx
                             
-   187d   f8 00             ldi FCALL.0
-   187f   ae                plo FCALL_REG
-   1880   de                sep FCALL_REG
+   186a   72                ldxa
+   186b   b8                phi R8
+   186c   72                ldxa
+   186d   a8                plo R8
                             
-   1881   85                glo R5
-   1882   a4                plo R4
-   1883   95                ghi R5
-   1884   b4                phi R4
+   186e   72                ldxa
+   186f   b7                phi R7
+   1870   72                ldxa
+   1871   a7                plo R7
                             
-   1885   f8 02             ldi 2                                   ;set number of digits to 2
-   1887   a5                plo R5
+   1872   72                ldxa
+   1873   b6                phi R6
+   1874   f0                ldx
+   1875   a6                plo R6
+                            
+   1876   de                sep RETURN
+                        ;----------------------------------------------
+                        
+                        ;-SPI-WRITE------------------------------------
+   1877                 SPI_WRITE_STR1
+   1877   2c 20             db ", "
+   1879                 SPI_WRITE_STR2
+   1879   30 78 00          db "0x",0
+   187c                 SPI_WRITE_STR3
+   187c   52 65 63 65       db "Received: ",0
+   1880   69 76 65 64   
+   1884   3a 20 00      
+                            
+   1887                 SPI_WRITE
+   1887   ef                sex STACK_REG
+                            
    1888   f8 00             ldi 0
-   188a   b5                phi R5
+   188a   73                stxd
+   188b   73                stxd
+   188c   73                stxd
+   188d   73                stxd        ;+5 temp
                             
-   188b   f8 22             ldi PRINT_HEX.0                         ;print address in hexadecimal
-   188d   ad                plo CALL_REG
-   188e   f8 04             ldi PRINT_HEX.1
-   1890   bd                phi CALL_REG
+   188e   73                stxd
+   188f   73                stxd
+   1890   73                stxd
+   1891   73                stxd        ;+1 device
                             
-   1891   f8 00             ldi FCALL.0
-   1893   ae                plo FCALL_REG
-   1894   de                sep FCALL_REG
+   1892   8f                glo STACK_REG           ;store stack
+   1893   ac                plo R12
+   1894   9f                ghi STACK_REG
+   1895   bc                phi R12
                             
-   1895   f8 3b             ldi NEW_LINE.0  ;print newline
-   1897   a6                plo R6
-   1898   f8 19             ldi NEW_LINE.1
-   189a   b6                phi R6
-                        	
-   189b   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   1896   8f                glo STACK_REG
+   1897   a5                plo R5
+   1898   9f                ghi STACK_REG
+   1899   b5                phi R5
+   189a   15                inc R5
+                            
+   189b   f8 65             ldi EXPRESSION.0            ;read the device number
    189d   ad                plo CALL_REG
-   189e   f8 01             ldi PRINT.1
+   189e   f8 09             ldi EXPRESSION.1
    18a0   bd                phi CALL_REG
                             
    18a1   f8 00             ldi FCALL.0
    18a3   ae                plo FCALL_REG
    18a4   de                sep FCALL_REG
                             
-   18a5                 IO_SPI_TRANSFER_END
-   18a5   1f                inc STACK_REG
-   18a6   1f                inc STACK_REG
-   18a7   1f                inc STACK_REG
-   18a8   1f                inc STACK_REG
+   18a5   05                ldn R5                      ;limit it to 7
+   18a6   fa 07             ani 07h
+   18a8   55                str R5
                             
-   18a9   de                sep RETURN
+   18a9   44                lda R4                      ;check if R4 has a comma
+   18aa   fb 2c             xri 44
+   18ac   ca 19 77          lbnz SPI_WRITE_END          ;if not then end.
+                            
+   18af   8f                glo STACK_REG
+   18b0   fc 05             adi 5
+   18b2   a5                plo R5
+   18b3   9f                ghi STACK_REG
+   18b4   7c 00             adci 0
+   18b6   b5                phi R5
+                            
+   18b7   f8 00             ldi 0                   ;this is the counter
+   18b9   ab                plo R11
+   18ba   bb                phi R11
+                            
+   18bb                 SPI_WRITE_COLLECTING
+   18bb   f8 65             ldi EXPRESSION.0        ;read the next data
+   18bd   ad                plo CALL_REG
+   18be   f8 09             ldi EXPRESSION.1
+   18c0   bd                phi CALL_REG
+                            
+   18c1   f8 00             ldi FCALL.0
+   18c3   ae                plo FCALL_REG
+   18c4   de                sep FCALL_REG
+                            
+   18c5   05                ldn R5                  ;store it to stack
+   18c6   73                stxd
+                            
+   18c7   1b                inc R11                 ;increment R11
+                            
+   18c8   44                lda R4                          ;check if the next char is comma
+   18c9   fb 2c             xri 44
+   18cb   c2 18 bb          lbz SPI_WRITE_COLLECTING        ;if it is then get the next data
+                            
+   18ce                 SPI_WRITE_PREPARE
+   18ce   f8 0b             ldi PORTC.0                     ;set R6 to PORTC
+   18d0   a6                plo R6
+   18d1   f8 21             ldi PORTC.1
+   18d3   b6                phi R6
+                            
+   18d4   e6                sex R6                          ;from now on we use R6 as X register
+                            
+   18d5   f8 fd             ldi 0FDh                         ;setup R6 initial state
+   18d7   f6                shr
+   18d8   f9 80             ori 080h
+   18da   56                str R6
+                            
+   18db   8c                glo R12                         ;set R8 to R12
+   18dc   a8                plo R8
+   18dd   9c                ghi R12
+   18de   b8                phi R8
+                            
+   18df   8c                glo R12                   ;set R5 to device
+   18e0   a5                plo R5
+   18e1   9c                ghi R12
+   18e2   b5                phi R5
+   18e3   15                inc R5
+                            
+   18e4   05                ldn R5                          ;store device number to R7
+   18e5   a7                plo R7
+                            
+   18e6                 SPI_WRITE_SELECTING
+   18e6   87                glo R7
+   18e7   c2 18 f1          lbz SPI_WRITE_CONTINUE          ;if R7 is 0 then continue
+                            
+   18ea   27                dec R7                          ;else shift R6 to left with carry
+   18eb   f0                ldx
+   18ec   7e                shlc
+   18ed   56                str R6
+   18ee   c0 18 e6          lbr SPI_WRITE_SELECTING
+                            
+   18f1                 SPI_WRITE_CONTINUE
+   18f1   8b                glo R11
+   18f2   a7                plo R7                  ;counter for transfer
+   18f3   9b                ghi R11
+   18f4   b7                phi R7
+                            
+   18f5   64                out 4                   ;select the device!
+   18f6   26                dec R6
+                            
+   18f7                 SPI_WRITE_TRANSFERING
+   18f7   08                ldn R8                      ;send data
+   18f8   a5                plo R5
+                            
+   18f9   f8 13             ldi IO_SPI_TRANSFER.0
+   18fb   ad                plo CALL_REG
+   18fc   f8 18             ldi IO_SPI_TRANSFER.1
+   18fe   bd                phi CALL_REG
+                            
+   18ff   f8 00             ldi FCALL.0
+   1901   ae                plo FCALL_REG
+   1902   de                sep FCALL_REG
+                            
+   1903   85                glo R5
+   1904   58                str R8                      ;store the received data
+                            
+   1905   28                dec R8                      ;decrement R8
+   1906   27                dec R7                      ;decrement R7
+                            
+   1907   97                ghi R7                          ;if R7 is not 0 then jump to SPI_WRITE_TRANSFERING
+   1908   ca 18 f7          lbnz SPI_WRITE_TRANSFERING
+   190b   87                glo R7
+   190c   ca 18 f7          lbnz SPI_WRITE_TRANSFERING
+                            
+   190f   e6                sex R6
+   1910   f8 ff             ldi 0FFh
+   1912   56                str R6
+                            
+   1913   64                out R4
+   1914   26                dec R6
+                            
+   1915   f8 7c             ldi SPI_WRITE_STR3.0        ;load the SPI_WRITE_STR3's address to R6
+   1917   a6                plo R6
+   1918   f8 18             ldi SPI_WRITE_STR3.1
+   191a   b6                phi R6
+                            
+   191b   f8 52             ldi PRINT.0                 ;prepare to call PRINT
+   191d   ad                plo CALL_REG
+   191e   f8 01             ldi PRINT.1
+   1920   bd                phi CALL_REG
+                            
+   1921   f8 00             ldi FCALL.0
+   1923   ae                plo FCALL_REG
+   1924   de                sep FCALL_REG               ;call PRINT
+                            
+   1925   f8 79             ldi SPI_WRITE_STR2.0        ;load the SPI_WRITE_STR2's address to R6
+   1927   a6                plo R6
+   1928   f8 18             ldi SPI_WRITE_STR2.1
+   192a   b6                phi R6
+                            
+   192b   8b                glo R11                     ;use R7 as counter again
+   192c   a7                plo R7
+   192d   9b                ghi R11
+   192e   b7                phi R7
+                            
+   192f   8c                glo R12                     ;set R8 to R12 to point ot the datas
+   1930   a8                plo R8                      
+   1931   9c                ghi R12
+   1932   b8                phi R8
+                            
+   1933                 SPI_WRITE_PRINT_RECEIVED
+   1933   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   1935   ad                plo CALL_REG
+   1936   f8 01             ldi PRINT.1
+   1938   bd                phi CALL_REG
+                            
+   1939   f8 00             ldi FCALL.0
+   193b   ae                plo FCALL_REG
+   193c   de                sep FCALL_REG       ;call PRINT
+                            
+   193d   8c                glo R12
+   193e   fc 05             adi 5
+   1940   a4                plo R4
+   1941   9c                ghi R12
+   1942   7c 00             adci 0
+   1944   b4                phi R4
+                            
+   1945   08                ldn R8              ;load data from R8 address
+   1946   54                str R4              ;store it to temp
+                            
+   1947   f8 02             ldi 2               ;set number of digits to 2
+   1949   a5                plo R5
+   194a   f8 00             ldi 0
+   194c   b5                phi R5
+                            
+   194d   f8 22             ldi PRINT_HEX.0     ;print address in hexadecimal
+   194f   ad                plo CALL_REG
+   1950   f8 04             ldi PRINT_HEX.1
+   1952   bd                phi CALL_REG
+                            
+   1953   f8 00             ldi FCALL.0
+   1955   ae                plo FCALL_REG
+   1956   de                sep FCALL_REG
+                            
+   1957   f8 77             ldi SPI_WRITE_STR1.0        ;load the SPI_WRITE_STR1 address to R6
+   1959   a6                plo R6
+   195a   f8 18             ldi SPI_WRITE_STR1.1
+   195c   b6                phi R6
+                            
+   195d   28                dec R8
+   195e   27                dec R7
+                            
+   195f   97                ghi R7
+   1960   ca 19 33          lbnz SPI_WRITE_PRINT_RECEIVED
+   1963   87                glo R7
+   1964   ca 19 33          lbnz SPI_WRITE_PRINT_RECEIVED
+                            
+   1967   f8 11             ldi NEW_LINE.0        ;load the NEW_LINE's address to R6
+   1969   a6                plo R6
+   196a   f8 1a             ldi NEW_LINE.1
+   196c   b6                phi R6
+                            
+   196d   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   196f   ad                plo CALL_REG
+   1970   f8 01             ldi PRINT.1
+   1972   bd                phi CALL_REG
+                            
+   1973   f8 00             ldi FCALL.0
+   1975   ae                plo FCALL_REG
+   1976   de                sep FCALL_REG       ;call PRINT
+                        
+   1977                 SPI_WRITE_END
+   1977   8c                glo R12
+   1978   fc 08             adi 8
+   197a   af                plo STACK_REG
+   197b   9c                ghi R12
+   197c   7c 00             adci 0
+   197e   bf                phi STACK_REG
+                        
+   197f   de                sep RETURN
                         ;----------------------------------------------
                         
                         ;-MAIN-----------------------------------------
-   18aa                 MAIN_PROGRAM
-   18aa   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
-   18ac   ad                plo CALL_REG
-   18ad   f8 0e             ldi VAR_LIST_INIT.1
-   18af   bd                phi CALL_REG
+   1980                 MAIN_PROGRAM
+   1980   f8 10             ldi VAR_LIST_INIT.0       ;variable list init
+   1982   ad                plo CALL_REG
+   1983   f8 0e             ldi VAR_LIST_INIT.1
+   1985   bd                phi CALL_REG
                             
-   18b0   f8 00             ldi FCALL.0
-   18b2   ae                plo FCALL_REG
-   18b3   de                sep FCALL_REG
+   1986   f8 00             ldi FCALL.0
+   1988   ae                plo FCALL_REG
+   1989   de                sep FCALL_REG
                             
-   18b4   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
-   18b6   ad                plo CALL_REG
-   18b7   f8 0a             ldi DYN_MEMORY_INIT.1
-   18b9   bd                phi CALL_REG
+   198a   f8 60             ldi DYN_MEMORY_INIT.0     ;heap init
+   198c   ad                plo CALL_REG
+   198d   f8 0a             ldi DYN_MEMORY_INIT.1
+   198f   bd                phi CALL_REG
                             
-   18ba   f8 00             ldi FCALL.0
-   18bc   ae                plo FCALL_REG
-   18bd   de                sep FCALL_REG   ;call heap init
+   1990   f8 00             ldi FCALL.0
+   1992   ae                plo FCALL_REG
+   1993   de                sep FCALL_REG   ;call heap init
                             
-   18be   f8 01             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
-   18c0   a6                plo R6
-   18c1   f8 19             ldi BOOT_MSG.1
-   18c3   b6                phi R6
+   1994   f8 d7             ldi BOOT_MSG.0  ;set the address of the boot msg in R6
+   1996   a6                plo R6
+   1997   f8 19             ldi BOOT_MSG.1
+   1999   b6                phi R6
                         	
-   18c4   f8 52             ldi PRINT.0     ;prepare to call PRINT
-   18c6   ad                plo CALL_REG
-   18c7   f8 01             ldi PRINT.1
-   18c9   bd                phi CALL_REG
+   199a   f8 52             ldi PRINT.0     ;prepare to call PRINT
+   199c   ad                plo CALL_REG
+   199d   f8 01             ldi PRINT.1
+   199f   bd                phi CALL_REG
                             
-   18ca   f8 00             ldi FCALL.0
-   18cc   ae                plo FCALL_REG
-   18cd   de                sep FCALL_REG   ;call PRINT
+   19a0   f8 00             ldi FCALL.0
+   19a2   ae                plo FCALL_REG
+   19a3   de                sep FCALL_REG   ;call PRINT
                         
-   18ce                 ASK_INPUT
-   18ce   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
-   18d0   a7                plo R7
-   18d1   f8 20             ldi INPUT_BUFF.1
-   18d3   b7                phi R7
+   19a4                 ASK_INPUT
+   19a4   f8 00             ldi INPUT_BUFF.0    ;load the address of the buffer to R7
+   19a6   a7                plo R7
+   19a7   f8 20             ldi INPUT_BUFF.1
+   19a9   b7                phi R7
                             
-   18d4   f8 68             ldi READLINE.0      ;prepare to call READLINE
-   18d6   ad                plo CALL_REG
-   18d7   f8 01             ldi READLINE.1
-   18d9   bd                phi CALL_REG
+   19aa   f8 68             ldi READLINE.0      ;prepare to call READLINE
+   19ac   ad                plo CALL_REG
+   19ad   f8 01             ldi READLINE.1
+   19af   bd                phi CALL_REG
                             
-   18da   f8 00             ldi FCALL.0
-   18dc   ae                plo FCALL_REG
-   18dd   de                sep FCALL_REG       ;call READLINE
+   19b0   f8 00             ldi FCALL.0
+   19b2   ae                plo FCALL_REG
+   19b3   de                sep FCALL_REG       ;call READLINE
                             
                             ;Program goes here
-   18de   f8 00             ldi INPUT_BUFF.0
-   18e0   a4                plo R4
-   18e1   f8 20             ldi INPUT_BUFF.1
-   18e3   b4                phi R4
+   19b4   f8 00             ldi INPUT_BUFF.0
+   19b6   a4                plo R4
+   19b7   f8 20             ldi INPUT_BUFF.1
+   19b9   b4                phi R4
                             
-   18e4   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
-   18e6   ad                plo CALL_REG
-   18e7   f8 15             ldi STATEMENT.1
-   18e9   bd                phi CALL_REG
+   19ba   f8 47             ldi STATEMENT.0      ;prepare to call COMMAND_CHECK
+   19bc   ad                plo CALL_REG
+   19bd   f8 15             ldi STATEMENT.1
+   19bf   bd                phi CALL_REG
                             
-   18ea   f8 00             ldi FCALL.0
-   18ec   ae                plo FCALL_REG
-   18ed   de                sep FCALL_REG
+   19c0   f8 00             ldi FCALL.0
+   19c2   ae                plo FCALL_REG
+   19c3   de                sep FCALL_REG
                             ;Program ends here
                             
-   18ee   f8 37             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
-   18f0   a6                plo R6
-   18f1   f8 19             ldi ASK_IN.1
-   18f3   b6                phi R6
+   19c4   f8 0d             ldi ASK_IN.0        ;load the ASK_IN string's address to R6
+   19c6   a6                plo R6
+   19c7   f8 1a             ldi ASK_IN.1
+   19c9   b6                phi R6
                             
-   18f4   f8 52             ldi PRINT.0         ;prepare to call PRINT
-   18f6   ad                plo CALL_REG
-   18f7   f8 01             ldi PRINT.1
-   18f9   bd                phi CALL_REG
+   19ca   f8 52             ldi PRINT.0         ;prepare to call PRINT
+   19cc   ad                plo CALL_REG
+   19cd   f8 01             ldi PRINT.1
+   19cf   bd                phi CALL_REG
                             
-   18fa   f8 00             ldi FCALL.0
-   18fc   ae                plo FCALL_REG
-   18fd   de                sep FCALL_REG       ;call PRINT
+   19d0   f8 00             ldi FCALL.0
+   19d2   ae                plo FCALL_REG
+   19d3   de                sep FCALL_REG       ;call PRINT
                         	
-   18fe   c0 18 ce          lbr ASK_INPUT
+   19d4   c0 19 a4          lbr ASK_INPUT
                         ;----------------------------------------------
                         
                         ;-CONSTANT DATA--------------------------------
-   1901                 BOOT_MSG
-   1901   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
-   1905   2d 43 50 55   
-   1909   20 52 45 53   
-   190d   45 54 2d 2d   
-   1911   2d 0d 0a      
-   1914   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
-   1918   20 2d 20 43   
-   191c   44 50 31 38   
-   1920   30 32 20 54   
-   1924   65 72 6d 69   
-   1928   6e 61 6c 2e   
-   192c   0d 0a 0d 0a   
-   1930   52 45 41 44   
-   1934   59 0d 0a      
-   1937                 ASK_IN
-   1937   0d 0a 3e 00       db "\r\n>",0
-   193b                 NEW_LINE
-   193b   0d 0a 00          db "\r\n",0
-   193e                 COMMAND_LIST
-   193e   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
-   1942   74 00 6c 65   
-   1946   74 00 6d 65   
-   194a   6d 5f 76 69   
-   194e   65 77 00 6d   
-   1952   65 6d 5f 64   
-   1956   65 62 75 67   
-   195a   00 6d 65 6d   
-   195e   5f 61 6c 6c   
-   1962   6f 63 00 6d   
-   1966   65 6d 5f 66   
-   196a   72 65 65 00   
-   196e   6d 65 6d 5f       db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0
-   1972   73 65 74 00   
-   1976   6d 65 6d 5f   
-   197a   77 72 69 74   
-   197e   65 00 64 6d   
-   1982   61 5f 73 65   
-   1986   74 00 65 78   
-   198a   65 63 00 69   
-   198e   6f 5f 77 72   
-   1992   69 74 65 00   
-   1996   69 6f 5f 72   
-   199a   65 61 64 00   
-   199e   73 70 69 5f       db "spi_init",0,"spi_transfer",0,0
-   19a2   69 6e 69 74   
-   19a6   00 73 70 69   
-   19aa   5f 74 72 61   
-   19ae   6e 73 66 65   
-   19b2   72 00 00      
-   19b5                 COMMAND_FUNC_LIST
-   19b5   06 15             db FUNC_TEST.0,FUNC_TEST.1
-   19b7   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
-   19b9   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
-   19bb   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
-   19bd   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
-   19bf   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
-   19c1   5d 16             db MEM_SET.0,MEM_SET.1
-   19c3   83 16             db MEM_WRITE.0,MEM_WRITE.1
-   19c5   3e 16             db DMA_SET.0,DMA_SET.1
-   19c7   b8 16             db EXEC.0,EXEC.1
-   19c9   f7 16             db IO_WRITE.0,IO_WRITE.1
-   19cb   6c 17             db IO_READ.0,IO_READ.1
-   19cd   f8 17             db IO_SPI_INIT.0,IO_SPI_INIT.1
-   19cf   13 18             db IO_SPI_TRANSFER.0,IO_SPI_TRANSFER.1
-   19d1                 UNKNOWN_COMMAND
-   19d1   55 6e 6b 6e       db "Unknown command.\r\n",0
-   19d5   6f 77 6e 20   
-   19d9   63 6f 6d 6d   
-   19dd   61 6e 64 2e   
-   19e1   0d 0a 00      
-   19e4                 TEST_RESP
-   19e4   45 76 65 72       db "Everything is ok!",0
-   19e8   79 74 68 69   
-   19ec   6e 67 20 69   
-   19f0   73 20 6f 6b   
-   19f4   21 00         
+   19d7                 BOOT_MSG
+   19d7   0d 0a 2d 2d       db "\r\n---CPU RESET---\r\n"
+   19db   2d 43 50 55   
+   19df   20 52 45 53   
+   19e3   45 54 2d 2d   
+   19e7   2d 0d 0a      
+   19ea   5a 4c 45 44       db "ZLED - CDP1802 Terminal.\r\n\r\nREADY\r\n"
+   19ee   20 2d 20 43   
+   19f2   44 50 31 38   
+   19f6   30 32 20 54   
+   19fa   65 72 6d 69   
+   19fe   6e 61 6c 2e   
+   1a02   0d 0a 0d 0a   
+   1a06   52 45 41 44   
+   1a0a   59 0d 0a      
+   1a0d                 ASK_IN
+   1a0d   0d 0a 3e 00       db "\r\n>",0
+   1a11                 NEW_LINE
+   1a11   0d 0a 00          db "\r\n",0
+   1a14                 COMMAND_LIST
+   1a14   70 72 69 6e       db "print",0,"let",0,"mem_view",0,"mem_debug",0,"mem_alloc",0,"mem_free",0
+   1a18   74 00 6c 65   
+   1a1c   74 00 6d 65   
+   1a20   6d 5f 76 69   
+   1a24   65 77 00 6d   
+   1a28   65 6d 5f 64   
+   1a2c   65 62 75 67   
+   1a30   00 6d 65 6d   
+   1a34   5f 61 6c 6c   
+   1a38   6f 63 00 6d   
+   1a3c   65 6d 5f 66   
+   1a40   72 65 65 00   
+   1a44   6d 65 6d 5f       db "mem_set",0,"mem_write",0,"dma_set",0,"exec",0,"io_write",0,"io_read",0
+   1a48   73 65 74 00   
+   1a4c   6d 65 6d 5f   
+   1a50   77 72 69 74   
+   1a54   65 00 64 6d   
+   1a58   61 5f 73 65   
+   1a5c   74 00 65 78   
+   1a60   65 63 00 69   
+   1a64   6f 5f 77 72   
+   1a68   69 74 65 00   
+   1a6c   69 6f 5f 72   
+   1a70   65 61 64 00   
+   1a74   73 70 69 5f       db "spi_init",0,"spi_write",0,0
+   1a78   69 6e 69 74   
+   1a7c   00 73 70 69   
+   1a80   5f 77 72 69   
+   1a84   74 65 00 00   
+   1a88                 COMMAND_FUNC_LIST
+   1a88   06 15             db FUNC_TEST.0,FUNC_TEST.1
+   1a8a   a2 0e             db LET_STATEMENT.0,LET_STATEMENT.1
+   1a8c   8b 14             db HEXVIEW_CALLER.0,HEXVIEW_CALLER.1
+   1a8e   b8 0a             db DYN_MEMORY_DEBUG.0,DYN_MEMORY_DEBUG.1
+   1a90   cd 12             db DYN_MEMORY_ALLOC_CALLER.0,DYN_MEMORY_ALLOC_CALLER.1
+   1a92   e8 13             db DYN_MEMORY_FREE_CALLER.0,DYN_MEMORY_FREE_CALLER.1
+   1a94   5d 16             db MEM_SET.0,MEM_SET.1
+   1a96   83 16             db MEM_WRITE.0,MEM_WRITE.1
+   1a98   3e 16             db DMA_SET.0,DMA_SET.1
+   1a9a   b8 16             db EXEC.0,EXEC.1
+   1a9c   f7 16             db IO_WRITE.0,IO_WRITE.1
+   1a9e   6c 17             db IO_READ.0,IO_READ.1
+   1aa0   f8 17             db IO_SPI_INIT.0,IO_SPI_INIT.1
+   1aa2   87 18             db SPI_WRITE.0,SPI_WRITE.1
+   1aa4                 UNKNOWN_COMMAND
+   1aa4   55 6e 6b 6e       db "Unknown command.\r\n",0
+   1aa8   6f 77 6e 20   
+   1aac   63 6f 6d 6d   
+   1ab0   61 6e 64 2e   
+   1ab4   0d 0a 00      
+   1ab7                 TEST_RESP
+   1ab7   45 76 65 72       db "Everything is ok!",0
+   1abb   79 74 68 69   
+   1abf   6e 67 20 69   
+   1ac3   73 20 6f 6b   
+   1ac7   21 00         
                         
-   19f6                     end
-1937  ASK_IN        18ce  ASK_INPUT     0164  BACKSPACE_ACTION    1901  BOOT_MSG  
-000d  CALL_REG      0283  CARRY_SHIFTING    19b5  COMMAND_FUNC_LIST    193e  COMMAND_LIST
+   1ac9                     end
+1a0d  ASK_IN        19a4  ASK_INPUT     0164  BACKSPACE_ACTION    19d7  BOOT_MSG  
+000d  CALL_REG      0283  CARRY_SHIFTING    1a88  COMMAND_FUNC_LIST    1a14  COMMAND_LIST
 028d  DIVISION_LOOP    3000  DMA_ADDRESS    0013  DMA_INIT      0000  DMA_REG   
 163e  DMA_SET       1658  DMA_SET_END    0bf7  DYN_MEMORY_ALLOC    12cd  DYN_MEMORY_ALLOC_CALLER
 137f  DYN_MEMORY_ALLOC_CALLER_END    1302  DYN_MEMORY_ALLOC_CALLER_FAIL    1285  DYN_MEMORY_ALLOC_CALLER_STR1    12bc  DYN_MEMORY_ALLOC_CALLER_STR2
@@ -6383,38 +6601,41 @@
 03fd  INTEGER_MUL_SHMULTIPLICAND    03e9  INTEGER_MUL_SHMULTIPLIER    0262  INTEGER_SHIFT_DR    0001  INTP_REG  
 0002  INTX_REG      0253  INVERT_LOOP2    0337  INVERT_LOOP3    035e  INVERT_LOOP4
 16db  IO_INIT       17b7  IO_PRINT_INPUT    176c  IO_READ       17ef  IO_READ_END
-1769  IO_READ_STR1    1866  IO_SPI_FINISH    17f8  IO_SPI_INIT    1812  IO_SPI_INIT_END
-1839  IO_SPI_MAINLOOP    1871  IO_SPI_PRINT_RESULT    1850  IO_SPI_SAMPLING    1848  IO_SPI_SENDZERO
-184d  IO_SPI_STORE_R    1813  IO_SPI_TRANSFER    18a5  IO_SPI_TRANSFER_END    16f7  IO_WRITE  
-1760  IO_WRITE_END    0ea2  LET_STATEMENT    0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR
-0ecc  LET_STATEMENT_CONTINUE1    0ef2  LET_STATEMENT_CONTINUE2    0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION
-0f52  LET_STATEMENT_FIRSTNODE    0f6e  LET_STATEMENT_FREENODE    0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER
-0edb  LET_STATEMENT_SKIPSPACES    18aa  MAIN_PROGRAM    2100  MEMWRITE_ADDRESS    165d  MEM_SET   
-167e  MEM_SET_END    1683  MEM_WRITE     16b3  MEM_WRITE_END    168a  MEM_WRITE_LOOP
-193b  NEW_LINE      0307  NEXT_BIT      2108  OUTPUT_CTRL    0003  PC_REG    
-2109  PORTA         210a  PORTB         210b  PORTC         0152  PRINT     
-045e  PRINT_CHECK_DIGIT    04ae  PRINT_DEC     0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL
-0502  PRINT_DEC_INVER_LOOP    050d  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX 
-048f  PRINT_HEX_END    0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10       
-000b  R11           000c  R12           0004  R4            0005  R5        
-0006  R6            0007  R7            0008  R8            0009  R9        
-0168  READLINE      018e  READLINE_BACKSPACE    016b  READLINE_LOOP    058b  READ_DEC  
-061c  READ_DEC_END    05a5  READ_DEC_MAIN_LOOP    062e  READ_HEX      066a  READ_HEX_CONTINUE
-069e  READ_HEX_END    068d  READ_HEX_HEXDIGIT    0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP
-0699  READ_HEX_NEXTCHAR    066d  READ_HEX_SHIFTLOOP    06b0  READ_VAR      0711  READ_VAR_CONTINUE
-06d9  READ_VAR_COPYLOOP    0778  READ_VAR_END    074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE
-0763  READ_VAR_NOTFOUND    071a  READ_VAR_SEARCHLOOP    0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR
-000e  RETURN        013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT
-0143  SERIAL_SAVE_BIT    011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START
-02a5  SHIFTING_Q    0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR    ffff  STACK_ADDRESS
-000f  STACK_REG     0000  START         1547  STATEMENT     1564  STATEMENT_COPYLOOP
-1635  STATEMENT_END    162d  STATEMENT_EXEC    1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH
-15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR    15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE
-15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES    1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND
-162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR    01c3  STR_CHARCHECK    01c0  STR_COMPARATOR
-01c9  STR_EQUAL     01d0  STR_INC       02fd  SUBTRACT_FOR_REAL    086e  TERM      
-0895  TERM_DIVIDE    0953  TERM_END      0881  TERM_MAIN     08fa  TERM_MULTIPLY
-094f  TERM_NEXT_CYCLE    19e4  TEST_RESP     14fd  TEST_STR1     0369  THE_END   
-02c7  TRY_SUBTRACTING    19d1  UNKNOWN_COMMAND    2102  VARLIST_COUNT    2104  VARLIST_FIRSTNODE
-2106  VARLIST_LASTNODE    0e10  VAR_LIST_INIT    0e19  VAR_LIST_INIT_LOOP    
+1769  IO_READ_STR1    185d  IO_SPI_FINISH    17f8  IO_SPI_INIT    1812  IO_SPI_INIT_END
+1830  IO_SPI_MAINLOOP    1847  IO_SPI_SAMPLING    183f  IO_SPI_SENDZERO    1844  IO_SPI_STORE_R
+1813  IO_SPI_TRANSFER    1868  IO_SPI_TRANSFER_END    16f7  IO_WRITE      1760  IO_WRITE_END
+0ea2  LET_STATEMENT    0f31  LET_STATEMENT_ADDNODE    0f22  LET_STATEMENT_ADDVAR    0ecc  LET_STATEMENT_CONTINUE1
+0ef2  LET_STATEMENT_CONTINUE2    0f80  LET_STATEMENT_END    0f17  LET_STATEMENT_EXPRESSION    0f52  LET_STATEMENT_FIRSTNODE
+0f6e  LET_STATEMENT_FREENODE    0f07  LET_STATEMENT_MAINLOOP    0f14  LET_STATEMENT_NEXTCHARACTER    0edb  LET_STATEMENT_SKIPSPACES
+1980  MAIN_PROGRAM    2100  MEMWRITE_ADDRESS    165d  MEM_SET       167e  MEM_SET_END
+1683  MEM_WRITE     16b3  MEM_WRITE_END    168a  MEM_WRITE_LOOP    1a11  NEW_LINE  
+0307  NEXT_BIT      2108  OUTPUT_CTRL    0003  PC_REG        2109  PORTA     
+210a  PORTB         210b  PORTC         0152  PRINT         045e  PRINT_CHECK_DIGIT
+04ae  PRINT_DEC     0555  PRINT_DEC_END    055e  PRINT_DEC_FINAL    0502  PRINT_DEC_INVER_LOOP
+050d  PRINT_DEC_MAIN_LOOP    0461  PRINT_DIGIT_LOOP    0422  PRINT_HEX     048f  PRINT_HEX_END
+0473  PRINT_HEX_SHIFT_LOOP1    0449  PRINT_UNTIL_R    000a  R10           000b  R11       
+000c  R12           0004  R4            0005  R5            0006  R6        
+0007  R7            0008  R8            0009  R9            0168  READLINE  
+018e  READLINE_BACKSPACE    016b  READLINE_LOOP    058b  READ_DEC      061c  READ_DEC_END
+05a5  READ_DEC_MAIN_LOOP    062e  READ_HEX      066a  READ_HEX_CONTINUE    069e  READ_HEX_END
+068d  READ_HEX_HEXDIGIT    0696  READ_HEX_HEXDIGITLOWER    064b  READ_HEX_MAINLOOP    0699  READ_HEX_NEXTCHAR
+066d  READ_HEX_SHIFTLOOP    06b0  READ_VAR      0711  READ_VAR_CONTINUE    06d9  READ_VAR_COPYLOOP
+0778  READ_VAR_END    074a  READ_VAR_FOUND    073f  READ_VAR_NEXTNODE    0763  READ_VAR_NOTFOUND
+071a  READ_VAR_SEARCHLOOP    0721  READ_VAR_SEARCHLOOP_CONTINUE    0706  READ_VAR_STRCHAR    000e  RETURN    
+013f  SERIAL_NULL_BIT    012d  SERIAL_READ_START    0139  SERIAL_SAMPLE_BIT    0143  SERIAL_SAVE_BIT
+011b  SERIAL_SEND_BIT    0113  SERIAL_SEND_START    0131  SERIAL_WAIT_START    02a5  SHIFTING_Q
+0276  SHIFT_DR      0314  SHIFT_SUBTRACTOR    1887  SPI_WRITE     18bb  SPI_WRITE_COLLECTING
+18f1  SPI_WRITE_CONTINUE    1977  SPI_WRITE_END    18ce  SPI_WRITE_PREPARE    1933  SPI_WRITE_PRINT_RECEIVED
+18e6  SPI_WRITE_SELECTING    1877  SPI_WRITE_STR1    1879  SPI_WRITE_STR2    187c  SPI_WRITE_STR3
+18f7  SPI_WRITE_TRANSFERING    ffff  STACK_ADDRESS    000f  STACK_REG     0000  START     
+1547  STATEMENT     1564  STATEMENT_COPYLOOP    1635  STATEMENT_END    162d  STATEMENT_EXEC
+1602  STATEMENT_NEXTNODE    159c  STATEMENT_SEARCH    15ab  STATEMENT_SEARCHLOOP    15cb  STATEMENT_SEARCHVAR
+15dd  STATEMENT_SEARCHVARLOOP    15e4  STATEMENT_SEARCHVARLOOP_CONTINUE    15c2  STATEMENT_SKIPCHARS    1556  STATEMENT_SKIPSPACES
+1591  STATEMENT_STRCHAR    160d  STATEMENT_VAR_FOUND    162a  STATEMENT_VAR_NOTFOUND    01aa  STORE_CHAR
+01c3  STR_CHARCHECK    01c0  STR_COMPARATOR    01c9  STR_EQUAL     01d0  STR_INC   
+02fd  SUBTRACT_FOR_REAL    086e  TERM          0895  TERM_DIVIDE    0953  TERM_END  
+0881  TERM_MAIN     08fa  TERM_MULTIPLY    094f  TERM_NEXT_CYCLE    1ab7  TEST_RESP 
+14fd  TEST_STR1     0369  THE_END       02c7  TRY_SUBTRACTING    1aa4  UNKNOWN_COMMAND
+2102  VARLIST_COUNT    2104  VARLIST_FIRSTNODE    2106  VARLIST_LASTNODE    0e10  VAR_LIST_INIT
+0e19  VAR_LIST_INIT_LOOP    
 
