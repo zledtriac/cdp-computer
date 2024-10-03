@@ -1,4 +1,7 @@
 # CDP computer
+<div align="center">
+  <img src="https://github.com/zledtriac/cdp-computer/blob/main/cdpcomputer.png">
+</div>
 This computer is based on the CDP1802 CPU, made for practicing and learning 
 electronics and programming. The computer is similar to the COSMAC ELF but I 
 designed it from scratch. I tried to fully utilize the features of the CPU and 
